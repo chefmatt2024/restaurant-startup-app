@@ -1,0 +1,14 @@
+# Firebase Configuration
+REACT_APP_FIREBASE_API_KEY=AIzaSyDfEzba9busszEbikxRTqWvRTvNRTYe58k
+REACT_APP_FIREBASE_AUTH_DOMAIN=restaurant-startup-app.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=restaurant-startup-app
+REACT_APP_FIREBASE_STORAGE_BUCKET=restaurant-startup-app.firebasestorage.app
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=712703384904
+REACT_APP_FIREBASE_APP_ID=1:712703384904:web:a7ddf9aa118c9e64c7e77d
+REACT_APP_FIREBASE_MEASUREMENT_ID=G-YEMZ8XZT7S
+
+# App Configuration
+REACT_APP_ID=restaurant-startup-app
+
+# Development Mode
+REACT_APP_DEV_MODE=true

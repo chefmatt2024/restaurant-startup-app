@@ -1,0 +1,30 @@
+🚀 BOSTON RESTAURANT BUSINESS PLANNER 🚀
+
+HOW TO START YOUR APP:
+
+✨ EASIEST WAY:
+   Double-click: "🚀 Launch Restaurant App.bat"
+   
+⚡ ALTERNATIVE:
+   Right-click "Launch-App.ps1" -> Run with PowerShell
+
+📱 MANUAL WAY:
+   1. Open Command Prompt
+   2. Type: npm start
+   3. Go to: http://localhost:3000
+
+🎯 WHAT HAPPENS:
+   - Terminal window opens (keep it open!)
+   - Browser opens automatically 
+   - Your restaurant app loads
+   - Start with "Startup Journey" tab
+
+🛑 TO STOP:
+   Press Ctrl+C in the terminal window
+
+❓ PROBLEMS?
+   - Install Node.js from: https://nodejs.org
+   - Run as Administrator if needed
+   - Go to http://localhost:3000 manually
+
+🎉 ENJOY YOUR RESTAURANT PLANNING APP! 

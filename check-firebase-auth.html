@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .step {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .code {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Firebase Authentication Checker</h1>
+        <p>This tool helps you verify if Firebase authentication is properly configured.</p>
+        
+        <div id="status" class="status info">
+            Click "Check Authentication" to test your Firebase setup.
+        </div>
+        
+        <button onclick="checkAuth()">Check Authentication</button>
+        <button onclick="showInstructions()">Show Setup Instructions</button>
+        
+        <div id="instructions" style="display: none;">
+            <h2>📋 Firebase Console Setup Instructions</h2>
+            
+            <div class="step">
+                <h3>Step 1: Access Firebase Console</h3>
+                <p>Go to <a href="https://console.firebase.google.com/" target="_blank">https://console.firebase.google.com/</a></p>
+                <p>Select your project: <strong>restaurant-startup-app</strong></p>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: Enable Email/Password Authentication</h3>
+                <ol>
+                    <li>Click <strong>Authentication</strong> in the left sidebar</li>
+                    <li>Click <strong>Sign-in method</strong> tab</li>
+                    <li>Find <strong>Email/Password</strong> and click on it</li>
+                    <li>Toggle <strong>Enable</strong> to <strong>ON</strong></li>
+                    <li>Click <strong>Save</strong></li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h3>Step 3: Enable Google Authentication</h3>
+                <ol>
+                    <li>In the same <strong>Sign-in method</strong> tab</li>
+                    <li>Find <strong>Google</strong> and click on it</li>
+                    <li>Toggle <strong>Enable</strong> to <strong>ON</strong></li>
+                    <li>Set <strong>Project support email</strong> (your email)</li>
+                    <li>Click <strong>Save</strong></li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h3>Step 4: Add Authorized Domains</h3>
+                <ol>
+                    <li>Go to <strong>Authentication</strong> → <strong>Settings</strong> tab</li>
+                    <li>Scroll to <strong>Authorized domains</strong></li>
+                    <li>Add: <code>localhost</code></li>
+                    <li>Click <strong>Add domain</strong></li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h3>Step 5: Verify Configuration</h3>
+                <p>Your Firebase Console should show:</p>
+                <ul>
+                    <li>✅ <strong>Email/Password</strong>: Enabled</li>
+                    <li>✅ <strong>Google</strong>: Enabled</li>
+                    <li>✅ <strong>Authorized domains</strong>: localhost</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Firebase configuration (same as your app)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfEzba9busszEbikxRTqWvRTvNRTYe58k",
+            authDomain: "restaurant-startup-app.firebaseapp.com",
+            projectId: "restaurant-startup-app",
+            storageBucket: "restaurant-startup-app.firebasestorage.app",
+            messagingSenderId: "712703384904",
+            appId: "1:712703384904:web:a7ddf9aa118c9e64c7e77d",
+            measurementId: "G-YEMZ8XZT7S"
+        };
+
+        function showInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function checkAuth() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('test-results');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Testing Firebase authentication...';
+            resultsDiv.innerHTML = '';
+            
+            try {
+                // Test if Firebase is accessible
+                const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'testpassword123',
+                        returnSecureToken: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error.message === 'EMAIL_EXISTS') {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ Firebase is accessible and Email/Password auth is enabled!';
+                        resultsDiv.innerHTML = '<div class="status success">🎉 Your Firebase authentication is properly configured!</div>';
+                    } else if (data.error.message === 'OPERATION_NOT_ALLOWED') {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '❌ Email/Password authentication is NOT enabled in Firebase Console';
+                        resultsDiv.innerHTML = `
+                            <div class="status error">
+                                <h3>🚨 Action Required:</h3>
+                                <p>Email/Password authentication needs to be enabled in Firebase Console.</p>
+                                <p>Follow the setup instructions above to fix this.</p>
+                            </div>
+                        `;
+                    } else {
+                        statusDiv.className = 'status warning';
+                        statusDiv.textContent = '⚠️ Firebase is accessible but there may be configuration issues';
+                        resultsDiv.innerHTML = `<div class="status warning">Error: ${data.error.message}</div>`;
+                    }
+                } else {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Firebase is accessible and Email/Password auth is enabled!';
+                    resultsDiv.innerHTML = '<div class="status success">🎉 Your Firebase authentication is properly configured!</div>';
+                }
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Cannot connect to Firebase';
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <h3>🚨 Connection Error:</h3>
+                        <p>Cannot connect to Firebase. Check your internet connection and API key.</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
