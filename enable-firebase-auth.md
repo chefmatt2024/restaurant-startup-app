@@ -52,3 +52,5 @@ Click **"Try Anonymously"** to explore the app without creating an account.
 ---
 
 **That's it! The main issue is just enabling the authentication methods in Firebase Console.**
+
+
