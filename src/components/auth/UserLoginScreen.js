@@ -14,9 +14,7 @@ import { useApp } from '../../contexts/AppContext';
 import AuthModal from './AuthModal';
 
 const UserLoginScreen = () => {
-  const { 
-    actions
-  } = useApp();
+  const { actions } = useApp();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register'
@@ -25,6 +23,10 @@ const UserLoginScreen = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   const loadPreviousUsers = useCallback(async () => {
+    if (!actions || !actions.getAllUsers) {
+      return;
+    }
+    
     try {
       setLoading(true);
       const users = await actions.getAllUsers();
@@ -42,6 +44,8 @@ const UserLoginScreen = () => {
   }, [loadPreviousUsers]);
 
   const handleUserSelect = async (user) => {
+    if (!actions) return;
+    
     try {
       actions.setLoading(true);
       
@@ -65,6 +69,8 @@ const UserLoginScreen = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    if (!actions) return;
+    
     try {
       await actions.deleteUserAccount(userId);
       await loadPreviousUsers();
@@ -240,6 +246,8 @@ const UserLoginScreen = () => {
             {/* Anonymous User */}
             <button
               onClick={async () => {
+                if (!actions) return;
+                
                 try {
                   await actions.signInAnonymously();
                 } catch (error) {
@@ -274,6 +282,8 @@ const UserLoginScreen = () => {
             {/* Google Sign In */}
             <button
               onClick={async () => {
+                if (!actions) return;
+                
                 try {
                   await actions.signInWithGoogle();
                 } catch (error) {
