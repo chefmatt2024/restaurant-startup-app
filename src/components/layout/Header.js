@@ -37,7 +37,7 @@ const Header = () => {
       setShowUserDropdown(false);
       actions.showMessage('Success', 'Signed out successfully.', 'success');
     } catch (error) {
-      console.error('Error signing out:', error);
+      // console.error('Error signing out:', error);
       actions.showMessage('Error', 'Failed to sign out. Please try again.', 'error');
     }
   };

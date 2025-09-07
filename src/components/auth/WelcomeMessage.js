@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { 
   CheckCircle, 
@@ -12,7 +12,7 @@ import {
 
 const WelcomeMessage = ({ isOpen, onClose }) => {
   const { state, actions } = useApp();
-  const [currentStep, setCurrentStep] = useState(0);
+  // const [currentStep, setCurrentStep] = useState(0);
 
   const features = [
     {

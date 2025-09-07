@@ -115,7 +115,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         setTimeout(() => setMode('login'), 2000);
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      // console.error('Auth error:', error);
       let errorMessage = 'An error occurred. Please try again.';
       
       if (error.code === 'auth/user-not-found') {
@@ -149,7 +149,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     setError('');
 
     try {
-      const result = await authService.signInWithGoogle();
+      await authService.signInWithGoogle();
       setSuccess('Successfully signed in with Google!');
       
       // Check if this is a new user (Google sign-in can be new or existing)
@@ -159,7 +159,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         handleClose();
       }, 1000);
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      // console.error('Google sign-in error:', error);
       setError('Failed to sign in with Google. Please try again.');
     } finally {
       setIsLoading(false);
@@ -181,7 +181,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
       setSuccess('Account linked successfully!');
       setTimeout(() => handleClose(), 1000);
     } catch (error) {
-      console.error('Link account error:', error);
+      // console.error('Link account error:', error);
       setError('Failed to link account. Please try again.');
     } finally {
       setIsLoading(false);

@@ -125,16 +125,16 @@ export const authService = {
   signInWithGoogle: async () => {
     try {
       if (isFirebaseEnabled && auth) {
-        console.log('Attempting Google sign-in with Firebase...');
+        // console.log('Attempting Google sign-in with Firebase...');
         const provider = new GoogleAuthProvider();
         provider.addScope('email');
         provider.addScope('profile');
         
         const result = await signInWithPopup(auth, provider);
-        console.log('Google sign-in successful:', result.user.email);
+        // console.log('Google sign-in successful:', result.user.email);
         return result;
       } else {
-        console.log('Firebase not enabled, using offline mode for Google sign-in');
+        // console.log('Firebase not enabled, using offline mode for Google sign-in');
         // Offline mode - simulate successful Google sign in
         return Promise.resolve({ 
           user: { 
@@ -146,7 +146,7 @@ export const authService = {
         });
       }
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      // console.error('Google sign-in error:', error);
       throw error;
     }
   },
@@ -616,7 +616,7 @@ export const getAllUsers = async () => {
       
       return users;
     } catch (error) {
-      console.error('Error getting all users:', error);
+      // console.error('Error getting all users:', error);
       return [];
     }
   } else {
@@ -672,7 +672,7 @@ export const deleteUserAccount = async (userId) => {
       
       return true;
     } catch (error) {
-      console.error('Error deleting user account:', error);
+      // console.error('Error deleting user account:', error);
       throw error;
     }
   } else {

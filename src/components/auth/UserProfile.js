@@ -5,7 +5,6 @@ import {
   User, 
   Mail, 
   Calendar, 
-  Save, 
   LogOut, 
   Edit3, 
   X,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const UserProfile = ({ isOpen, onClose }) => {
-  const { state, actions } = useApp();
+  const { state } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,7 +52,7 @@ const UserProfile = ({ isOpen, onClose }) => {
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
-      console.error('Profile update error:', error);
+      // console.error('Profile update error:', error);
       setError('Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
@@ -66,7 +65,7 @@ const UserProfile = ({ isOpen, onClose }) => {
       await authService.signOut();
       onClose();
     } catch (error) {
-      console.error('Sign out error:', error);
+      // console.error('Sign out error:', error);
       setError('Failed to sign out. Please try again.');
     } finally {
       setIsLoading(false);

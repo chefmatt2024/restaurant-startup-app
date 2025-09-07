@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
   Plus, 
@@ -8,8 +8,6 @@ import {
   FileText, 
   Clock,
   Trash2,
-  Edit3,
-  CheckCircle,
   AlertCircle
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
@@ -17,7 +15,6 @@ import AuthModal from './AuthModal';
 
 const UserLoginScreen = () => {
   const { 
-    state, 
     actions
   } = useApp();
   
@@ -27,22 +24,22 @@ const UserLoginScreen = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  useEffect(() => {
-    loadPreviousUsers();
-  }, []);
-
-  const loadPreviousUsers = async () => {
+  const loadPreviousUsers = useCallback(async () => {
     try {
       setLoading(true);
       const users = await actions.getAllUsers();
       setPreviousUsers(users || []);
     } catch (error) {
-      console.error('Error loading previous users:', error);
+      // console.error('Error loading previous users:', error);
       setPreviousUsers([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [actions]);
+
+  useEffect(() => {
+    loadPreviousUsers();
+  }, [loadPreviousUsers]);
 
   const handleUserSelect = async (user) => {
     try {
@@ -60,7 +57,7 @@ const UserLoginScreen = () => {
       actions.showMessage('Info', 'User switching feature coming soon. Please sign in with your email and password.', 'info');
       
     } catch (error) {
-      console.error('Error selecting user:', error);
+      // console.error('Error selecting user:', error);
       actions.showMessage('Error', 'Failed to switch user. Please try again.', 'error');
     } finally {
       actions.setLoading(false);
@@ -73,7 +70,7 @@ const UserLoginScreen = () => {
       await loadPreviousUsers();
       actions.showMessage('Success', 'User account deleted successfully.', 'success');
     } catch (error) {
-      console.error('Error deleting user:', error);
+      // console.error('Error deleting user:', error);
       actions.showMessage('Error', 'Failed to delete user account.', 'error');
     } finally {
       setShowDeleteConfirm(null);
@@ -246,7 +243,7 @@ const UserLoginScreen = () => {
                 try {
                   await actions.signInAnonymously();
                 } catch (error) {
-                  console.error('Anonymous sign-in failed:', error);
+                  // console.error('Anonymous sign-in failed:', error);
                   actions.showMessage('Error', `Anonymous sign-in failed: ${error.message || 'Please try again.'}`, 'error');
                 }
               }}
@@ -280,7 +277,7 @@ const UserLoginScreen = () => {
                 try {
                   await actions.signInWithGoogle();
                 } catch (error) {
-                  console.error('Google sign-in failed:', error);
+                  // console.error('Google sign-in failed:', error);
                   actions.showMessage('Error', `Google sign-in failed: ${error.message || 'Please try again.'}`, 'error');
                 }
               }}

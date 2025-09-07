@@ -1122,22 +1122,22 @@ export const AppProvider = ({ children }) => {
     
     // Save data to Firebase
     saveData: async () => {
-      console.log('Save data called with state:', {
-        userId: state.userId,
-        currentDraftId: state.currentDraftId,
-        isAuthenticated: state.isAuthenticated,
-        draftsCount: state.drafts.length,
-        isLoading: state.isLoading
-      });
+      // console.log('Save data called with state:', {
+      //   userId: state.userId,
+      //   currentDraftId: state.currentDraftId,
+      //   isAuthenticated: state.isAuthenticated,
+      //   draftsCount: state.drafts.length,
+      //   isLoading: state.isLoading
+      // });
       
       if (!state.userId) {
-        console.log('Save failed: User not authenticated');
+        // console.log('Save failed: User not authenticated');
         actions.showMessage('Error', 'Please sign in to save your data.', 'error');
         return;
       }
       
       if (!state.currentDraftId) {
-        console.log('Save failed: No current draft selected');
+        // console.log('Save failed: No current draft selected');
         actions.showMessage('Error', 'No draft selected. Please create or select a draft first.', 'error');
         return;
       }
@@ -1145,11 +1145,11 @@ export const AppProvider = ({ children }) => {
       try {
         actions.setLoading(true);
         const appId = getAppId();
-        console.log('Starting save with:', { userId: state.userId, appId, currentDraftId: state.currentDraftId });
+        // console.log('Starting save with:', { userId: state.userId, appId, currentDraftId: state.currentDraftId });
         
         // Update current draft with latest data
         const currentDraft = getCurrentDraft(state);
-        console.log('Current draft found:', currentDraft);
+        // console.log('Current draft found:', currentDraft);
         if (currentDraft) {
           const updatedDraft = {
             ...currentDraft,
@@ -1159,26 +1159,26 @@ export const AppProvider = ({ children }) => {
             updatedAt: new Date()
           };
           
-          console.log('Saving draft:', updatedDraft.id);
+          // console.log('Saving draft:', updatedDraft.id);
           
           // Save individual draft
           await dbService.saveDraft(state.userId, appId, updatedDraft);
-          console.log('Draft saved successfully');
+          // console.log('Draft saved successfully');
           
           // Save drafts metadata
           const updatedDrafts = state.drafts.map(draft => 
             draft.id === state.currentDraftId ? updatedDraft : draft
           );
           await dbService.saveDraftsMetadata(state.userId, appId, updatedDrafts);
-          console.log('Drafts metadata saved successfully');
+          // console.log('Drafts metadata saved successfully');
           
           actions.showMessage('Success', `Draft "${currentDraft.name}" saved successfully!`, 'success');
         } else {
-          console.log('No current draft found, cannot save');
+          // console.log('No current draft found, cannot save');
           actions.showMessage('Error', 'No current draft found. Please create or select a draft first.', 'error');
         }
       } catch (error) {
-        console.error('Error saving draft:', error);
+        // console.error('Error saving draft:', error);
         actions.showMessage('Error', `Failed to save draft: ${error.message || 'Unknown error'}. Please try again.`, 'error');
       } finally {
         actions.setLoading(false);
@@ -1200,7 +1200,7 @@ export const AppProvider = ({ children }) => {
         const result = await authService.signInWithEmailAndPassword(email, password);
         return result;
       } catch (error) {
-        console.error('Error signing in with email:', error);
+        // console.error('Error signing in with email:', error);
         throw error;
       } finally {
         actions.setLoading(false);
@@ -1213,7 +1213,7 @@ export const AppProvider = ({ children }) => {
         const result = await authService.signInWithGoogle();
         return result;
       } catch (error) {
-        console.error('Error signing in with Google:', error);
+        // console.error('Error signing in with Google:', error);
         throw error;
       } finally {
         actions.setLoading(false);
@@ -1226,7 +1226,7 @@ export const AppProvider = ({ children }) => {
         const result = await authService.signInAnonymously();
         return result;
       } catch (error) {
-        console.error('Error signing in anonymously:', error);
+        // console.error('Error signing in anonymously:', error);
         throw error;
       } finally {
         actions.setLoading(false);
@@ -1245,7 +1245,7 @@ export const AppProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CURRENT_DRAFT_ID, payload: null });
         return true;
       } catch (error) {
-        console.error('Error signing out:', error);
+        // console.error('Error signing out:', error);
         throw error;
       } finally {
         actions.setLoading(false);
@@ -1285,13 +1285,13 @@ export const AppProvider = ({ children }) => {
            const draftsData = await dbService.getDrafts(user.uid, appId);
            
            if (draftsData && draftsData.length > 0) {
-             console.log('Loading existing drafts:', draftsData.length);
+             // console.log('Loading existing drafts:', draftsData.length);
              actions.setDrafts(draftsData);
              // Set the most recent updated draft as current
              const mostRecent = draftsData.reduce((latest, draft) => 
                new Date(draft.updatedAt) > new Date(latest.updatedAt) ? draft : latest
              );
-             console.log('Setting current draft to:', mostRecent.id);
+             // console.log('Setting current draft to:', mostRecent.id);
              actions.setCurrentDraftId(mostRecent.id);
            } else {
              // Check if we should load sample data for new users
@@ -1303,7 +1303,7 @@ export const AppProvider = ({ children }) => {
              
              if (shouldLoadSamples) {
                // Load sample drafts for new users
-               console.log('Loading sample drafts for new user');
+               // console.log('Loading sample drafts for new user');
                const sampleDrafts = createSampleDrafts();
                actions.setDrafts(sampleDrafts);
                actions.setCurrentDraftId(sampleDrafts[0].id);
@@ -1318,7 +1318,7 @@ export const AppProvider = ({ children }) => {
                }, 1000);
              } else {
                // Create first blank draft for production
-               console.log('Creating first blank draft for production user');
+               // console.log('Creating first blank draft for production user');
                actions.createDraft('My First Restaurant Plan');
              }
            }
