@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import Header from '../components/layout/Header';
 import TabNavigation from '../components/layout/TabNavigation';
+import DashboardOverview from '../components/dashboard/DashboardOverview';
 import ExecutiveSummary from '../components/business-plan/ExecutiveSummary';
 import MarketAnalysis from '../components/business-plan/MarketAnalysis';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
@@ -26,6 +27,7 @@ import WelcomeMessage from '../components/auth/WelcomeMessage';
 
 const Dashboard = () => {
   const { state, actions } = useApp();
+  const [showOverview, setShowOverview] = useState(true);
 
   const renderActiveTab = () => {
     switch (state.activeTab) {
@@ -34,7 +36,8 @@ const Dashboard = () => {
       case 'opening-plan':
         return <OpeningPlan />;
       case 'idea-formation':
-        return <IdeaFormation />;
+        
++        return <IdeaFormation />;
       case 'elevator-pitch':
         return <ElevatorPitchBuilder />;
       case 'timeline':
@@ -73,15 +76,45 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-          <TabNavigation />
-          <div className="p-6 lg:p-8">
-            {renderActiveTab()}
+        {/* View Toggle */}
+        <div className="mb-8">
+          <div className="modern-card p-1 inline-flex shadow-lg">
+            <button
+              onClick={() => setShowOverview(true)}
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+                showOverview 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setShowOverview(false)}
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+                !showOverview 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Detailed View
+            </button>
           </div>
         </div>
+
+        {showOverview ? (
+          <DashboardOverview onSwitchToDetailed={() => setShowOverview(false)} />
+        ) : (
+          <div className="modern-card overflow-hidden shadow-2xl">
+            <TabNavigation />
+            <div className="p-6 lg:p-8 bg-gradient-to-br from-white to-gray-50">
+              {renderActiveTab()}
+            </div>
+          </div>
+        )}
       </div>
       <DebugInfo />
       <WelcomeMessage 
