@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, X, Eye, Download, CheckCircle, AlertCircle } from 'lucide-react';
 
-const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFiles = [] }) => {
+const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFiles = [], documentType = 'general' }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [errors, setErrors] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState(existingFiles);
 
   const acceptedTypes = {
     'pdf': 'application/pdf',
@@ -13,10 +14,22 @@ const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFil
     'jpg': 'image/jpeg',
     'jpeg': 'image/jpeg',
     'png': 'image/png',
-    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'xls': 'application/vnd.ms-excel',
+    'txt': 'text/plain'
   };
 
   const maxFileSize = 10 * 1024 * 1024; // 10MB
+
+  // Health permit specific document categories
+  const healthPermitCategories = {
+    'application': 'Application Documents',
+    'plans': 'Site Plans & Specifications',
+    'certifications': 'Certifications & Licenses',
+    'permits': 'Building Permits',
+    'menus': 'Menu & Consumer Advisories',
+    'other': 'Other Required Documents'
+  };
 
   const validateFile = (file) => {
     const errors = [];
@@ -31,6 +44,24 @@ const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFil
     }
     
     return errors;
+  };
+
+  const categorizeHealthPermitDocument = (fileName) => {
+    const name = fileName.toLowerCase();
+    
+    if (name.includes('application') || name.includes('permit') || name.includes('form')) {
+      return 'application';
+    } else if (name.includes('plan') || name.includes('specification') || name.includes('layout') || name.includes('blueprint')) {
+      return 'plans';
+    } else if (name.includes('certificate') || name.includes('servsafe') || name.includes('allergen') || name.includes('license')) {
+      return 'certifications';
+    } else if (name.includes('building') || name.includes('construction') || name.includes('inspection')) {
+      return 'permits';
+    } else if (name.includes('menu') || name.includes('advisory') || name.includes('consumer')) {
+      return 'menus';
+    } else {
+      return 'other';
+    }
   };
 
   const handleFiles = useCallback((files) => {
@@ -59,14 +90,18 @@ const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFil
           const progress = prev[fileId] + 10;
           if (progress >= 100) {
             clearInterval(interval);
-            onUpload(documentId, {
+            const fileData = {
               id: fileId,
               name: file.name,
               type: file.type,
               size: file.size,
               uploadedAt: new Date().toISOString(),
-              url: URL.createObjectURL(file) // In real app, this would be server URL
-            });
+              url: URL.createObjectURL(file), // In real app, this would be server URL
+              category: documentType === 'health-permit' ? categorizeHealthPermitDocument(file.name) : 'general'
+            };
+            
+            setUploadedFiles(prev => [...prev, fileData]);
+            onUpload(documentId, fileData);
             return { ...prev, [fileId]: 100 };
           }
           return { ...prev, [fileId]: progress };
@@ -108,10 +143,26 @@ const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFil
       case 'png':
         return <FileText className="w-8 h-8 text-green-500" />;
       case 'xlsx':
+      case 'xls':
         return <FileText className="w-8 h-8 text-emerald-500" />;
       default:
         return <FileText className="w-8 h-8 text-gray-500" />;
     }
+  };
+
+  const groupFilesByCategory = (files) => {
+    if (documentType !== 'health-permit') {
+      return { 'general': files };
+    }
+    
+    return files.reduce((groups, file) => {
+      const category = file.category || 'other';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(file);
+      return groups;
+    }, {});
   };
 
   const formatFileSize = (bytes) => {
@@ -231,52 +282,66 @@ const DocumentUploader = ({ documentId, requiredDocuments, onUpload, existingFil
 
       {/* Existing Files */}
       {existingFiles.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h4 className="font-medium text-gray-900">Uploaded Files</h4>
-          <div className="grid grid-cols-1 gap-3">
-            {existingFiles.map((file) => (
-              <div key={file.id} className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded-lg">
-                {getFileIcon(file.name)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatFileSize(file.size)} • Uploaded {new Date(file.uploadedAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => window.open(file.url, '_blank')}
-                    className="p-1 text-gray-400 hover:text-blue-600"
-                    title="View file"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = file.url;
-                      link.download = file.name;
-                      link.click();
-                    }}
-                    className="p-1 text-gray-400 hover:text-green-600"
-                    title="Download file"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      // In real app, would call API to delete file
-                      console.log('Delete file:', file.id);
-                    }}
-                    className="p-1 text-gray-400 hover:text-red-600"
-                    title="Delete file"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+          {Object.entries(groupFilesByCategory(existingFiles)).map(([category, files]) => (
+            <div key={category} className="space-y-2">
+              {documentType === 'health-permit' && (
+                <h5 className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-1">
+                  {healthPermitCategories[category] || 'Other Documents'}
+                </h5>
+              )}
+              <div className="grid grid-cols-1 gap-3">
+                {files.map((file) => (
+                  <div key={file.id} className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                    {getFileIcon(file.name)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatFileSize(file.size)} • Uploaded {new Date(file.uploadedAt).toLocaleDateString()}
+                        {file.category && documentType === 'health-permit' && (
+                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            {healthPermitCategories[file.category]}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => window.open(file.url, '_blank')}
+                        className="p-1 text-gray-400 hover:text-blue-600"
+                        title="View file"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = file.url;
+                          link.download = file.name;
+                          link.click();
+                        }}
+                        className="p-1 text-gray-400 hover:text-green-600"
+                        title="Download file"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          // In real app, would call API to delete file
+                          console.log('Delete file:', file.id);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                        title="Delete file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-Uncaught SyntaxError: Unexpected token '<'{
+{
   "projects": {
     "default": "restaurant-startup-app"
   }

@@ -37,7 +37,7 @@ const Dashboard = () => {
         return <OpeningPlan />;
       case 'idea-formation':
         
-+        return <IdeaFormation />;
+        return <IdeaFormation />;
       case 'elevator-pitch':
         return <ElevatorPitchBuilder />;
       case 'timeline':

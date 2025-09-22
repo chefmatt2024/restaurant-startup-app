@@ -23,7 +23,254 @@ const EquipmentPlanning = () => {
   const [showPdfImport, setShowPdfImport] = useState(false);
   const [importedVendors, setImportedVendors] = useState([]);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [plateStyles, setPlateStyles] = useState([]);
+  const [showAddPlateStyle, setShowAddPlateStyle] = useState(false);
+  const [editingPlateStyle, setEditingPlateStyle] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Add/Edit Plate Style Modal
+  const renderAddPlateStyleModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {editingPlateStyle ? 'Edit Plate Style' : 'Add Plate Style'}
+          </h3>
+          <button
+            onClick={() => {
+              setShowAddPlateStyle(false);
+              setEditingPlateStyle(null);
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          
+          const plateStyleData = {
+            name: formData.get('name'),
+            category: formData.get('category'),
+            material: formData.get('material'),
+            size: formData.get('size'),
+            color: formData.get('color'),
+            pattern: formData.get('pattern'),
+            pricePerPiece: parseFloat(formData.get('pricePerPiece')) || 0,
+            quantity: parseInt(formData.get('quantity')) || 0,
+            description: formData.get('description'),
+            sampleImageUrl: formData.get('sampleImageUrl'),
+            vendor: formData.get('vendor'),
+            vendorUrl: formData.get('vendorUrl'),
+            notes: formData.get('notes')
+          };
+          
+          if (editingPlateStyle) {
+            const updatedStyles = plateStyles.map(item => 
+              item.id === editingPlateStyle.id ? { ...item, ...plateStyleData } : item
+            );
+            setPlateStyles(updatedStyles);
+          } else {
+            const newPlateStyle = {
+              id: Date.now().toString(),
+              ...plateStyleData,
+              createdAt: new Date().toISOString()
+            };
+            setPlateStyles([...plateStyles, newPlateStyle]);
+          }
+          
+          setShowAddPlateStyle(false);
+          setEditingPlateStyle(null);
+        }}>
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Plate Style Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    defaultValue={editingPlateStyle?.name || ''}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Classic White Dinner Plate"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    name="category"
+                    defaultValue={editingPlateStyle?.category || 'Dinnerware'}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="Dinnerware">Dinnerware</option>
+                    <option value="Appetizer Plates">Appetizer Plates</option>
+                    <option value="Dessert Plates">Dessert Plates</option>
+                    <option value="Bowls">Bowls</option>
+                    <option value="Cups & Mugs">Cups & Mugs</option>
+                    <option value="Glassware">Glassware</option>
+                    <option value="Flatware">Flatware</option>
+                    <option value="Serving Pieces">Serving Pieces</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                  <input
+                    type="text"
+                    name="material"
+                    defaultValue={editingPlateStyle?.material || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Porcelain, Ceramic, Stoneware"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                  <input
+                    type="text"
+                    name="size"
+                    defaultValue={editingPlateStyle?.size || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., 10 inches, 8 inches"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                  <input
+                    type="text"
+                    name="color"
+                    defaultValue={editingPlateStyle?.color || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., White, Black, Blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pattern</label>
+                  <input
+                    type="text"
+                    name="pattern"
+                    defaultValue={editingPlateStyle?.pattern || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Solid, Floral, Geometric"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Pricing & Quantity */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Pricing & Quantity</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price per Piece ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="pricePerPiece"
+                    defaultValue={editingPlateStyle?.pricePerPiece || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity Needed</label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    defaultValue={editingPlateStyle?.quantity || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sample & Vendor Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Sample & Vendor Information</h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sample Image URL</label>
+                  <input
+                    type="url"
+                    name="sampleImageUrl"
+                    defaultValue={editingPlateStyle?.sampleImageUrl || ''}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com/sample-image.jpg"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Vendor Name</label>
+                    <input
+                      type="text"
+                      name="vendor"
+                      defaultValue={editingPlateStyle?.vendor || ''}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., Restaurant Supply Co."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Vendor URL</label>
+                    <input
+                      type="url"
+                      name="vendorUrl"
+                      defaultValue={editingPlateStyle?.vendorUrl || ''}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://vendor-website.com"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    name="description"
+                    defaultValue={editingPlateStyle?.description || ''}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Additional details about this plate style..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                  <textarea
+                    name="notes"
+                    defaultValue={editingPlateStyle?.notes || ''}
+                    rows={2}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Special notes or considerations..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddPlateStyle(false);
+                  setEditingPlateStyle(null);
+                }}
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {editingPlateStyle ? 'Update Plate Style' : 'Add Plate Style'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 
   // Enhanced Add/Edit Equipment Modal
   const renderAddEquipmentModal = () => (
@@ -2475,6 +2722,7 @@ const EquipmentPlanning = () => {
     { id: 'kitchen', name: 'Kitchen Equipment', icon: ChefHat, equipment: kitchenEquipment },
     { id: 'front-house', name: 'Front of House', icon: Armchair, equipment: frontOfHouseEquipment },
     { id: 'bar', name: 'Bar Equipment', icon: Coffee, equipment: barEquipment },
+    { id: 'plate-styles', name: 'Plate Styles', icon: Utensils, equipment: plateStyles },
     { id: 'small-equipment', name: 'Small Equipment', icon: Package, equipment: smallEquipment },
     { id: 'custom', name: 'Custom Equipment', icon: Plus, equipment: customEquipment },
     { id: 'bid-sheet', name: 'Bid Sheet', icon: FileText, equipment: [] },
@@ -2699,6 +2947,142 @@ const EquipmentPlanning = () => {
           </div>
         )}
 
+        {activeCategory === 'plate-styles' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Plate Styles & Dinnerware</h3>
+              <button
+                onClick={() => setShowAddPlateStyle(true)}
+                className="btn-primary flex items-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Plate Style</span>
+              </button>
+            </div>
+            
+            {plateStyles.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <Utensils className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Plate Styles Added Yet</h3>
+                <p className="text-gray-500 mb-4">Start building your dinnerware collection by adding plate styles.</p>
+                <button
+                  onClick={() => setShowAddPlateStyle(true)}
+                  className="btn-primary"
+                >
+                  Add Your First Plate Style
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {plateStyles.map((plateStyle) => (
+                  <div key={plateStyle.id} className="modern-card p-6 hover-lift">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h4 className="text-lg font-bold text-gray-900 mb-2">{plateStyle.name}</h4>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            {plateStyle.category}
+                          </span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                            {plateStyle.material}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => setEditingPlateStyle(plateStyle)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setPlateStyles(plateStyles.filter(item => item.id !== plateStyle.id))}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {plateStyle.sampleImageUrl && (
+                      <div className="mb-4">
+                        <img
+                          src={plateStyle.sampleImageUrl}
+                          alt={plateStyle.name}
+                          className="w-full h-32 object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Size:</span>
+                        <span className="text-sm font-medium text-gray-900">{plateStyle.size || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Color:</span>
+                        <span className="text-sm font-medium text-gray-900">{plateStyle.color || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Pattern:</span>
+                        <span className="text-sm font-medium text-gray-900">{plateStyle.pattern || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Price per Piece:</span>
+                        <span className="text-sm font-medium text-gray-900">${plateStyle.pricePerPiece?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Quantity:</span>
+                        <span className="text-sm font-medium text-gray-900">{plateStyle.quantity || 0}</span>
+                      </div>
+                      <div className="flex justify-between font-bold">
+                        <span className="text-sm text-gray-600">Total Cost:</span>
+                        <span className="text-sm text-green-600">
+                          ${((plateStyle.pricePerPiece || 0) * (plateStyle.quantity || 0)).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {plateStyle.vendor && (
+                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{plateStyle.vendor}</p>
+                            {plateStyle.vendorUrl && (
+                              <a
+                                href={plateStyle.vendorUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                              >
+                                <span>View Vendor</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {plateStyle.description && (
+                      <p className="text-sm text-gray-600 mb-2">{plateStyle.description}</p>
+                    )}
+                    
+                    {plateStyle.notes && (
+                      <div className="p-2 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                        <p className="text-xs text-yellow-800">{plateStyle.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeCategory === 'small-equipment' && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Small Equipment & Supplies</h3>
@@ -2764,6 +3148,9 @@ const EquipmentPlanning = () => {
 
       {/* Add/Edit Equipment Modal */}
       {showAddEquipment && renderAddEquipmentModal()}
+
+      {/* Plate Styles Modal */}
+      {showAddPlateStyle && renderAddPlateStyleModal()}
 
       {/* PDF Import Modal */}
       {showPdfImport && renderPdfImportModal()}

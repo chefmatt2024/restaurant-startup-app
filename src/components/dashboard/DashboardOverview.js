@@ -398,7 +398,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
           <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <button
               onClick={() => {
                 actions.setActiveTab('startup-journey');
@@ -439,6 +439,20 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               </div>
               <div className="font-bold text-gray-900 text-lg mb-2">Analytics</div>
               <div className="text-sm text-gray-600">View progress & insights</div>
+            </button>
+
+            <button
+              onClick={() => {
+                actions.setActiveTab('documents');
+                if (onSwitchToDetailed) onSwitchToDetailed();
+              }}
+              className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-orange-400 hover:bg-gradient-to-br hover:from-orange-50 hover:to-red-50 transition-all duration-200 text-center group hover-lift"
+            >
+              <div className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div className="font-bold text-gray-900 text-lg mb-2">Health Code</div>
+              <div className="text-sm text-gray-600">Monthly compliance checklist</div>
             </button>
           </div>
         </div>

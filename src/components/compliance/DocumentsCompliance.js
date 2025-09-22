@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
+import DocumentUploader from './DocumentUploader';
+import MonthlyHealthChecklist from './MonthlyHealthChecklist';
+import HealthInspectionTracker from './HealthInspectionTracker';
 import { 
   FileText, 
   Calendar, 
@@ -38,7 +41,7 @@ const DocumentsCompliance = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDocument, setShowAddDocument] = useState(false);
-  const [viewMode, setViewMode] = useState('detailed'); // detailed, checklist, timeline
+  const [viewMode, setViewMode] = useState('detailed'); // detailed, checklist, timeline, health-checklist, inspection-tracker
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState({});
 
@@ -534,40 +537,61 @@ const DocumentsCompliance = () => {
     // Additional Requirements
     {
       id: 'health-permit',
-      title: 'Health Department Permit',
+      title: 'Health Department Permit (Food Service)',
       category: 'Local',
       agency: 'Boston Public Health Commission',
-      description: 'Health inspection and ongoing compliance',
+      description: 'Required for all food service businesses before serving food to the public. Includes certified food manager requirement.',
       deadline: 'Before opening',
       daysFromStart: 100,
-      estimatedCost: 200,
+      estimatedCost: 100,
       processingTime: '3-4 weeks',
       status: 'not-started',
       priority: 'high',
-      website: 'https://www.boston.gov/departments/public-health-commission',
-      documents: ['Health permit application', 'Manager certification'],
+      website: 'https://www.boston.gov/departments/inspectional-services/how-get-food-service-permit',
+      documents: [
+        'Completed food service permit application',
+        'Payment for permit fees',
+        'Four sets of site plans',
+        'Equipment specifications from manufacturer',
+        'Food Plan Review Worksheet',
+        'Menu with consumer advisories (if applicable)',
+        'Building permit signed by inspectors',
+        'Certified Food Manager certificate (ServSafe)',
+        'Allergen certification',
+        'Proof of Commissary with licensed kitchen (for food trucks)',
+        'Use of Premises Permit (if selling on private site)'
+      ],
       icon: Utensils,
       contactInfo: {
-        phone: '617-534-5395',
+        phone: '617-534-5965',
         hours: 'Mon-Fri 9am-5pm',
-        address: '1010 Massachusetts Ave, Boston, MA 02118'
+        address: '1010 Massachusetts Avenue, Boston, MA 02218',
+        email: 'ehpermits@bphc.org'
       },
       templates: [
-        { name: 'Health Permit Application', type: 'PDF', url: '#' },
-        { name: 'ServSafe Study Guide', type: 'PDF', url: '#' }
+        { name: 'Food Service Permit Application', type: 'PDF', url: 'https://www.boston.gov/departments/inspectional-services/how-get-food-service-permit' },
+        { name: 'Food Plan Review Worksheet', type: 'PDF', url: '#' },
+        { name: 'ServSafe Study Guide', type: 'PDF', url: '#' },
+        { name: 'Allergen Certification Guide', type: 'PDF', url: '#' }
       ],
       steps: [
-        'Manager obtains ServSafe certification',
-        'Complete health permit application',
+        'Obtain Certified Food Manager certification (ServSafe)',
+        'Complete food service permit application',
+        'Prepare four sets of site plans',
+        'Gather equipment specifications from manufacturer',
+        'Complete Food Plan Review Worksheet',
+        'Prepare menu with consumer advisories if applicable',
+        'Obtain building permit signed by inspectors',
+        'Submit application with all required documents',
         'Schedule pre-opening inspection',
         'Pass health inspection',
         'Display permit in restaurant'
       ],
-      notes: 'Separate from food service license. Manager must renew ServSafe every 5 years.',
+      notes: 'Annual fee: $100 for food trucks. Manager must renew ServSafe every 5 years. Separate from food service license. Required for all food establishments including restaurants, food trucks, and push carts.',
       dependencies: ['food-service-license'],
       compliance: {
-        renewal: 'Annual permit renewal',
-        penalties: 'Closure for critical violations'
+        renewal: 'Annual permit renewal required',
+        penalties: 'Closure for critical violations, fines for operating without permit'
       }
     },
     {
@@ -682,6 +706,54 @@ const DocumentsCompliance = () => {
       compliance: {
         renewal: 'Annual permit renewal',
         penalties: 'Parking tickets and towing'
+      }
+    },
+    {
+      id: 'site-cleanliness-license',
+      title: 'Site Cleanliness License',
+      category: 'Local',
+      agency: 'Boston Inspectional Services',
+      description: 'Required for all food establishments and businesses using bulk refuse containers',
+      deadline: 'Before opening',
+      daysFromStart: 30,
+      estimatedCost: 50,
+      processingTime: '2-3 weeks',
+      status: 'not-started',
+      priority: 'high',
+      website: 'https://www.boston.gov/departments/inspectional-services/site-cleanliness',
+      documents: [
+        'Site Cleanliness Application',
+        'Site plan with dumpster location',
+        'Maintenance plan and schedule',
+        'Solid waste disposal contract',
+        'Pest control contract',
+        'Public Works license (if dumpster on public way)'
+      ],
+      icon: Shield,
+      contactInfo: {
+        phone: '617-635-5300',
+        hours: 'Mon-Fri 9am-5pm',
+        address: 'Boston Inspectional Services, Boston, MA'
+      },
+      templates: [
+        { name: 'Site Cleanliness Application', type: 'PDF', url: 'https://www.boston.gov/departments/inspectional-services/site-cleanliness' },
+        { name: 'Site Plan Template', type: 'PDF', url: '#' },
+        { name: 'Maintenance Schedule Template', type: 'PDF', url: '#' }
+      ],
+      steps: [
+        'Complete Site Cleanliness Application',
+        'Create site plan showing dumpster location',
+        'Develop maintenance plan and schedule',
+        'Obtain solid waste disposal contract',
+        'Secure pest control contract',
+        'Apply for Public Works license if needed',
+        'Submit application with $50 fee'
+      ],
+      notes: 'Regulates dumpster overflow, wind-blown litter, and rodent activity. Required for all food establishments.',
+      dependencies: ['food-service-license'],
+      compliance: {
+        renewal: 'Annual renewal required',
+        penalties: 'Up to $1000 per day fine after third offense'
       }
     }
   ];
@@ -897,7 +969,7 @@ const DocumentsCompliance = () => {
                   {/* Required Documents */}
                   <div className="mb-4">
                     <h4 className="font-medium text-gray-700 mb-2">Required Documents</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {requirement.documents.map((doc, idx) => (
                         <span
                           key={idx}
@@ -906,6 +978,17 @@ const DocumentsCompliance = () => {
                           {doc}
                         </span>
                       ))}
+                    </div>
+                    
+                    {/* Document Uploader */}
+                    <div className="mt-4">
+                      <DocumentUploader
+                        documentId={requirement.id}
+                        requiredDocuments={requirement.documents}
+                        onUpload={handleFileUpload}
+                        existingFiles={files}
+                        documentType={requirement.id === 'health-permit' ? 'health-permit' : 'general'}
+                      />
                     </div>
                   </div>
 
@@ -983,31 +1066,112 @@ const DocumentsCompliance = () => {
   );
 
   const renderChecklistView = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">Restaurant Launch Checklist</h3>
-      <div className="space-y-3">
-        {bostonRequirements
-          .sort((a, b) => a.daysFromStart - b.daysFromStart)
-          .map((requirement) => (
-            <div key={requirement.id} className="flex items-center space-x-3 p-3 border border-gray-100 rounded">
-              <input
-                type="checkbox"
-                checked={requirement.status === 'approved'}
-                onChange={() => handleStatusUpdate(requirement.id, requirement.status === 'approved' ? 'not-started' : 'approved')}
-                className="h-5 w-5 text-purple-600 rounded"
-              />
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">{requirement.title}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(requirement.priority)} bg-opacity-10`}>
-                    {requirement.priority}
-                  </span>
+    <div className="space-y-6">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Restaurant Launch Checklist</h3>
+        <div className="space-y-3">
+          {bostonRequirements
+            .sort((a, b) => a.daysFromStart - b.daysFromStart)
+            .map((requirement) => (
+              <div key={requirement.id} className="flex items-center space-x-3 p-3 border border-gray-100 rounded">
+                <input
+                  type="checkbox"
+                  checked={requirement.status === 'approved'}
+                  onChange={() => handleStatusUpdate(requirement.id, requirement.status === 'approved' ? 'not-started' : 'approved')}
+                  className="h-5 w-5 text-purple-600 rounded"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{requirement.title}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(requirement.priority)} bg-opacity-10`}>
+                      {requirement.priority}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">{requirement.agency} • ${requirement.estimatedCost.toLocaleString()}</p>
                 </div>
-                <p className="text-sm text-gray-600">{requirement.agency} • ${requirement.estimatedCost.toLocaleString()}</p>
+                <span className="text-sm text-gray-500">{requirement.processingTime}</span>
               </div>
-              <span className="text-sm text-gray-500">{requirement.processingTime}</span>
+            ))}
+        </div>
+      </div>
+
+      {/* Health Permit Special Checklist */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <Utensils className="w-6 h-6 text-green-600" />
+          <h3 className="text-lg font-semibold text-green-800">Health Permit Document Checklist</h3>
+        </div>
+        <p className="text-sm text-green-700 mb-4">
+          Complete checklist for Boston Health Department Permit application. All documents must be submitted together.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <h4 className="font-medium text-green-800">Application Documents</h4>
+            {[
+              'Completed food service permit application',
+              'Payment for permit fees ($100)',
+              'Food Plan Review Worksheet'
+            ].map((doc, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <input type="checkbox" className="h-4 w-4 text-green-600 rounded" />
+                <span className="text-sm text-green-700">{doc}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="space-y-3">
+            <h4 className="font-medium text-green-800">Plans & Specifications</h4>
+            {[
+              'Four sets of site plans',
+              'Equipment specifications from manufacturer',
+              'Building permit signed by inspectors'
+            ].map((doc, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <input type="checkbox" className="h-4 w-4 text-green-600 rounded" />
+                <span className="text-sm text-green-700">{doc}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="space-y-3">
+            <h4 className="font-medium text-green-800">Certifications</h4>
+            {[
+              'Certified Food Manager certificate (ServSafe)',
+              'Allergen certification',
+              'Proof of Commissary (food trucks only)'
+            ].map((doc, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <input type="checkbox" className="h-4 w-4 text-green-600 rounded" />
+                <span className="text-sm text-green-700">{doc}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="space-y-3">
+            <h4 className="font-medium text-green-800">Additional Documents</h4>
+            {[
+              'Menu with consumer advisories (if applicable)',
+              'Use of Premises Permit (private sites)',
+              'Any other required permits'
+            ].map((doc, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <input type="checkbox" className="h-4 w-4 text-green-600 rounded" />
+                <span className="text-sm text-green-700">{doc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="mt-4 p-3 bg-blue-100 border border-blue-200 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium">Important:</p>
+              <p>Submit all documents together to Boston Public Health Commission at 1010 Massachusetts Avenue, Boston, MA 02218. Contact: 617-534-5965 or ehpermits@bphc.org</p>
             </div>
-          ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1115,6 +1279,22 @@ const DocumentsCompliance = () => {
               >
                 Checklist
               </button>
+              <button
+                onClick={() => setViewMode('health-checklist')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'health-checklist' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                Health Code
+              </button>
+              <button
+                onClick={() => setViewMode('inspection-tracker')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'inspection-tracker' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                Inspections
+              </button>
             </div>
             
             <button
@@ -1128,7 +1308,11 @@ const DocumentsCompliance = () => {
         </div>
 
         {/* Requirements List */}
-        {viewMode === 'detailed' ? renderDetailedView() : renderChecklistView()}
+        {viewMode === 'detailed' ? renderDetailedView() : 
+         viewMode === 'checklist' ? renderChecklistView() : 
+         viewMode === 'health-checklist' ? <MonthlyHealthChecklist /> : 
+         viewMode === 'inspection-tracker' ? <HealthInspectionTracker /> : 
+         renderDetailedView()}
 
         {filteredRequirements.length === 0 && viewMode === 'detailed' && (
           <div className="text-center py-12">

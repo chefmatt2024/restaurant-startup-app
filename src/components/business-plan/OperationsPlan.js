@@ -25,13 +25,15 @@ const OperationsPlan = () => {
       { name: 'Business License', agency: 'City of Boston', timeline: '2-3 weeks', cost: 75 },
       { name: 'Building Permit', agency: 'Boston Inspectional Services', timeline: '6-8 weeks', cost: 'Varies' },
       { name: 'Sign Permit', agency: 'Boston Planning Department', timeline: '2-4 weeks', cost: 150 },
-      { name: 'Fire Dept Permit', agency: 'Boston Fire Department', timeline: '1-2 weeks', cost: 100 }
+      { name: 'Fire Dept Permit', agency: 'Boston Fire Department', timeline: '1-2 weeks', cost: 100 },
+      { name: 'Site Cleanliness License', agency: 'Boston Inspectional Services', timeline: '2-3 weeks', cost: 50, website: 'https://www.boston.gov/departments/inspectional-services/site-cleanliness' }
     ],
     inspections: [
       { type: 'Health Inspection', frequency: 'Annual', agency: 'BPHC', criticality: 'High' },
       { type: 'Fire Safety', frequency: 'Annual', agency: 'BFD', criticality: 'High' },
       { type: 'Building Code', frequency: 'As needed', agency: 'ISD', criticality: 'Medium' },
-      { type: 'Liquor Compliance', frequency: 'Quarterly', agency: 'BLB', criticality: 'High' }
+      { type: 'Liquor Compliance', frequency: 'Quarterly', agency: 'BLB', criticality: 'High' },
+      { type: 'Site Cleanliness', frequency: 'Annual', agency: 'ISD', criticality: 'High' }
     ],
     regulations: {
       minimumWage: 15.00, // MA minimum wage for tipped workers

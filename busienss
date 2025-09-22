@@ -448,6 +448,7 @@ const initialProgressData = {
         taxFilings: { completed: false, projectedStartDate: '', projectedEndDate: '', actualStartDate: '', actualEndDate: '', timeNeeded: '', documents: [] },
         quarterlyFinancials: { completed: false, projectedStartDate: '', projectedEndDate: '', actualStartDate: '', actualEndDate: '', timeNeeded: '', documents: [] },
         trashRecyclingCompost: { completed: false, projectedStartDate: '', projectedEndDate: '', actualStartDate: '', actualEndDate: '', timeNeeded: '', documents: [] },
+        siteCleanlinessLicenseRenewal: { completed: false, projectedStartDate: '', projectedEndDate: '', actualStartDate: '', actualEndDate: '', timeNeeded: '', notes: 'Annual renewal required for Site Cleanliness License - regulates dumpster overflow, wind-blown litter, and rodent activity. $50 annual fee. Contact: Boston Inspectional Services 617-635-5300', documents: [] },
         marketingPRActivities: { completed: false, projectedStartDate: '', projectedEndDate: '', actualStartDate: '', actualEndDate: '', timeNeeded: '', documents: [] },
     },
 };
@@ -1351,6 +1352,15 @@ const ProgressTracker = () => {
                             <p className="text-sm text-gray-600 ml-7">Ensure ongoing waste management contracts and practices are in place. (Ref: `0.4 Starting a Restaurant Documents/ stepsRev 4 - Contractors.csv`)</p>
                             <TaskFields stepId="phase5OngoingCompliance" itemId="trashRecyclingCompost" progressData={progressData} handleTaskFieldChange={handleTaskFieldChange} />
                             <DocumentManager stepId="phase5OngoingCompliance" itemId="trashRecyclingCompost" documentName="Waste Management Contracts" progressData={progressData} setProgressData={setProgressData} />
+                        </li>
+                        <li>
+                            <label className={`inline-flex items-center text-gray-800 ${progressData?.phase5OngoingCompliance?.siteCleanlinessLicenseRenewal?.completed ? 'completed-item' : ''}`}>
+                                <input type="checkbox" data-step-id="phase5OngoingCompliance" data-item-id="siteCleanlinessLicenseRenewal" data-field-name="completed" className="form-checkbox h-5 w-5 text-blue-600 rounded-md" onChange={handleTaskFieldChange} checked={progressData?.phase5OngoingCompliance?.siteCleanlinessLicenseRenewal?.completed || false} />
+                                <span className="ml-2">Site Cleanliness License Renewal</span>
+                            </label>
+                            <p className="text-sm text-gray-600 ml-7">Annual renewal required for Site Cleanliness License - regulates dumpster overflow, wind-blown litter, and rodent activity. $50 annual fee. Contact: Boston Inspectional Services 617-635-5300. <a href="https://www.boston.gov/departments/inspectional-services/site-cleanliness" target="_blank" className="text-blue-600 hover:underline">Apply here</a></p>
+                            <TaskFields stepId="phase5OngoingCompliance" itemId="siteCleanlinessLicenseRenewal" progressData={progressData} handleTaskFieldChange={handleTaskFieldChange} />
+                            <DocumentManager stepId="phase5OngoingCompliance" itemId="siteCleanlinessLicenseRenewal" documentName="Site Cleanliness License Renewal" progressData={progressData} setProgressData={setProgressData} />
                         </li>
                         <li>
                             <label className={`inline-flex items-center text-gray-800 ${progressData?.phase5OngoingCompliance?.marketingPRActivities?.completed ? 'completed-item' : ''}`}>
