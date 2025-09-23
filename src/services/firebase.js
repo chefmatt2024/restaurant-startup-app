@@ -544,7 +544,7 @@ export const dbService = {
 
   saveDraftsMetadata: async (userId, appId, draftsArray) => {
     if (isFirebaseEnabled && db && userId) {
-      const metadataRef = doc(db, `artifacts/${appId}/users/${userId}`, 'drafts_metadata');
+      const metadataRef = doc(db, `artifacts/${appId}/users/${userId}/metadata`, 'drafts_metadata');
       await setDoc(metadataRef, { 
         drafts: draftsArray.map(draft => ({
           id: draft.id,

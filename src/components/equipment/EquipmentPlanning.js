@@ -14,7 +14,6 @@ const EquipmentPlanning = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
-  // const [showOnlineSources, setShowOnlineSources] = useState(false);
   const [bidSheet, setBidSheet] = useState([]);
   const [customEquipment, setCustomEquipment] = useState([]);
   const [vendors, setVendors] = useState([]);
@@ -26,7 +25,102 @@ const EquipmentPlanning = () => {
   const [plateStyles, setPlateStyles] = useState([]);
   const [showAddPlateStyle, setShowAddPlateStyle] = useState(false);
   const [editingPlateStyle, setEditingPlateStyle] = useState(null);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showBudgetTracker, setShowBudgetTracker] = useState(false);
+  const [budget, setBudget] = useState({ total: 50000, spent: 0, remaining: 50000 });
+  const [showUrlImport, setShowUrlImport] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importedEquipment, setImportedEquipment] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [showVendorCardImport, setShowVendorCardImport] = useState(false);
+  const [vendorCardImage, setVendorCardImage] = useState(null);
+  const [extractedVendorData, setExtractedVendorData] = useState(null);
+  const [isProcessingCard, setIsProcessingCard] = useState(false);
   const fileInputRef = useRef(null);
+  const vendorCardInputRef = useRef(null);
+
+  // Equipment Templates for Quick Setup
+  const equipmentTemplates = [
+    {
+      id: 'basic-restaurant',
+      name: 'Basic Restaurant Setup',
+      description: 'Essential equipment for a small restaurant',
+      budget: 25000,
+      equipment: [
+        'commercial-range', 'commercial-refrigerator', 'commercial-freezer',
+        'dishwasher', 'pos-system', 'dining-tables', 'dining-chairs',
+        'coffee-maker', 'ice-machine', 'food-prep-table'
+      ]
+    },
+    {
+      id: 'fine-dining',
+      name: 'Fine Dining Restaurant',
+      description: 'Premium equipment for upscale dining',
+      budget: 75000,
+      equipment: [
+        'commercial-range', 'commercial-refrigerator', 'commercial-freezer',
+        'dishwasher', 'pos-system', 'dining-tables', 'dining-chairs',
+        'coffee-maker', 'ice-machine', 'food-prep-table', 'wine-cooler',
+        'chafing-dishes', 'silverware', 'fine-china', 'linen-service'
+      ]
+    },
+    {
+      id: 'fast-casual',
+      name: 'Fast Casual Restaurant',
+      description: 'High-volume equipment for quick service',
+      budget: 40000,
+      equipment: [
+        'commercial-range', 'commercial-refrigerator', 'commercial-freezer',
+        'dishwasher', 'pos-system', 'dining-tables', 'dining-chairs',
+        'coffee-maker', 'ice-machine', 'food-prep-table', 'soda-fountain',
+        'display-case', 'microwave', 'toaster'
+      ]
+    },
+    {
+      id: 'cafe-bakery',
+      name: 'Cafe & Bakery',
+      description: 'Equipment for coffee shop and bakery',
+      budget: 30000,
+      equipment: [
+        'commercial-refrigerator', 'commercial-freezer', 'dishwasher',
+        'pos-system', 'dining-tables', 'dining-chairs', 'coffee-maker',
+        'ice-machine', 'food-prep-table', 'display-case', 'microwave',
+        'toaster', 'blender', 'mixer', 'oven'
+      ]
+    }
+  ];
+
+  // Quick Add Equipment Templates
+  const quickAddTemplates = [
+    {
+      category: 'Kitchen Essentials',
+      items: [
+        { name: 'Commercial Range', cost: 3500, essential: true },
+        { name: 'Commercial Refrigerator', cost: 4500, essential: true },
+        { name: 'Commercial Freezer', cost: 2500, essential: true },
+        { name: 'Dishwasher', cost: 3000, essential: true }
+      ]
+    },
+    {
+      category: 'Front of House',
+      items: [
+        { name: 'POS System', cost: 2500, essential: true },
+        { name: 'Dining Tables (4)', cost: 1200, essential: true },
+        { name: 'Dining Chairs (16)', cost: 1600, essential: true },
+        { name: 'Coffee Maker', cost: 800, essential: true }
+      ]
+    },
+    {
+      category: 'Bar Equipment',
+      items: [
+        { name: 'Ice Machine', cost: 2000, essential: true },
+        { name: 'Beer Cooler', cost: 1500, essential: false },
+        { name: 'Wine Cooler', cost: 1200, essential: false },
+        { name: 'Blender', cost: 300, essential: false }
+      ]
+    }
+  ];
 
   // Add/Edit Plate Style Modal
   const renderAddPlateStyleModal = () => (
@@ -271,6 +365,601 @@ const EquipmentPlanning = () => {
       </div>
     </div>
   );
+
+  // Quick Add Modal
+  const renderQuickAddModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Quick Add Equipment</h3>
+          <button
+            onClick={() => setShowQuickAdd(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Equipment Templates */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Restaurant Templates</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {equipmentTemplates.map(template => (
+                <div key={template.id} className="border rounded-lg p-4 hover:border-blue-500 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="font-semibold text-gray-900">{template.name}</h5>
+                    <span className="text-sm text-gray-600">${template.budget.toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                  <button
+                    onClick={() => applyTemplate(template)}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Apply Template
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Add Categories */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Quick Add by Category</h4>
+            <div className="space-y-4">
+              {quickAddTemplates.map(category => (
+                <div key={category.category} className="border rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-3">{category.category}</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {category.items.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`${category.category}-${index}`}
+                            className="rounded"
+                          />
+                          <label htmlFor={`${category.category}-${index}`} className="text-sm">
+                            {item.name}
+                          </label>
+                        </div>
+                        <span className="text-sm font-medium">${item.cost.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => quickAddEquipment(category.items)}
+                    className="mt-3 w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Add All {category.category}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Business Card Import Modal
+  const renderVendorCardImportModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Add Vendor from Business Card</h3>
+          <button
+            onClick={() => {
+              setShowVendorCardImport(false);
+              setVendorCardImage(null);
+              setExtractedVendorData(null);
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Card Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Business Card Photo
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              {vendorCardImage ? (
+                <div className="space-y-4">
+                  <img
+                    src={URL.createObjectURL(vendorCardImage)}
+                    alt="Business card preview"
+                    className="mx-auto max-h-48 rounded-lg shadow-md"
+                  />
+                  <p className="text-sm text-gray-600">
+                    {isProcessingCard ? 'Processing business card...' : 'Card uploaded successfully'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                  <div>
+                    <p className="text-lg font-medium text-gray-900">Upload Business Card</p>
+                    <p className="text-sm text-gray-600">Take a photo or upload an image of the business card</p>
+                  </div>
+                  <button
+                    onClick={() => vendorCardInputRef.current?.click()}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Choose File
+                  </button>
+                </div>
+              )}
+              
+              <input
+                ref={vendorCardInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleVendorCardUpload}
+                className="hidden"
+              />
+            </div>
+            
+            <div className="mt-4 p-4 bg-green-50 rounded-lg">
+              <h5 className="font-medium text-green-900 mb-2">Tips for best results:</h5>
+              <ul className="text-sm text-green-800 space-y-1">
+                <li>• Ensure good lighting and clear text</li>
+                <li>• Keep the card flat and avoid shadows</li>
+                <li>• Include the entire card in the frame</li>
+                <li>• Supported formats: JPG, PNG, PDF</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Extracted Vendor Data Preview */}
+          {extractedVendorData && (
+            <div className="border rounded-lg p-6 bg-gray-50">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Extracted Vendor Information</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.name}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        name: e.target.value
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.contact.person}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        contact: { ...extractedVendorData.contact, person: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.contact.title}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        contact: { ...extractedVendorData.contact, title: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.contact.phone}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        contact: { ...extractedVendorData.contact, phone: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={extractedVendorData.contact.email}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        contact: { ...extractedVendorData.contact, email: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.contact.website}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        contact: { ...extractedVendorData.contact, website: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <textarea
+                      value={`${extractedVendorData.address.street}, ${extractedVendorData.address.city}, ${extractedVendorData.address.state} ${extractedVendorData.address.zip}`}
+                      onChange={(e) => {
+                        const addressParts = e.target.value.split(', ');
+                        setExtractedVendorData({
+                          ...extractedVendorData,
+                          address: {
+                            street: addressParts[0] || '',
+                            city: addressParts[1] || '',
+                            state: addressParts[2]?.split(' ')[0] || '',
+                            zip: addressParts[2]?.split(' ')[1] || ''
+                          }
+                        });
+                      }}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Specialties</label>
+                    <input
+                      type="text"
+                      value={extractedVendorData.specialties.join(', ')}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        specialties: e.target.value.split(', ').filter(s => s.trim())
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Kitchen Equipment, Refrigeration, Installation"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea
+                      value={extractedVendorData.notes}
+                      onChange={(e) => setExtractedVendorData({
+                        ...extractedVendorData,
+                        notes: e.target.value
+                      })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowVendorCardImport(false);
+                    setVendorCardImage(null);
+                    setExtractedVendorData(null);
+                  }}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addExtractedVendor}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Add Vendor
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // URL Import Modal
+  const renderUrlImportModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Import Equipment from URL</h3>
+          <button
+            onClick={() => {
+              setShowUrlImport(false);
+              setImportUrl('');
+              setImportedEquipment(null);
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          {/* URL Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Equipment URL
+            </label>
+            <div className="flex space-x-3">
+              <input
+                type="url"
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                placeholder="Paste Amazon, WebstaurantStore, or RestaurantSupply.com URL here"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={() => parseEquipmentUrl(importUrl)}
+                disabled={!importUrl || isImporting}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {isImporting ? 'Importing...' : 'Import'}
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Supported sites: Amazon, WebstaurantStore, RestaurantSupply.com
+            </p>
+            
+            {/* Example URLs */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <h5 className="font-medium text-blue-900 mb-2">Example URLs to try:</h5>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-600">•</span>
+                  <span className="text-gray-700">Amazon: https://amazon.com/dp/B08XYZ123</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-600">•</span>
+                  <span className="text-gray-700">WebstaurantStore: https://webstaurantstore.com/12345.html</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-600">•</span>
+                  <span className="text-gray-700">RestaurantSupply: https://restaurantsupply.com/product/123</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Imported Equipment Preview */}
+          {importedEquipment && (
+            <div className="border rounded-lg p-6 bg-gray-50">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Imported Equipment Preview</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Equipment Image */}
+                <div>
+                  <img
+                    src={importedEquipment.imageUrl}
+                    alt={importedEquipment.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span className="font-medium">Rating:</span>
+                    <span>{importedEquipment.rating}/5</span>
+                    <span>({importedEquipment.reviews} reviews)</span>
+                  </div>
+                </div>
+
+                {/* Equipment Details */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={importedEquipment.name}
+                      onChange={(e) => setImportedEquipment({...importedEquipment, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select
+                        value={importedEquipment.category}
+                        onChange={(e) => setImportedEquipment({...importedEquipment, category: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="Cooking">Cooking</option>
+                        <option value="Refrigeration">Refrigeration</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Front of House">Front of House</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Storage">Storage</option>
+                        <option value="Custom">Custom</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                      <input
+                        type="number"
+                        value={importedEquipment.estimatedCost}
+                        onChange={(e) => setImportedEquipment({...importedEquipment, estimatedCost: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea
+                      value={importedEquipment.description}
+                      onChange={(e) => setImportedEquipment({...importedEquipment, description: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                    <textarea
+                      value={importedEquipment.specifications}
+                      onChange={(e) => setImportedEquipment({...importedEquipment, specifications: e.target.value})}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                      <input
+                        type="text"
+                        value={importedEquipment.brand}
+                        onChange={(e) => setImportedEquipment({...importedEquipment, brand: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                      <input
+                        type="text"
+                        value={importedEquipment.model}
+                        onChange={(e) => setImportedEquipment({...importedEquipment, model: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowUrlImport(false);
+                    setImportUrl('');
+                    setImportedEquipment(null);
+                  }}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addImportedEquipment}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Add to Equipment List
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Budget Tracker Modal
+  const renderBudgetTrackerModal = () => {
+    const budgetStatus = calculateBudgetStatus();
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Budget Tracker</h3>
+            <button
+              onClick={() => setShowBudgetTracker(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Budget Overview */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Budget Overview</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget</label>
+                  <input
+                    type="number"
+                    value={budget.total}
+                    onChange={(e) => updateBudget({ ...budget, total: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount Spent</label>
+                  <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-900">
+                    ${budgetStatus.spent.toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Remaining</label>
+                  <div className={`px-3 py-2 rounded-md ${
+                    budgetStatus.isOverBudget ? 'bg-red-100 text-red-900' : 'bg-green-100 text-green-900'
+                  }`}>
+                    ${budgetStatus.remaining.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Budget Usage</span>
+                  <span className="text-sm text-gray-600">{budgetStatus.percentage.toFixed(1)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      budgetStatus.isOverBudget ? 'bg-red-500' : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.min(budgetStatus.percentage, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Equipment Breakdown */}
+            <div>
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Equipment Breakdown</h4>
+              <div className="space-y-2">
+                {bidSheet.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-sm text-gray-600 ml-2">x{item.quantity}</span>
+                    </div>
+                    <span className="font-medium">
+                      ${(item.estimatedCost * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Enhanced Add/Edit Equipment Modal
   const renderAddEquipmentModal = () => (
@@ -2184,6 +2873,244 @@ const EquipmentPlanning = () => {
     setCustomEquipment(customEquipment.filter(item => item.id !== equipmentId));
   };
 
+  // Quick Add Functions
+  const applyTemplate = (template) => {
+    const templateEquipment = template.equipment.map(equipmentId => {
+      const equipment = allEquipment.find(e => e.id === equipmentId);
+      return equipment ? { ...equipment, quantity: 1, notes: '' } : null;
+    }).filter(Boolean);
+    
+    setBidSheet([...bidSheet, ...templateEquipment]);
+    setBudget(prev => ({ ...prev, total: template.budget }));
+    setSelectedTemplate(template);
+  };
+
+  const quickAddEquipment = (categoryItems) => {
+    const newEquipment = categoryItems.map(item => ({
+      id: `quick-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: item.name,
+      category: 'Custom',
+      estimatedCost: item.cost,
+      essential: item.essential,
+      description: `Quick added: ${item.name}`,
+      isCustom: true,
+      quantity: 1,
+      notes: ''
+    }));
+    
+    setCustomEquipment([...customEquipment, ...newEquipment]);
+    setBidSheet([...bidSheet, ...newEquipment]);
+  };
+
+  const updateBudget = (newBudget) => {
+    setBudget(newBudget);
+  };
+
+  const calculateBudgetStatus = () => {
+    const totalSpent = bidSheet.reduce((sum, item) => sum + (item.estimatedCost * item.quantity), 0);
+    const remaining = budget.total - totalSpent;
+    const percentage = (totalSpent / budget.total) * 100;
+    
+    return {
+      spent: totalSpent,
+      remaining,
+      percentage: Math.min(percentage, 100),
+      isOverBudget: remaining < 0
+    };
+  };
+
+  // URL Import Functions
+  const parseEquipmentUrl = async (url) => {
+    setIsImporting(true);
+    try {
+      // Simulate API call to extract product data
+      // In a real implementation, you'd use a web scraping service or API
+      const mockData = await simulateUrlParsing(url);
+      setImportedEquipment(mockData);
+    } catch (error) {
+      console.error('Error parsing URL:', error);
+      alert('Error parsing URL. Please try again or add manually.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const simulateUrlParsing = async (url) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Mock data based on URL patterns
+    if (url.includes('amazon.com')) {
+      return {
+        name: 'Commercial Gas Range 6-Burner',
+        category: 'Cooking',
+        estimatedCost: 3299,
+        description: 'Professional 6-burner commercial gas range with oven. Perfect for high-volume cooking.',
+        specifications: '36" wide, 180,000 BTU total, Stainless steel construction, 2 ovens',
+        vendor: 'Amazon',
+        vendorUrl: url,
+        imageUrl: 'https://via.placeholder.com/300x200?text=Commercial+Range',
+        brand: 'Vulcan',
+        model: 'V36G',
+        dimensions: '36" W x 30" D x 36" H',
+        energyType: 'Gas',
+        warranty: '1 year',
+        leadTime: '1-2 weeks',
+        rating: 4.5,
+        reviews: 127
+      };
+    } else if (url.includes('webstaurantstore.com')) {
+      return {
+        name: 'Commercial Refrigerator 2-Door',
+        category: 'Refrigeration',
+        estimatedCost: 2899,
+        description: 'Energy-efficient commercial refrigerator with digital temperature control.',
+        specifications: '72" H x 30" W x 30" D, 15.5 cu ft capacity, Digital thermostat',
+        vendor: 'WebstaurantStore',
+        vendorUrl: url,
+        imageUrl: 'https://via.placeholder.com/300x200?text=Commercial+Refrigerator',
+        brand: 'True',
+        model: 'T-72F',
+        dimensions: '72" H x 30" W x 30" D',
+        energyType: 'Electric',
+        warranty: '2 years',
+        leadTime: '3-5 business days',
+        rating: 4.7,
+        reviews: 89
+      };
+    } else if (url.includes('restaurantsupply.com')) {
+      return {
+        name: 'Commercial Dishwasher Undercounter',
+        category: 'Cleaning',
+        estimatedCost: 1899,
+        description: 'High-temperature undercounter commercial dishwasher with sanitizing cycle.',
+        specifications: '18" rack capacity, 180°F sanitizing, 1.5 HP motor',
+        vendor: 'Restaurant Supply',
+        vendorUrl: url,
+        imageUrl: 'https://via.placeholder.com/300x200?text=Commercial+Dishwasher',
+        brand: 'Hobart',
+        model: 'AM-14',
+        dimensions: '18" W x 24" D x 34" H',
+        energyType: 'Electric',
+        warranty: '1 year',
+        leadTime: '1-2 weeks',
+        rating: 4.3,
+        reviews: 45
+      };
+    } else {
+      // Generic parsing for other sites
+      return {
+        name: 'Imported Equipment',
+        category: 'Custom',
+        estimatedCost: 0,
+        description: 'Equipment imported from external source. Please review and update details.',
+        specifications: 'Please add specifications',
+        vendor: 'External Source',
+        vendorUrl: url,
+        imageUrl: 'https://via.placeholder.com/300x200?text=Equipment',
+        brand: 'Unknown',
+        model: 'Unknown',
+        dimensions: 'Unknown',
+        energyType: 'Unknown',
+        warranty: 'Unknown',
+        leadTime: 'Unknown',
+        rating: 0,
+        reviews: 0
+      };
+    }
+  };
+
+  const addImportedEquipment = () => {
+    if (importedEquipment) {
+      const newEquipment = {
+        ...importedEquipment,
+        id: `imported-${Date.now()}`,
+        isCustom: true,
+        quantity: 1,
+        notes: `Imported from ${importedEquipment.vendor}`,
+        createdAt: new Date().toISOString()
+      };
+      
+      setCustomEquipment([...customEquipment, newEquipment]);
+      setBidSheet([...bidSheet, newEquipment]);
+      setShowUrlImport(false);
+      setImportUrl('');
+      setImportedEquipment(null);
+    }
+  };
+
+  // Business Card Processing Functions
+  const handleVendorCardUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setVendorCardImage(file);
+      processBusinessCard(file);
+    }
+  };
+
+  const processBusinessCard = async (file) => {
+    setIsProcessingCard(true);
+    try {
+      // Simulate OCR processing
+      const extractedData = await simulateOCRProcessing(file);
+      setExtractedVendorData(extractedData);
+    } catch (error) {
+      console.error('Error processing business card:', error);
+      alert('Error processing business card. Please try again.');
+    } finally {
+      setIsProcessingCard(false);
+    }
+  };
+
+  const simulateOCRProcessing = async (file) => {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Mock OCR results - in a real implementation, you'd use a service like Google Vision API
+    const mockVendorData = {
+      name: 'Boston Restaurant Supply Co.',
+      contact: {
+        person: 'John Smith',
+        title: 'Sales Manager',
+        phone: '(617) 555-0123',
+        email: 'john@bostonrestaurantsupply.com',
+        website: 'www.bostonrestaurantsupply.com'
+      },
+      address: {
+        street: '123 Commercial Street',
+        city: 'Boston',
+        state: 'MA',
+        zip: '02109'
+      },
+      specialties: ['Kitchen Equipment', 'Refrigeration', 'Installation'],
+      notes: 'Family-owned business since 1985',
+      rating: 4.6,
+      leadTime: '1-2 weeks',
+      paymentTerms: 'Net 30',
+      warranty: '1-3 years',
+      services: ['Installation', 'Training', 'Maintenance', 'Repair']
+    };
+    
+    return mockVendorData;
+  };
+
+  const addExtractedVendor = () => {
+    if (extractedVendorData) {
+      const newVendor = {
+        ...extractedVendorData,
+        id: `vendor-${Date.now()}`,
+        type: 'Equipment Specialist',
+        createdAt: new Date().toISOString(),
+        isFromCard: true
+      };
+      
+      setVendors([...vendors, newVendor]);
+      setShowVendorCardImport(false);
+      setVendorCardImage(null);
+      setExtractedVendorData(null);
+    }
+  };
+
   // Online Sourcing Integration
   const searchOnlineSources = (equipmentName) => {
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(equipmentName + ' commercial restaurant equipment')}`;
@@ -2708,15 +3635,18 @@ const EquipmentPlanning = () => {
     const smallEquipmentCost = smallEquipment
       .filter(item => item.essential)
       .reduce((sum, item) => sum + item.cost, 0);
+    const bidSheetTotal = bidSheet.reduce((sum, item) => sum + (item.estimatedCost * item.quantity), 0);
+    const budgetStatus = calculateBudgetStatus();
 
     return {
       selectedTotal: selectedEquipment.reduce((sum, item) => sum + item.estimatedCost, 0),
       essentialTotal: essentialEquipment.reduce((sum, item) => sum + item.estimatedCost, 0),
       smallEquipmentTotal: smallEquipmentCost,
       grandTotal: essentialEquipment.reduce((sum, item) => sum + item.estimatedCost, 0) + smallEquipmentCost,
-      bidSheetTotal: bidSheet.reduce((sum, item) => sum + (item.estimatedCost * item.quantity), 0)
+      bidSheetTotal,
+      budgetStatus
     };
-  }, [selectedItems, allEquipment, smallEquipment, bidSheet]);
+  }, [selectedItems, allEquipment, smallEquipment, bidSheet, budget]);
 
   const categories = [
     { id: 'kitchen', name: 'Kitchen Equipment', icon: ChefHat, equipment: kitchenEquipment },
@@ -2797,11 +3727,64 @@ const EquipmentPlanning = () => {
         description="Comprehensive equipment planning with online sourcing, bid sheet creation, and vendor management"
         color="purple"
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button
+            onClick={() => setShowQuickAdd(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Quick Add Equipment
+          </button>
+          <button
+            onClick={() => setShowUrlImport(true)}
+            className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Import from URL
+          </button>
+          <button
+            onClick={() => setShowBudgetTracker(true)}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Budget Tracker
+          </button>
+          <button
+            onClick={() => setShowVendorCardImport(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+          >
+            <FileUp className="h-4 w-4 mr-2" />
+            Add Vendor from Card
+          </button>
+          <button
+            onClick={() => setShowAddEquipment(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Custom Equipment
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-purple-100 p-4 rounded-lg">
             <h4 className="font-semibold text-purple-800 mb-2">Essential Equipment</h4>
             <div className="text-2xl font-bold text-purple-700">
-              ${calculations.essentialTotal}
+              ${calculations.essentialTotal.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-blue-100 p-4 rounded-lg">
+            <h4 className="font-semibold text-blue-800 mb-2">Bid Sheet Total</h4>
+            <div className="text-2xl font-bold text-blue-700">
+              ${calculations.bidSheetTotal.toLocaleString()}
+            </div>
+          </div>
+          <div className={`p-4 rounded-lg ${calculations.budgetStatus?.isOverBudget ? 'bg-red-100' : 'bg-green-100'}`}>
+            <h4 className={`font-semibold mb-2 ${calculations.budgetStatus?.isOverBudget ? 'text-red-800' : 'text-green-800'}`}>
+              Budget Status
+            </h4>
+            <div className={`text-2xl font-bold ${calculations.budgetStatus?.isOverBudget ? 'text-red-700' : 'text-green-700'}`}>
+              {calculations.budgetStatus?.percentage.toFixed(1)}%
             </div>
           </div>
           <div className="bg-blue-100 p-4 rounded-lg">
@@ -3145,6 +4128,18 @@ const EquipmentPlanning = () => {
           </div>
         </div>
       )}
+
+      {/* Quick Add Modal */}
+      {showQuickAdd && renderQuickAddModal()}
+
+      {/* URL Import Modal */}
+      {showUrlImport && renderUrlImportModal()}
+
+      {/* Business Card Import Modal */}
+      {showVendorCardImport && renderVendorCardImportModal()}
+
+      {/* Budget Tracker Modal */}
+      {showBudgetTracker && renderBudgetTrackerModal()}
 
       {/* Add/Edit Equipment Modal */}
       {showAddEquipment && renderAddEquipmentModal()}
