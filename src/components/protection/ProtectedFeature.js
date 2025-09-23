@@ -1,0 +1,179 @@
+import React, { useState, useEffect } from 'react';
+import { AccessController, trackUsage } from '../../utils/accessControl';
+import { AlertTriangle, Lock, Clock } from 'lucide-react';
+
+const ProtectedFeature = ({ 
+  children, 
+  feature, 
+  accessLevel = 'PUBLIC', 
+  fallback = null,
+  showUpgradePrompt = true 
+}) => {
+  const [hasAccess, setHasAccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    checkAccess();
+  }, [feature, accessLevel]);
+
+  const checkAccess = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Check feature access
+      if (feature) {
+        const hasFeatureAccess = await AccessController.checkFeatureAccess(feature);
+        if (!hasFeatureAccess) {
+          setHasAccess(false);
+          setError('This feature is not available in your current access level.');
+          return;
+        }
+      }
+
+      // Check general access level
+      const hasGeneralAccess = await AccessController.checkAccess(accessLevel);
+      setHasAccess(hasGeneralAccess);
+
+      if (!hasGeneralAccess) {
+        setError('Access denied. This feature requires higher permissions.');
+      }
+    } catch (err) {
+      setError(err.message);
+      setHasAccess(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpgradeClick = () => {
+    trackUsage('UPGRADE_PROMPT', 'clicked', { feature, accessLevel });
+    // In a real app, this would redirect to upgrade page
+    alert('Please contact the administrator to upgrade your access level.');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Checking access...</span>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    if (fallback) {
+      return fallback;
+    }
+
+    if (!showUpgradePrompt) {
+      return null;
+    }
+
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="flex items-center space-x-2">
+            <Lock className="h-6 w-6 text-yellow-600" />
+            <h3 className="text-lg font-semibold text-yellow-800">Access Restricted</h3>
+          </div>
+          
+          <p className="text-sm text-yellow-700 max-w-md">
+            {error || 'This feature requires higher permissions. Please contact the administrator to upgrade your access level.'}
+          </p>
+
+          {feature && (
+            <div className="bg-yellow-100 rounded-lg p-3 w-full max-w-sm">
+              <div className="flex items-center space-x-2 text-sm text-yellow-800">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Feature: {feature.replace(/_/g, ' ')}</span>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleUpgradeClick}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+          >
+            Request Access
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+// Rate Limited Feature Component
+export const RateLimitedFeature = ({ 
+  children, 
+  action, 
+  userId, 
+  fallback = null 
+}) => {
+  const [isAllowed, setIsAllowed] = useState(true);
+  const [retryAfter, setRetryAfter] = useState(null);
+
+  useEffect(() => {
+    if (userId && action) {
+      const allowed = AccessController.checkRateLimit(action, userId);
+      setIsAllowed(allowed);
+      
+      if (!allowed) {
+        // Calculate retry time (simplified)
+        setRetryAfter(60); // 1 minute
+        const timer = setInterval(() => {
+          setRetryAfter(prev => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              setIsAllowed(true);
+              return null;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        
+        return () => clearInterval(timer);
+      }
+    }
+  }, [action, userId]);
+
+  if (!isAllowed) {
+    if (fallback) {
+      return fallback;
+    }
+
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+        <div className="flex items-center justify-center space-x-2">
+          <Clock className="h-5 w-5 text-red-600" />
+          <span className="text-sm text-red-700">
+            Rate limit exceeded. Please try again in {retryAfter} seconds.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+// Watermarked Content Component
+export const WatermarkedContent = ({ children, userId, className = "" }) => {
+  const [watermarkedContent, setWatermarkedContent] = useState(children);
+
+  useEffect(() => {
+    if (userId && typeof children === 'string') {
+      const watermark = `<!-- Generated by Restaurant Startup App - User: ${userId} - ${new Date().toISOString()} -->`;
+      setWatermarkedContent(watermark + children);
+    } else {
+      setWatermarkedContent(children);
+    }
+  }, [children, userId]);
+
+  return <div className={className}>{watermarkedContent}</div>;
+};
+
+export default ProtectedFeature;
