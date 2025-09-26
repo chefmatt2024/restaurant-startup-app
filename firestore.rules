@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own data (no anonymous access)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous';
+      
+      // Allow users to read their own business plans (no anonymous access)
+      match /businessPlans/{planId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Allow users to read their own drafts (no anonymous access)
+      match /drafts/{draftId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Allow users to manage their own equipment lists (no anonymous access)
+      match /equipment/{equipmentId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Allow users to manage their own plate styles (no anonymous access)
+      match /plateStyles/{plateStyleId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Allow users to manage their own vendors (no anonymous access)
+      match /vendors/{vendorId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+    }
+    
+    // Public read-only data (like equipment templates, vendor directories) - no anonymous access
+    match /public/{document=**} {
+      allow read: if request.auth != null && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow write: if false; // Only admins can write to public data
+    }
+    
+    // Admin-only collections
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.admin == true;
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

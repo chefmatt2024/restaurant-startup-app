@@ -1220,18 +1220,6 @@ export const AppProvider = ({ children }) => {
       }
     },
 
-    signInAnonymously: async () => {
-      try {
-        actions.setLoading(true);
-        const result = await authService.signInAnonymously();
-        return result;
-      } catch (error) {
-        // console.error('Error signing in anonymously:', error);
-        throw error;
-      } finally {
-        actions.setLoading(false);
-      }
-    },
 
     signOut: async () => {
       try {
@@ -1263,9 +1251,8 @@ export const AppProvider = ({ children }) => {
         
         if (initialToken) {
           await authService.signInWithCustomToken(initialToken);
-        } else {
-          await authService.signInAnonymously();
         }
+        // No automatic anonymous sign-in - user must authenticate
       } catch (error) {
         // console.error('Authentication error:', error);
         actions.setLoading(false);

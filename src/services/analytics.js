@@ -96,7 +96,7 @@ class AnalyticsService {
         userAgent: navigator.userAgent,
         url: window.location.href,
         referrer: document.referrer,
-        screenResolution: `${screen.width}x${screen.height}`,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
         viewportSize: `${window.innerWidth}x${window.innerHeight}`,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: navigator.language

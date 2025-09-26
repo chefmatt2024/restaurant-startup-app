@@ -187,29 +187,7 @@ const SignInModal = ({ isOpen, onClose }) => {
                 New User Options
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Anonymous User */}
-                <button
-                  onClick={async () => {
-                    if (!actions) return;
-                    
-                    try {
-                      await actions.signInAnonymously();
-                      onClose();
-                    } catch (error) {
-                      // console.error('Anonymous sign-in failed:', error);
-                      actions.showMessage('Error', `Anonymous sign-in failed: ${error.message || 'Please try again.'}`, 'error');
-                    }
-                  }}
-                  className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors duration-200 text-center"
-                >
-                  <User className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <h3 className="font-medium text-gray-900 mb-1">Try Anonymously</h3>
-                  <p className="text-sm text-gray-500">
-                    Explore the app without creating an account
-                  </p>
-                </button>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Email Registration */}
                 <button
                   onClick={() => {

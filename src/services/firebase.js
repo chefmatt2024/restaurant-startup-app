@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
-  signInAnonymously, 
   signInWithCustomToken, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -67,14 +66,6 @@ try {
 
 // Authentication service
 export const authService = {
-  // Sign in anonymously
-  signInAnonymously: () => {
-    if (isFirebaseEnabled && auth) {
-      return signInAnonymously(auth);
-    }
-    // Offline mode - simulate successful sign in
-    return Promise.resolve({ user: { uid: 'offline-user', isAnonymous: true } });
-  },
   
   // Sign in with custom token
   signInWithCustomToken: (token) => {

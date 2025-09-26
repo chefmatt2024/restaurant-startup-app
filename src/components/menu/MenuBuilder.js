@@ -1,5 +1,35 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, Edit3, Save, X, DollarSign, TrendingUp, Calculator } from 'lucide-react';
+import { 
+  Plus, 
+  Trash2, 
+  Edit3, 
+  Save, 
+  X, 
+  DollarSign, 
+  TrendingUp, 
+  Calculator,
+  ChefHat,
+  Clock,
+  Star,
+  Image,
+  Copy,
+  Download,
+  Upload,
+  Filter,
+  Search,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+  Utensils,
+  Wine,
+  Coffee,
+  IceCream,
+  Leaf,
+  Fish,
+  Beef,
+  Carrot
+} from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 
 const MenuBuilder = () => {
@@ -19,16 +49,16 @@ const MenuBuilder = () => {
   });
 
   const categories = useMemo(() => [
-    'Appetizers',
-    'Soups & Salads',
-    'Main Courses',
-    'Pasta & Risotto',
-    'Seafood',
-    'Meat & Poultry',
-    'Vegetarian',
-    'Desserts',
-    'Beverages',
-    'Wine & Cocktails'
+    { name: 'Appetizers', icon: Utensils, color: 'bg-orange-100 text-orange-800' },
+    { name: 'Soups & Salads', icon: Leaf, color: 'bg-green-100 text-green-800' },
+    { name: 'Main Courses', icon: ChefHat, color: 'bg-blue-100 text-blue-800' },
+    { name: 'Pasta & Risotto', icon: Carrot, color: 'bg-yellow-100 text-yellow-800' },
+    { name: 'Seafood', icon: Fish, color: 'bg-cyan-100 text-cyan-800' },
+    { name: 'Meat & Poultry', icon: Beef, color: 'bg-red-100 text-red-800' },
+    { name: 'Vegetarian', icon: Leaf, color: 'bg-emerald-100 text-emerald-800' },
+    { name: 'Desserts', icon: IceCream, color: 'bg-pink-100 text-pink-800' },
+    { name: 'Beverages', icon: Coffee, color: 'bg-amber-100 text-amber-800' },
+    { name: 'Wine & Cocktails', icon: Wine, color: 'bg-purple-100 text-purple-800' }
   ], []);
 
   const allergens = [
