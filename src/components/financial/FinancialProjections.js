@@ -1100,7 +1100,7 @@ const FinancialProjections = () => {
           <FormField
             label="Food COGS % (Boston avg: 28%)"
             type="number"
-            value={data.cogs.foodCogsPercent}
+            value={data.cogs.foodCogsPercent * 100}
             onChange={(value) => handleFieldChange('cogs', 'foodCogsPercent', value / 100)}
             placeholder="28"
             step="0.1"
@@ -1111,6 +1111,14 @@ const FinancialProjections = () => {
             value={data.cogs.beverageCogsPercent * 100}
             onChange={(value) => handleFieldChange('cogs', 'beverageCogsPercent', value / 100)}
             placeholder="22"
+            step="0.1"
+          />
+          <FormField
+            label="Merchandise COGS % (Target: 15-20%)"
+            type="number"
+            value={data.cogs.merchandiseCogsPercent * 100}
+            onChange={(value) => handleFieldChange('cogs', 'merchandiseCogsPercent', value / 100)}
+            placeholder="15"
             step="0.1"
           />
           <FormField
