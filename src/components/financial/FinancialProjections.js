@@ -97,6 +97,110 @@ const FinancialProjections = () => {
     };
   }, [data.restaurantOperations]);
 
+  // Calculate detailed labor projections
+  const laborProjections = useMemo(() => {
+    const labor = data.operatingExpenses.labor;
+    const taxRates = labor.taxRates;
+    
+    const calculateEmployeeCosts = (employee, isManagement = false) => {
+      const weeklyHours = employee.hoursPerWeek;
+      const weeklyBasePay = weeklyHours * employee.hourlyRate;
+      const weeklyTips = weeklyHours * employee.tips;
+      const weeklyGrossPay = weeklyBasePay + weeklyTips;
+      
+      // Calculate taxes
+      const federalTax = weeklyGrossPay * taxRates.federalIncomeTax;
+      const stateTax = weeklyGrossPay * taxRates.stateIncomeTax;
+      const socialSecurity = weeklyGrossPay * taxRates.socialSecurity;
+      const medicare = weeklyGrossPay * taxRates.medicare;
+      const unemployment = weeklyGrossPay * taxRates.unemployment;
+      const workersComp = weeklyGrossPay * taxRates.workersComp;
+      
+      // Calculate employer costs
+      const employerSocialSecurity = weeklyBasePay * taxRates.socialSecurity;
+      const employerMedicare = weeklyBasePay * taxRates.medicare;
+      const employerUnemployment = weeklyBasePay * taxRates.unemployment;
+      const employerWorkersComp = weeklyBasePay * taxRates.workersComp;
+      
+      // Benefits (only for management and full-time staff)
+      const benefitsCost = employee.benefits ? weeklyBasePay * taxRates.benefitsRate : 0;
+      
+      const totalEmployeeCost = weeklyGrossPay + employerSocialSecurity + employerMedicare + 
+                               employerUnemployment + employerWorkersComp + benefitsCost;
+      
+      return {
+        weeklyBasePay,
+        weeklyTips,
+        weeklyGrossPay,
+        federalTax,
+        stateTax,
+        socialSecurity,
+        medicare,
+        unemployment,
+        workersComp,
+        employerSocialSecurity,
+        employerMedicare,
+        employerUnemployment,
+        employerWorkersComp,
+        benefitsCost,
+        totalEmployeeCost,
+        netPay: weeklyGrossPay - federalTax - stateTax - socialSecurity - medicare
+      };
+    };
+
+    const calculatePositionGroup = (positionGroup, isManagement = false) => {
+      return Object.entries(positionGroup).map(([position, employee]) => {
+        const employeeCosts = calculateEmployeeCosts(employee, isManagement);
+        return {
+          position,
+          ...employee,
+          ...employeeCosts,
+          totalWeeklyCost: employeeCosts.totalEmployeeCost * employee.count,
+          annualCost: employeeCosts.totalEmployeeCost * employee.count * 52
+        };
+      });
+    };
+
+    const management = calculatePositionGroup(labor.management, true);
+    const frontOfHouse = calculatePositionGroup(labor.frontOfHouse);
+    const backOfHouse = calculatePositionGroup(labor.backOfHouse);
+    const support = calculatePositionGroup(labor.support);
+
+    const allPositions = [...management, ...frontOfHouse, ...backOfHouse, ...support];
+
+    const weeklyTotals = {
+      basePay: allPositions.reduce((sum, pos) => sum + (pos.weeklyBasePay * pos.count), 0),
+      tips: allPositions.reduce((sum, pos) => sum + (pos.weeklyTips * pos.count), 0),
+      grossPay: allPositions.reduce((sum, pos) => sum + (pos.weeklyGrossPay * pos.count), 0),
+      employeeTaxes: allPositions.reduce((sum, pos) => sum + (pos.federalTax + pos.stateTax + pos.socialSecurity + pos.medicare) * pos.count, 0),
+      employerTaxes: allPositions.reduce((sum, pos) => sum + (pos.employerSocialSecurity + pos.employerMedicare + pos.employerUnemployment + pos.employerWorkersComp) * pos.count, 0),
+      benefits: allPositions.reduce((sum, pos) => sum + (pos.benefitsCost * pos.count), 0),
+      totalCost: allPositions.reduce((sum, pos) => sum + pos.totalWeeklyCost, 0)
+    };
+
+    const annualTotals = {
+      basePay: weeklyTotals.basePay * 52,
+      tips: weeklyTotals.tips * 52,
+      grossPay: weeklyTotals.grossPay * 52,
+      employeeTaxes: weeklyTotals.employeeTaxes * 52,
+      employerTaxes: weeklyTotals.employerTaxes * 52,
+      benefits: weeklyTotals.benefits * 52,
+      totalCost: weeklyTotals.totalCost * 52
+    };
+
+    return {
+      positions: {
+        management,
+        frontOfHouse,
+        backOfHouse,
+        support
+      },
+      weekly: weeklyTotals,
+      annual: annualTotals,
+      allPositions
+    };
+  }, [data.operatingExpenses.labor]);
+
   // Calculate key metrics
   const calculations = useMemo(() => {
     const totalRevenue = data.revenue.foodSales + data.revenue.beverageSales + 
@@ -142,8 +246,7 @@ const FinancialProjections = () => {
                      data.operatingExpenses.localTaxes + data.operatingExpenses.propertyTaxes +
                      data.operatingExpenses.businessTaxes;
 
-    const totalPayroll = (data.operatingExpenses.salaryOwners + data.operatingExpenses.salaryFullTime +
-                         data.operatingExpenses.salaryPartTime) * (1 + data.operatingExpenses.payrollTaxRate);
+    const totalPayroll = laborProjections.annual.totalCost;
 
     const totalExpenses = totalOpEx + totalPayroll;
     const netIncome = grossProfit - totalExpenses;
@@ -496,6 +599,453 @@ const FinancialProjections = () => {
               <div className="text-sm text-blue-700 space-y-1">
                 <div>Weekly Revenue: {formatCurrency(dailySalesProjections.daily.reduce((sum, day) => sum + day.beverageRevenue, 0))}</div>
                 <div>Avg per Cover: {formatCurrency(dailySalesProjections.daily.reduce((sum, day) => sum + day.beverageRevenue, 0) / dailySalesProjections.weekly.covers)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Labor Configuration */}
+      <SectionCard title="Labor Configuration" color="blue">
+        <div className="space-y-8">
+          {/* Tax Rates */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Tax Rates</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <FormField
+                label="Federal Income Tax"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.federalIncomeTax}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.federalIncomeTax', parseFloat(value))}
+                placeholder="0.15"
+              />
+              <FormField
+                label="State Income Tax"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.stateIncomeTax}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.stateIncomeTax', parseFloat(value))}
+                placeholder="0.05"
+              />
+              <FormField
+                label="Social Security"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.socialSecurity}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.socialSecurity', parseFloat(value))}
+                placeholder="0.062"
+              />
+              <FormField
+                label="Medicare"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.medicare}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.medicare', parseFloat(value))}
+                placeholder="0.0145"
+              />
+              <FormField
+                label="Unemployment"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.unemployment}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.unemployment', parseFloat(value))}
+                placeholder="0.03"
+              />
+              <FormField
+                label="Workers Comp"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.workersComp}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.workersComp', parseFloat(value))}
+                placeholder="0.02"
+              />
+              <FormField
+                label="Benefits Rate"
+                type="number"
+                step="0.001"
+                value={data.operatingExpenses.labor.taxRates.benefitsRate}
+                onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.benefitsRate', parseFloat(value))}
+                placeholder="0.25"
+              />
+            </div>
+          </div>
+
+          {/* Management Positions */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Management Positions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {Object.entries(data.operatingExpenses.labor.management).map(([position, employee]) => (
+                <div key={position} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Count"
+                      type="number"
+                      value={employee.count}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.count`, parseInt(value))}
+                      placeholder="1"
+                    />
+                    <FormField
+                      label="Hourly Rate"
+                      type="number"
+                      value={employee.hourlyRate}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.hourlyRate`, parseFloat(value))}
+                      placeholder="25"
+                    />
+                    <FormField
+                      label="Hours/Week"
+                      type="number"
+                      value={employee.hoursPerWeek}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.hoursPerWeek`, parseInt(value))}
+                      placeholder="50"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={employee.benefits}
+                        onChange={(e) => handleFieldChange('operatingExpenses', `labor.management.${position}.benefits`, e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <label className="text-sm">Benefits Eligible</label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Front of House Positions */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Front of House Positions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.entries(data.operatingExpenses.labor.frontOfHouse).map(([position, employee]) => (
+                <div key={position} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Count"
+                      type="number"
+                      value={employee.count}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.count`, parseInt(value))}
+                      placeholder="2"
+                    />
+                    <FormField
+                      label="Hourly Rate"
+                      type="number"
+                      value={employee.hourlyRate}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.hourlyRate`, parseFloat(value))}
+                      placeholder="15"
+                    />
+                    <FormField
+                      label="Tips/Hour"
+                      type="number"
+                      value={employee.tips}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.tips`, parseFloat(value))}
+                      placeholder="8"
+                    />
+                    <FormField
+                      label="Hours/Week"
+                      type="number"
+                      value={employee.hoursPerWeek}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.hoursPerWeek`, parseInt(value))}
+                      placeholder="35"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Back of House Positions */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Back of House Positions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Object.entries(data.operatingExpenses.labor.backOfHouse).map(([position, employee]) => (
+                <div key={position} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Count"
+                      type="number"
+                      value={employee.count}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.count`, parseInt(value))}
+                      placeholder="2"
+                    />
+                    <FormField
+                      label="Hourly Rate"
+                      type="number"
+                      value={employee.hourlyRate}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.hourlyRate`, parseFloat(value))}
+                      placeholder="18"
+                    />
+                    <FormField
+                      label="Hours/Week"
+                      type="number"
+                      value={employee.hoursPerWeek}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.hoursPerWeek`, parseInt(value))}
+                      placeholder="40"
+                    />
+                    {position === 'headChef' && (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={employee.benefits}
+                          onChange={(e) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.benefits`, e.target.checked)}
+                          className="rounded border-gray-300"
+                        />
+                        <label className="text-sm">Benefits Eligible</label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Support Staff */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Support Staff</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(data.operatingExpenses.labor.support).map(([position, employee]) => (
+                <div key={position} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Count"
+                      type="number"
+                      value={employee.count}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.count`, parseInt(value))}
+                      placeholder="1"
+                    />
+                    <FormField
+                      label="Hourly Rate"
+                      type="number"
+                      value={employee.hourlyRate}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.hourlyRate`, parseFloat(value))}
+                      placeholder="15"
+                    />
+                    <FormField
+                      label="Hours/Week"
+                      type="number"
+                      value={employee.hoursPerWeek}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.hoursPerWeek`, parseInt(value))}
+                      placeholder="20"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Detailed Labor Projections */}
+      <SectionCard title="Detailed Labor Projections" color="blue">
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Weekly Labor Cost:</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {formatCurrency(laborProjections.weekly.totalCost)}
+                </span>
+              </div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Annual Labor Cost:</span>
+                <span className="text-lg font-bold text-green-600">
+                  {formatCurrency(laborProjections.annual.totalCost)}
+                </span>
+              </div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Weekly Tips:</span>
+                <span className="text-lg font-bold text-orange-600">
+                  {formatCurrency(laborProjections.weekly.tips)}
+                </span>
+              </div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Benefits Cost:</span>
+                <span className="text-lg font-bold text-purple-600">
+                  {formatCurrency(laborProjections.weekly.benefits)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Labor Breakdown by Department */}
+        <div className="space-y-6">
+          {/* Management */}
+          <div>
+            <h4 className="text-md font-semibold mb-3 text-gray-700">Management</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hours/Week</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weekly Cost</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Annual Cost</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {laborProjections.positions.management.map((position) => (
+                    <tr key={position.position} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
+                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Front of House */}
+          <div>
+            <h4 className="text-md font-semibold mb-3 text-gray-700">Front of House</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tips/Hour</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hours/Week</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weekly Cost</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Annual Cost</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {laborProjections.positions.frontOfHouse.map((position) => (
+                    <tr key={position.position} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
+                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">${position.tips}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Back of House */}
+          <div>
+            <h4 className="text-md font-semibold mb-3 text-gray-700">Back of House</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hours/Week</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weekly Cost</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Annual Cost</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {laborProjections.positions.backOfHouse.map((position) => (
+                    <tr key={position.position} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
+                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Support Staff */}
+          <div>
+            <h4 className="text-md font-semibold mb-3 text-gray-700">Support Staff</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hours/Week</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weekly Cost</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Annual Cost</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {laborProjections.positions.support.map((position) => (
+                    <tr key={position.position} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
+                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Labor Cost Breakdown */}
+        <div className="mt-8">
+          <h4 className="text-md font-semibold mb-4 text-gray-700">Labor Cost Breakdown</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h5 className="font-semibold text-green-800 mb-2">Base Pay</h5>
+              <div className="text-sm text-green-700 space-y-1">
+                <div>Weekly: {formatCurrency(laborProjections.weekly.basePay)}</div>
+                <div>Annual: {formatCurrency(laborProjections.annual.basePay)}</div>
+              </div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <h5 className="font-semibold text-orange-800 mb-2">Tips</h5>
+              <div className="text-sm text-orange-700 space-y-1">
+                <div>Weekly: {formatCurrency(laborProjections.weekly.tips)}</div>
+                <div>Annual: {formatCurrency(laborProjections.annual.tips)}</div>
+              </div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <h5 className="font-semibold text-red-800 mb-2">Employer Taxes</h5>
+              <div className="text-sm text-red-700 space-y-1">
+                <div>Weekly: {formatCurrency(laborProjections.weekly.employerTaxes)}</div>
+                <div>Annual: {formatCurrency(laborProjections.annual.employerTaxes)}</div>
+              </div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h5 className="font-semibold text-purple-800 mb-2">Benefits</h5>
+              <div className="text-sm text-purple-700 space-y-1">
+                <div>Weekly: {formatCurrency(laborProjections.weekly.benefits)}</div>
+                <div>Annual: {formatCurrency(laborProjections.annual.benefits)}</div>
               </div>
             </div>
           </div>

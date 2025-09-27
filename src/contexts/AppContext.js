@@ -242,7 +242,47 @@ const initialState = {
       propertyTaxes: 0,
       businessTaxes: 0,
       
-      // Payroll
+      // Detailed Labor Structure
+      labor: {
+        // Management
+        management: {
+          generalManager: { count: 1, hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true },
+          assistantManager: { count: 1, hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true },
+          kitchenManager: { count: 1, hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true }
+        },
+        // Front of House
+        frontOfHouse: {
+          servers: { count: 8, hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false },
+          hosts: { count: 3, hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false },
+          bartenders: { count: 3, hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false },
+          bussers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false },
+          cashiers: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false }
+        },
+        // Back of House
+        backOfHouse: {
+          headChef: { count: 1, hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true },
+          lineCooks: { count: 6, hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false },
+          prepCooks: { count: 3, hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false },
+          dishwashers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false }
+        },
+        // Support Staff
+        support: {
+          cleaningStaff: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false },
+          maintenance: { count: 1, hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false }
+        },
+        // Tax Rates
+        taxRates: {
+          federalIncomeTax: 0.15,
+          stateIncomeTax: 0.05,
+          socialSecurity: 0.062,
+          medicare: 0.0145,
+          unemployment: 0.03,
+          workersComp: 0.02,
+          benefitsRate: 0.25 // Health insurance, retirement, etc.
+        }
+      },
+      
+      // Legacy Payroll (for backward compatibility)
       salaryOwners: 0,
       salaryFullTime: 0,
       salaryPartTime: 0,
@@ -458,6 +498,47 @@ const createSampleDrafts = () => {
           localTaxes: 5000,
           propertyTaxes: 8000,
           businessTaxes: 12000,
+          
+          // Detailed Labor Structure
+          labor: {
+            // Management
+            management: {
+              generalManager: { count: 1, hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true },
+              assistantManager: { count: 1, hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true },
+              kitchenManager: { count: 1, hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true }
+            },
+            // Front of House
+            frontOfHouse: {
+              servers: { count: 8, hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false },
+              hosts: { count: 3, hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false },
+              bartenders: { count: 3, hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false },
+              bussers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false },
+              cashiers: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false }
+            },
+            // Back of House
+            backOfHouse: {
+              headChef: { count: 1, hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true },
+              lineCooks: { count: 6, hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false },
+              prepCooks: { count: 3, hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false },
+              dishwashers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false }
+            },
+            // Support Staff
+            support: {
+              cleaningStaff: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false },
+              maintenance: { count: 1, hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false }
+            },
+            // Tax Rates
+            taxRates: {
+              federalIncomeTax: 0.15,
+              stateIncomeTax: 0.05,
+              socialSecurity: 0.062,
+              medicare: 0.0145,
+              unemployment: 0.03,
+              workersComp: 0.02,
+              benefitsRate: 0.25 // Health insurance, retirement, etc.
+            }
+          },
+          
           salaryOwners: 85000,
           salaryFullTime: 200000,
           salaryPartTime: 140000,
