@@ -14,7 +14,7 @@ import {
 import { useApp } from '../../contexts/AppContext';
 import AuthModal from './AuthModal';
 
-const SignInModal = ({ isOpen, onClose }) => {
+const SignInModal = ({ isOpen, onClose, allowClose = true }) => {
   const { actions } = useApp();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -106,12 +106,14 @@ const SignInModal = ({ isOpen, onClose }) => {
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome Back!</h2>
               <p className="text-sm sm:text-base text-gray-600 mt-1">Sign in to continue your restaurant planning journey</p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            {allowClose && (
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            )}
           </div>
 
           {/* Content */}
