@@ -138,6 +138,37 @@ const initialState = {
   },
   
   financialData: {
+    // Restaurant Operations
+    restaurantOperations: {
+      seats: 50,
+      hoursOfOperation: {
+        monday: { open: '11:00', close: '22:00', closed: false },
+        tuesday: { open: '11:00', close: '22:00', closed: false },
+        wednesday: { open: '11:00', close: '22:00', closed: false },
+        thursday: { open: '11:00', close: '22:00', closed: false },
+        friday: { open: '11:00', close: '23:00', closed: false },
+        saturday: { open: '10:00', close: '23:00', closed: false },
+        sunday: { open: '10:00', close: '21:00', closed: false }
+      },
+      averageCheck: {
+        lunch: 18,
+        dinner: 32,
+        brunch: 24,
+        beverages: 8
+      },
+      tableTurnover: {
+        lunch: 1.5,
+        dinner: 2.0,
+        brunch: 2.5,
+        average: 2.0
+      },
+      occupancyRate: {
+        lunch: 0.7,
+        dinner: 0.9,
+        brunch: 0.8,
+        average: 0.8
+      }
+    },
     revenue: {
       foodSales: 0,
       beverageSales: 0,
@@ -153,6 +184,7 @@ const initialState = {
       otherCogsPercent: 0.12
     },
     operatingExpenses: {
+      // Core Operating Expenses
       rent: 0,
       utilities: 0,
       insurance: 0,
@@ -162,6 +194,55 @@ const initialState = {
       supplies: 0,
       adminOffice: 0,
       otherOperatingExpenses: 0,
+      
+      // Detailed Operational Expenses
+      linenService: 0,
+      trashCollection: 0,
+      compostService: 0,
+      cleaningService: 0,
+      hoodCleaning: 0,
+      greaseTrapCleaning: 0,
+      internetPhone: 0,
+      securitySystem: 0,
+      pestControl: 0,
+      wasteManagement: 0,
+      equipmentMaintenance: 0,
+      uniformService: 0,
+      dishwareReplacement: 0,
+      cleaningSupplies: 0,
+      paperGoods: 0,
+      kitchenSupplies: 0,
+      pointOfSale: 0,
+      creditCardProcessing: 0,
+      bankFees: 0,
+      permitsLicenses: 0,
+      musicLicensing: 0,
+      deliveryServiceFees: 0,
+      trainingCertification: 0,
+      employeeBenefits: 0,
+      workersCompensation: 0,
+      unemploymentInsurance: 0,
+      healthInsurance: 0,
+      retirementBenefits: 0,
+      uniformLaundry: 0,
+      parkingFees: 0,
+      storageFees: 0,
+      professionalServices: 0,
+      technologySupport: 0,
+      softwareSubscriptions: 0,
+      inventoryManagement: 0,
+      qualityControl: 0,
+      safetyTraining: 0,
+      equipmentRental: 0,
+      temporaryStaffing: 0,
+      consulting: 0,
+      travelEntertainment: 0,
+      charitableDonations: 0,
+      localTaxes: 0,
+      propertyTaxes: 0,
+      businessTaxes: 0,
+      
+      // Payroll
       salaryOwners: 0,
       salaryFullTime: 0,
       salaryPartTime: 0,
@@ -277,6 +358,36 @@ const createSampleDrafts = () => {
         marketingStrategy: {}
       },
       financialData: {
+        restaurantOperations: {
+          seats: 60,
+          hoursOfOperation: {
+            monday: { open: '11:00', close: '22:00', closed: false },
+            tuesday: { open: '11:00', close: '22:00', closed: false },
+            wednesday: { open: '11:00', close: '22:00', closed: false },
+            thursday: { open: '11:00', close: '22:00', closed: false },
+            friday: { open: '11:00', close: '23:00', closed: false },
+            saturday: { open: '10:00', close: '23:00', closed: false },
+            sunday: { open: '10:00', close: '21:00', closed: false }
+          },
+          averageCheck: {
+            lunch: 22,
+            dinner: 38,
+            brunch: 28,
+            beverages: 12
+          },
+          tableTurnover: {
+            lunch: 1.8,
+            dinner: 2.2,
+            brunch: 2.8,
+            average: 2.3
+          },
+          occupancyRate: {
+            lunch: 0.75,
+            dinner: 0.95,
+            brunch: 0.85,
+            average: 0.85
+          }
+        },
         revenue: {
           foodSales: 700000,
           beverageSales: 175000,
@@ -301,6 +412,52 @@ const createSampleDrafts = () => {
           supplies: 0,
           adminOffice: 0,
           otherOperatingExpenses: 0,
+          // Detailed operational expenses
+          linenService: 3600,
+          trashCollection: 2400,
+          compostService: 1800,
+          cleaningService: 12000,
+          hoodCleaning: 2400,
+          greaseTrapCleaning: 1200,
+          internetPhone: 3600,
+          securitySystem: 2400,
+          pestControl: 1800,
+          wasteManagement: 2400,
+          equipmentMaintenance: 6000,
+          uniformService: 2400,
+          dishwareReplacement: 3000,
+          cleaningSupplies: 4800,
+          paperGoods: 3600,
+          kitchenSupplies: 6000,
+          pointOfSale: 4800,
+          creditCardProcessing: 15000,
+          bankFees: 1200,
+          permitsLicenses: 3000,
+          musicLicensing: 1200,
+          deliveryServiceFees: 15000,
+          trainingCertification: 3000,
+          employeeBenefits: 15000,
+          workersCompensation: 8000,
+          unemploymentInsurance: 4000,
+          healthInsurance: 24000,
+          retirementBenefits: 12000,
+          uniformLaundry: 1800,
+          parkingFees: 3600,
+          storageFees: 0,
+          professionalServices: 6000,
+          technologySupport: 1800,
+          softwareSubscriptions: 2400,
+          inventoryManagement: 1800,
+          qualityControl: 3000,
+          safetyTraining: 2400,
+          equipmentRental: 0,
+          temporaryStaffing: 0,
+          consulting: 5000,
+          travelEntertainment: 3000,
+          charitableDonations: 2000,
+          localTaxes: 5000,
+          propertyTaxes: 8000,
+          businessTaxes: 12000,
           salaryOwners: 85000,
           salaryFullTime: 200000,
           salaryPartTime: 140000,

@@ -240,7 +240,9 @@ class AnalyticsService {
   async sendToServer(events) {
     // For now, store in localStorage for demo purposes
     // In production, this would send to your analytics API
-    const stored = JSON.parse(localStorage.getItem('analytics_events') || '[]');
+    const userId = this.getCurrentUser()?.uid || 'anonymous';
+    const key = `analytics_events_${userId}`;
+    const stored = JSON.parse(localStorage.getItem(key) || '[]');
     stored.push(...events);
     
     // Keep only last 1000 events
@@ -248,7 +250,7 @@ class AnalyticsService {
       stored.splice(0, stored.length - 1000);
     }
     
-    localStorage.setItem('analytics_events', JSON.stringify(stored));
+    localStorage.setItem(key, JSON.stringify(stored));
     
     // Simulate API call
     return new Promise((resolve) => {
@@ -273,12 +275,16 @@ class AnalyticsService {
 
   // Get analytics data
   getAnalyticsData() {
-    return JSON.parse(localStorage.getItem('analytics_events') || '[]');
+    const userId = this.getCurrentUser()?.uid || 'anonymous';
+    const key = `analytics_events_${userId}`;
+    return JSON.parse(localStorage.getItem(key) || '[]');
   }
 
   // Clear analytics data
   clearAnalyticsData() {
-    localStorage.removeItem('analytics_events');
+    const userId = this.getCurrentUser()?.uid || 'anonymous';
+    const key = `analytics_events_${userId}`;
+    localStorage.removeItem(key);
     eventQueue = [];
   }
 

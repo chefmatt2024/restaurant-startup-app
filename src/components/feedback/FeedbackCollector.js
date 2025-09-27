@@ -44,9 +44,11 @@ const FeedbackCollector = ({ isOpen, onClose, context = {} }) => {
         url: window.location.href
       };
 
-      const stored = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+      const userId = analyticsService.getCurrentUser()?.uid || 'anonymous';
+      const key = `user_feedback_${userId}`;
+      const stored = JSON.parse(localStorage.getItem(key) || '[]');
       stored.push(feedback);
-      localStorage.setItem('user_feedback', JSON.stringify(stored));
+      localStorage.setItem(key, JSON.stringify(stored));
 
       setIsSubmitted(true);
       

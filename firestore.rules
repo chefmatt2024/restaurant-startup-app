@@ -1,42 +1,71 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only access their own data (no anonymous access)
-    match /users/{userId} {
+    // Restaurant Business Planner App - User data isolation
+    match /artifacts/{appId}/users/{userId} {
+      // Users can only access their own data (no anonymous access)
       allow read, write: if request.auth != null && 
         request.auth.uid == userId && 
         request.auth.token.firebase.sign_in_provider != 'anonymous';
       
-      // Allow users to read their own business plans (no anonymous access)
-      match /businessPlans/{planId} {
+      // Business plan data
+      match /business_plan/{document=**} {
         allow read, write: if request.auth != null && 
           request.auth.uid == userId && 
           request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       
-      // Allow users to read their own drafts (no anonymous access)
+      // Progress tracking data
+      match /progress/{document=**} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Draft data
       match /drafts/{draftId} {
         allow read, write: if request.auth != null && 
           request.auth.uid == userId && 
           request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       
-      // Allow users to manage their own equipment lists (no anonymous access)
+      // Draft metadata
+      match /metadata/{document=**} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Vendor data
+      match /vendors/{vendorId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Equipment data
       match /equipment/{equipmentId} {
         allow read, write: if request.auth != null && 
           request.auth.uid == userId && 
           request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       
-      // Allow users to manage their own plate styles (no anonymous access)
+      // Plate styles data
       match /plateStyles/{plateStyleId} {
         allow read, write: if request.auth != null && 
           request.auth.uid == userId && 
           request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       
-      // Allow users to manage their own vendors (no anonymous access)
-      match /vendors/{vendorId} {
+      // Menu data
+      match /menu/{document=**} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId && 
+          request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+      
+      // Financial data
+      match /financial/{document=**} {
         allow read, write: if request.auth != null && 
           request.auth.uid == userId && 
           request.auth.token.firebase.sign_in_provider != 'anonymous';

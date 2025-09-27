@@ -32,11 +32,14 @@ const DataCollectionDashboard = () => {
     setAnalyticsData(analytics);
 
     // Load feedback data
-    const feedback = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+    const userId = analyticsService.getCurrentUser()?.uid || 'anonymous';
+    const feedbackKey = `user_feedback_${userId}`;
+    const feedback = JSON.parse(localStorage.getItem(feedbackKey) || '[]');
     setFeedbackData(feedback);
 
     // Load survey data
-    const surveys = JSON.parse(localStorage.getItem('survey_responses') || '[]');
+    const surveyKey = `survey_responses_${userId}`;
+    const surveys = JSON.parse(localStorage.getItem(surveyKey) || '[]');
     setSurveyData(surveys);
 
     // Combine all data

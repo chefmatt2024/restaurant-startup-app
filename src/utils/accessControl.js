@@ -205,9 +205,11 @@ export const trackUsage = (feature, action, metadata = {}) => {
   console.log('Usage tracked:', usageData);
   
   // Store locally for now
-  const usage = JSON.parse(localStorage.getItem('usageAnalytics') || '[]');
+  const userId = analyticsService.getCurrentUser()?.uid || 'anonymous';
+  const key = `usageAnalytics_${userId}`;
+  const usage = JSON.parse(localStorage.getItem(key) || '[]');
   usage.push(usageData);
-  localStorage.setItem('usageAnalytics', JSON.stringify(usage.slice(-1000))); // Keep last 1000 entries
+  localStorage.setItem(key, JSON.stringify(usage.slice(-1000))); // Keep last 1000 entries
 };
 
 export default AccessController;

@@ -51,9 +51,11 @@ const UserSurvey = ({ isOpen, onClose, surveyData }) => {
         userId: analyticsService.getCurrentUser()?.uid || 'anonymous'
       };
 
-      const stored = JSON.parse(localStorage.getItem('survey_responses') || '[]');
+      const userId = analyticsService.getCurrentUser()?.uid || 'anonymous';
+      const key = `survey_responses_${userId}`;
+      const stored = JSON.parse(localStorage.getItem(key) || '[]');
       stored.push(response);
-      localStorage.setItem('survey_responses', JSON.stringify(stored));
+      localStorage.setItem(key, JSON.stringify(stored));
 
       setIsCompleted(true);
     } catch (error) {
