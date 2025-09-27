@@ -242,34 +242,48 @@ const initialState = {
       propertyTaxes: 0,
       businessTaxes: 0,
       
-      // Detailed Labor Structure
+      // Detailed Labor Structure - Individual Positions
       labor: {
-        // Management
-        management: {
-          generalManager: { count: 1, hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true },
-          assistantManager: { count: 1, hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true },
-          kitchenManager: { count: 1, hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true }
-        },
-        // Front of House
-        frontOfHouse: {
-          servers: { count: 8, hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false },
-          hosts: { count: 3, hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false },
-          bartenders: { count: 3, hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false },
-          bussers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false },
-          cashiers: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false }
-        },
-        // Back of House
-        backOfHouse: {
-          headChef: { count: 1, hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true },
-          lineCooks: { count: 6, hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false },
-          prepCooks: { count: 3, hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false },
-          dishwashers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false }
-        },
+        // Management Positions
+        management: [
+          { id: 'gm-1', name: 'General Manager', hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true, department: 'Management' },
+          { id: 'am-1', name: 'Assistant Manager', hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true, department: 'Management' },
+          { id: 'km-1', name: 'Kitchen Manager', hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true, department: 'Management' }
+        ],
+        // Front of House Positions
+        frontOfHouse: [
+          { id: 'server-1', name: 'Server 1', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'server-2', name: 'Server 2', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'server-3', name: 'Server 3', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'server-4', name: 'Server 4', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'server-5', name: 'Server 5', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'server-6', name: 'Server 6', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+          { id: 'bartender-1', name: 'Bartender 1', hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false, department: 'FOH' },
+          { id: 'bartender-2', name: 'Bartender 2', hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false, department: 'FOH' },
+          { id: 'host-1', name: 'Host 1', hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false, department: 'FOH' },
+          { id: 'host-2', name: 'Host 2', hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false, department: 'FOH' },
+          { id: 'busser-1', name: 'Busser 1', hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false, department: 'FOH' },
+          { id: 'busser-2', name: 'Busser 2', hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false, department: 'FOH' },
+          { id: 'cashier-1', name: 'Cashier 1', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'FOH' }
+        ],
+        // Back of House Positions
+        backOfHouse: [
+          { id: 'chef-1', name: 'Head Chef', hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true, department: 'BOH' },
+          { id: 'cook-1', name: 'Cook 1', hourlyRate: 22, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'cook-2', name: 'Cook 2', hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'cook-3', name: 'Cook 3', hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'cook-4', name: 'Cook 4', hourlyRate: 18, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'prep-1', name: 'Prep Cook 1', hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'prep-2', name: 'Prep Cook 2', hourlyRate: 16, hoursPerWeek: 35, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'dish-1', name: 'Dishwasher 1', hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false, department: 'BOH' },
+          { id: 'dish-2', name: 'Dishwasher 2', hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false, department: 'BOH' }
+        ],
         // Support Staff
-        support: {
-          cleaningStaff: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false },
-          maintenance: { count: 1, hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false }
-        },
+        support: [
+          { id: 'clean-1', name: 'Cleaning Staff 1', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'Support' },
+          { id: 'clean-2', name: 'Cleaning Staff 2', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'Support' },
+          { id: 'maintenance-1', name: 'Maintenance', hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false, department: 'Support' }
+        ],
         // Tax Rates
         taxRates: {
           federalIncomeTax: 0.15,
@@ -499,34 +513,48 @@ const createSampleDrafts = () => {
           propertyTaxes: 8000,
           businessTaxes: 12000,
           
-          // Detailed Labor Structure
+          // Detailed Labor Structure - Individual Positions
           labor: {
-            // Management
-            management: {
-              generalManager: { count: 1, hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true },
-              assistantManager: { count: 1, hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true },
-              kitchenManager: { count: 1, hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true }
-            },
-            // Front of House
-            frontOfHouse: {
-              servers: { count: 8, hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false },
-              hosts: { count: 3, hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false },
-              bartenders: { count: 3, hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false },
-              bussers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false },
-              cashiers: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false }
-            },
-            // Back of House
-            backOfHouse: {
-              headChef: { count: 1, hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true },
-              lineCooks: { count: 6, hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false },
-              prepCooks: { count: 3, hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false },
-              dishwashers: { count: 3, hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false }
-            },
+            // Management Positions
+            management: [
+              { id: 'gm-1', name: 'General Manager', hourlyRate: 28, hoursPerWeek: 50, tips: 0, benefits: true, department: 'Management' },
+              { id: 'am-1', name: 'Assistant Manager', hourlyRate: 22, hoursPerWeek: 45, tips: 0, benefits: true, department: 'Management' },
+              { id: 'km-1', name: 'Kitchen Manager', hourlyRate: 25, hoursPerWeek: 50, tips: 0, benefits: true, department: 'Management' }
+            ],
+            // Front of House Positions
+            frontOfHouse: [
+              { id: 'server-1', name: 'Server 1', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'server-2', name: 'Server 2', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'server-3', name: 'Server 3', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'server-4', name: 'Server 4', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'server-5', name: 'Server 5', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'server-6', name: 'Server 6', hourlyRate: 15, hoursPerWeek: 35, tips: 10, benefits: false, department: 'FOH' },
+              { id: 'bartender-1', name: 'Bartender 1', hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false, department: 'FOH' },
+              { id: 'bartender-2', name: 'Bartender 2', hourlyRate: 15, hoursPerWeek: 35, tips: 15, benefits: false, department: 'FOH' },
+              { id: 'host-1', name: 'Host 1', hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false, department: 'FOH' },
+              { id: 'host-2', name: 'Host 2', hourlyRate: 15, hoursPerWeek: 25, tips: 3, benefits: false, department: 'FOH' },
+              { id: 'busser-1', name: 'Busser 1', hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false, department: 'FOH' },
+              { id: 'busser-2', name: 'Busser 2', hourlyRate: 15, hoursPerWeek: 30, tips: 4, benefits: false, department: 'FOH' },
+              { id: 'cashier-1', name: 'Cashier 1', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'FOH' }
+            ],
+            // Back of House Positions
+            backOfHouse: [
+              { id: 'chef-1', name: 'Head Chef', hourlyRate: 32, hoursPerWeek: 55, tips: 0, benefits: true, department: 'BOH' },
+              { id: 'cook-1', name: 'Cook 1', hourlyRate: 22, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'cook-2', name: 'Cook 2', hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'cook-3', name: 'Cook 3', hourlyRate: 20, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'cook-4', name: 'Cook 4', hourlyRate: 18, hoursPerWeek: 40, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'prep-1', name: 'Prep Cook 1', hourlyRate: 18, hoursPerWeek: 35, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'prep-2', name: 'Prep Cook 2', hourlyRate: 16, hoursPerWeek: 35, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'dish-1', name: 'Dishwasher 1', hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false, department: 'BOH' },
+              { id: 'dish-2', name: 'Dishwasher 2', hourlyRate: 15, hoursPerWeek: 30, tips: 0, benefits: false, department: 'BOH' }
+            ],
             // Support Staff
-            support: {
-              cleaningStaff: { count: 2, hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false },
-              maintenance: { count: 1, hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false }
-            },
+            support: [
+              { id: 'clean-1', name: 'Cleaning Staff 1', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'Support' },
+              { id: 'clean-2', name: 'Cleaning Staff 2', hourlyRate: 15, hoursPerWeek: 20, tips: 0, benefits: false, department: 'Support' },
+              { id: 'maintenance-1', name: 'Maintenance', hourlyRate: 20, hoursPerWeek: 15, tips: 0, benefits: false, department: 'Support' }
+            ],
             // Tax Rates
             taxRates: {
               federalIncomeTax: 0.15,
@@ -1360,22 +1388,22 @@ export const AppProvider = ({ children }) => {
     
     // Save data to Firebase
     saveData: async () => {
-      // console.log('Save data called with state:', {
-      //   userId: state.userId,
-      //   currentDraftId: state.currentDraftId,
-      //   isAuthenticated: state.isAuthenticated,
-      //   draftsCount: state.drafts.length,
-      //   isLoading: state.isLoading
-      // });
+      console.log('Save data called with state:', {
+        userId: state.userId,
+        currentDraftId: state.currentDraftId,
+        isAuthenticated: state.isAuthenticated,
+        draftsCount: state.drafts.length,
+        isLoading: state.isLoading
+      });
       
       if (!state.userId) {
-        // console.log('Save failed: User not authenticated');
+        console.log('Save failed: User not authenticated');
         actions.showMessage('Error', 'Please sign in to save your data.', 'error');
         return;
       }
       
       if (!state.currentDraftId) {
-        // console.log('Save failed: No current draft selected');
+        console.log('Save failed: No current draft selected');
         actions.showMessage('Error', 'No draft selected. Please create or select a draft first.', 'error');
         return;
       }
@@ -1383,11 +1411,11 @@ export const AppProvider = ({ children }) => {
       try {
         actions.setLoading(true);
         const appId = getAppId();
-        // console.log('Starting save with:', { userId: state.userId, appId, currentDraftId: state.currentDraftId });
+        console.log('Starting save with:', { userId: state.userId, appId, currentDraftId: state.currentDraftId });
         
         // Update current draft with latest data
         const currentDraft = getCurrentDraft(state);
-        // console.log('Current draft found:', currentDraft);
+        console.log('Current draft found:', currentDraft);
         if (currentDraft) {
           const updatedDraft = {
             ...currentDraft,
@@ -1397,26 +1425,26 @@ export const AppProvider = ({ children }) => {
             updatedAt: new Date()
           };
           
-          // console.log('Saving draft:', updatedDraft.id);
+          console.log('Saving draft:', updatedDraft.id);
           
           // Save individual draft
           await dbService.saveDraft(state.userId, appId, updatedDraft);
-          // console.log('Draft saved successfully');
+          console.log('Draft saved successfully');
           
           // Save drafts metadata
           const updatedDrafts = state.drafts.map(draft => 
             draft.id === state.currentDraftId ? updatedDraft : draft
           );
           await dbService.saveDraftsMetadata(state.userId, appId, updatedDrafts);
-          // console.log('Drafts metadata saved successfully');
+          console.log('Drafts metadata saved successfully');
           
           actions.showMessage('Success', `Draft "${currentDraft.name}" saved successfully!`, 'success');
         } else {
-          // console.log('No current draft found, cannot save');
+          console.log('No current draft found, cannot save');
           actions.showMessage('Error', 'No current draft found. Please create or select a draft first.', 'error');
         }
       } catch (error) {
-        // console.error('Error saving draft:', error);
+        console.error('Error saving draft:', error);
         actions.showMessage('Error', `Failed to save draft: ${error.message || 'Unknown error'}. Please try again.`, 'error');
       } finally {
         actions.setLoading(false);

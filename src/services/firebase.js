@@ -461,10 +461,18 @@ export const dbService = {
 
   // Draft operations
   saveDraft: async (userId, appId, draftData) => {
+    console.log('saveDraft called:', { userId, appId, draftId: draftData.id, isFirebaseEnabled, hasDb: !!db });
     if (isFirebaseEnabled && db && userId) {
-      const draftRef = doc(db, `artifacts/${appId}/users/${userId}/drafts`, draftData.id);
-      await setDoc(draftRef, { ...draftData, updatedAt: new Date() });
+      try {
+        const draftRef = doc(db, `artifacts/${appId}/users/${userId}/drafts`, draftData.id);
+        await setDoc(draftRef, { ...draftData, updatedAt: new Date() });
+        console.log('Firebase draft saved successfully');
+      } catch (error) {
+        console.error('Firebase save error:', error);
+        throw error;
+      }
     } else {
+      console.log('Using offline storage mode');
       // Offline mode
       const key = `drafts_${appId}_${userId}`;
       const drafts = offlineStorage.get(key) || [];
@@ -473,13 +481,16 @@ export const dbService = {
       
       if (index !== -1) {
         drafts[index] = updatedDraft;
+        console.log('Updated existing draft in offline storage');
       } else {
         drafts.push(updatedDraft);
+        console.log('Added new draft to offline storage');
       }
       
       // Sort by updatedAt desc
       drafts.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       offlineStorage.save(key, drafts);
+      console.log('Offline draft saved successfully');
     }
   },
 

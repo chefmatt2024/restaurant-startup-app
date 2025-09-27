@@ -205,7 +205,7 @@ export const trackUsage = (feature, action, metadata = {}) => {
   console.log('Usage tracked:', usageData);
   
   // Store locally for now
-  const userId = analyticsService.getCurrentUser()?.uid || 'anonymous';
+  const userId = 'anonymous'; // Simplified for now
   const key = `usageAnalytics_${userId}`;
   const usage = JSON.parse(localStorage.getItem(key) || '[]');
   usage.push(usageData);

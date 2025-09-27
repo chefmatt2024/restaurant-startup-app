@@ -102,7 +102,7 @@ const FinancialProjections = () => {
     const labor = data.operatingExpenses.labor;
     const taxRates = labor.taxRates;
     
-    const calculateEmployeeCosts = (employee, isManagement = false) => {
+    const calculateEmployeeCosts = (employee) => {
       const weeklyHours = employee.hoursPerWeek;
       const weeklyBasePay = weeklyHours * employee.hourlyRate;
       const weeklyTips = weeklyHours * employee.tips;
@@ -122,13 +122,14 @@ const FinancialProjections = () => {
       const employerUnemployment = weeklyBasePay * taxRates.unemployment;
       const employerWorkersComp = weeklyBasePay * taxRates.workersComp;
       
-      // Benefits (only for management and full-time staff)
+      // Benefits (only for eligible positions)
       const benefitsCost = employee.benefits ? weeklyBasePay * taxRates.benefitsRate : 0;
       
       const totalEmployeeCost = weeklyGrossPay + employerSocialSecurity + employerMedicare + 
                                employerUnemployment + employerWorkersComp + benefitsCost;
       
       return {
+        ...employee,
         weeklyBasePay,
         weeklyTips,
         weeklyGrossPay,
@@ -144,38 +145,27 @@ const FinancialProjections = () => {
         employerWorkersComp,
         benefitsCost,
         totalEmployeeCost,
-        netPay: weeklyGrossPay - federalTax - stateTax - socialSecurity - medicare
+        netPay: weeklyGrossPay - federalTax - stateTax - socialSecurity - medicare,
+        annualCost: totalEmployeeCost * 52
       };
     };
 
-    const calculatePositionGroup = (positionGroup, isManagement = false) => {
-      return Object.entries(positionGroup).map(([position, employee]) => {
-        const employeeCosts = calculateEmployeeCosts(employee, isManagement);
-        return {
-          position,
-          ...employee,
-          ...employeeCosts,
-          totalWeeklyCost: employeeCosts.totalEmployeeCost * employee.count,
-          annualCost: employeeCosts.totalEmployeeCost * employee.count * 52
-        };
-      });
-    };
-
-    const management = calculatePositionGroup(labor.management, true);
-    const frontOfHouse = calculatePositionGroup(labor.frontOfHouse);
-    const backOfHouse = calculatePositionGroup(labor.backOfHouse);
-    const support = calculatePositionGroup(labor.support);
+    // Process all position arrays
+    const management = labor.management.map(calculateEmployeeCosts);
+    const frontOfHouse = labor.frontOfHouse.map(calculateEmployeeCosts);
+    const backOfHouse = labor.backOfHouse.map(calculateEmployeeCosts);
+    const support = labor.support.map(calculateEmployeeCosts);
 
     const allPositions = [...management, ...frontOfHouse, ...backOfHouse, ...support];
 
     const weeklyTotals = {
-      basePay: allPositions.reduce((sum, pos) => sum + (pos.weeklyBasePay * pos.count), 0),
-      tips: allPositions.reduce((sum, pos) => sum + (pos.weeklyTips * pos.count), 0),
-      grossPay: allPositions.reduce((sum, pos) => sum + (pos.weeklyGrossPay * pos.count), 0),
-      employeeTaxes: allPositions.reduce((sum, pos) => sum + (pos.federalTax + pos.stateTax + pos.socialSecurity + pos.medicare) * pos.count, 0),
-      employerTaxes: allPositions.reduce((sum, pos) => sum + (pos.employerSocialSecurity + pos.employerMedicare + pos.employerUnemployment + pos.employerWorkersComp) * pos.count, 0),
-      benefits: allPositions.reduce((sum, pos) => sum + (pos.benefitsCost * pos.count), 0),
-      totalCost: allPositions.reduce((sum, pos) => sum + pos.totalWeeklyCost, 0)
+      basePay: allPositions.reduce((sum, pos) => sum + pos.weeklyBasePay, 0),
+      tips: allPositions.reduce((sum, pos) => sum + pos.weeklyTips, 0),
+      grossPay: allPositions.reduce((sum, pos) => sum + pos.weeklyGrossPay, 0),
+      employeeTaxes: allPositions.reduce((sum, pos) => sum + pos.federalTax + pos.stateTax + pos.socialSecurity + pos.medicare, 0),
+      employerTaxes: allPositions.reduce((sum, pos) => sum + pos.employerSocialSecurity + pos.employerMedicare + pos.employerUnemployment + pos.employerWorkersComp, 0),
+      benefits: allPositions.reduce((sum, pos) => sum + pos.benefitsCost, 0),
+      totalCost: allPositions.reduce((sum, pos) => sum + pos.totalEmployeeCost, 0)
     };
 
     const annualTotals = {
@@ -675,36 +665,29 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Management Positions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {Object.entries(data.operatingExpenses.labor.management).map(([position, employee]) => (
-                <div key={position} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+              {data.operatingExpenses.labor.management.map((employee, index) => (
+                <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
-                    <FormField
-                      label="Count"
-                      type="number"
-                      value={employee.count}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.count`, parseInt(value))}
-                      placeholder="1"
-                    />
                     <FormField
                       label="Hourly Rate"
                       type="number"
                       value={employee.hourlyRate}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.hourlyRate`, parseFloat(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${index}.hourlyRate`, parseFloat(value))}
                       placeholder="25"
                     />
                     <FormField
                       label="Hours/Week"
                       type="number"
                       value={employee.hoursPerWeek}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${position}.hoursPerWeek`, parseInt(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.management.${index}.hoursPerWeek`, parseInt(value))}
                       placeholder="50"
                     />
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
                         checked={employee.benefits}
-                        onChange={(e) => handleFieldChange('operatingExpenses', `labor.management.${position}.benefits`, e.target.checked)}
+                        onChange={(e) => handleFieldChange('operatingExpenses', `labor.management.${index}.benefits`, e.target.checked)}
                         className="rounded border-gray-300"
                       />
                       <label className="text-sm">Benefits Eligible</label>
@@ -719,36 +702,29 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Front of House Positions</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(data.operatingExpenses.labor.frontOfHouse).map(([position, employee]) => (
-                <div key={position} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+              {data.operatingExpenses.labor.frontOfHouse.map((employee, index) => (
+                <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
-                    <FormField
-                      label="Count"
-                      type="number"
-                      value={employee.count}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.count`, parseInt(value))}
-                      placeholder="2"
-                    />
                     <FormField
                       label="Hourly Rate"
                       type="number"
                       value={employee.hourlyRate}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.hourlyRate`, parseFloat(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${index}.hourlyRate`, parseFloat(value))}
                       placeholder="15"
                     />
                     <FormField
                       label="Tips/Hour"
                       type="number"
                       value={employee.tips}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.tips`, parseFloat(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${index}.tips`, parseFloat(value))}
                       placeholder="8"
                     />
                     <FormField
                       label="Hours/Week"
                       type="number"
                       value={employee.hoursPerWeek}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${position}.hoursPerWeek`, parseInt(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.frontOfHouse.${index}.hoursPerWeek`, parseInt(value))}
                       placeholder="35"
                     />
                   </div>
@@ -760,43 +736,34 @@ const FinancialProjections = () => {
           {/* Back of House Positions */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Back of House Positions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {Object.entries(data.operatingExpenses.labor.backOfHouse).map(([position, employee]) => (
-                <div key={position} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.operatingExpenses.labor.backOfHouse.map((employee, index) => (
+                <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
-                    <FormField
-                      label="Count"
-                      type="number"
-                      value={employee.count}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.count`, parseInt(value))}
-                      placeholder="2"
-                    />
                     <FormField
                       label="Hourly Rate"
                       type="number"
                       value={employee.hourlyRate}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.hourlyRate`, parseFloat(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${index}.hourlyRate`, parseFloat(value))}
                       placeholder="18"
                     />
                     <FormField
                       label="Hours/Week"
                       type="number"
                       value={employee.hoursPerWeek}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.hoursPerWeek`, parseInt(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${index}.hoursPerWeek`, parseInt(value))}
                       placeholder="40"
                     />
-                    {position === 'headChef' && (
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={employee.benefits}
-                          onChange={(e) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${position}.benefits`, e.target.checked)}
-                          className="rounded border-gray-300"
-                        />
-                        <label className="text-sm">Benefits Eligible</label>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={employee.benefits}
+                        onChange={(e) => handleFieldChange('operatingExpenses', `labor.backOfHouse.${index}.benefits`, e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <label className="text-sm">Benefits Eligible</label>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -806,30 +773,23 @@ const FinancialProjections = () => {
           {/* Support Staff */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Support Staff</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(data.operatingExpenses.labor.support).map(([position, employee]) => (
-                <div key={position} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3 capitalize">{position.replace(/([A-Z])/g, ' $1').trim()}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.operatingExpenses.labor.support.map((employee, index) => (
+                <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
-                    <FormField
-                      label="Count"
-                      type="number"
-                      value={employee.count}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.count`, parseInt(value))}
-                      placeholder="1"
-                    />
                     <FormField
                       label="Hourly Rate"
                       type="number"
                       value={employee.hourlyRate}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.hourlyRate`, parseFloat(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${index}.hourlyRate`, parseFloat(value))}
                       placeholder="15"
                     />
                     <FormField
                       label="Hours/Week"
                       type="number"
                       value={employee.hoursPerWeek}
-                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${position}.hoursPerWeek`, parseInt(value))}
+                      onChange={(value) => handleFieldChange('operatingExpenses', `labor.support.${index}.hoursPerWeek`, parseInt(value))}
                       placeholder="20"
                     />
                   </div>
@@ -898,14 +858,12 @@ const FinancialProjections = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {laborProjections.positions.management.map((position) => (
-                    <tr key={position.position} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
-                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                    <tr key={position.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900">{position.name}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">1</td>
                       <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalEmployeeCost)}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
                     </tr>
                   ))}
@@ -932,15 +890,13 @@ const FinancialProjections = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {laborProjections.positions.frontOfHouse.map((position) => (
-                    <tr key={position.position} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
-                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                    <tr key={position.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900">{position.name}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">1</td>
                       <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">${position.tips}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalEmployeeCost)}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
                     </tr>
                   ))}
@@ -966,14 +922,12 @@ const FinancialProjections = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {laborProjections.positions.backOfHouse.map((position) => (
-                    <tr key={position.position} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
-                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                    <tr key={position.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900">{position.name}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">1</td>
                       <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalEmployeeCost)}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
                     </tr>
                   ))}
@@ -999,14 +953,12 @@ const FinancialProjections = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {laborProjections.positions.support.map((position) => (
-                    <tr key={position.position} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-sm font-medium text-gray-900 capitalize">
-                        {position.position.replace(/([A-Z])/g, ' $1').trim()}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{position.count}</td>
+                    <tr key={position.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-sm font-medium text-gray-900">{position.name}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">1</td>
                       <td className="px-3 py-2 text-sm text-gray-900">${position.hourlyRate}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{position.hoursPerWeek}</td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalWeeklyCost)}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.totalEmployeeCost)}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(position.annualCost)}</td>
                     </tr>
                   ))}
