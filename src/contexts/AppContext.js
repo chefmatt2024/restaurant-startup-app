@@ -422,6 +422,67 @@ const initialState = {
       salaryPartTime: 0,
       payrollTaxRate: 0.12
     },
+    
+    // Funding Sources
+    fundingSources: {
+      // Personal Investment
+      personalSavings: 0,
+      personalAssets: 0,
+      homeEquity: 0,
+      retirementFunds: 0,
+      
+      // Family & Friends
+      familyLoans: 0,
+      friendLoans: 0,
+      familyGifts: 0,
+      
+      // Traditional Financing
+      bankLoans: 0,
+      sbaLoans: 0,
+      equipmentFinancing: 0,
+      lineOfCredit: 0,
+      businessCreditCards: 0,
+      
+      // Alternative Financing
+      crowdfunding: 0,
+      angelInvestors: 0,
+      ventureCapital: 0,
+      grants: 0,
+      privateInvestors: 0,
+      
+      // Other Sources
+      businessPartners: 0,
+      supplierCredit: 0,
+      otherSources: 0,
+      
+      // Funding Terms
+      fundingTerms: {
+        interestRates: {
+          bankLoans: 6.5, // %
+          sbaLoans: 4.5, // %
+          equipmentFinancing: 8.0, // %
+          lineOfCredit: 7.5, // %
+          businessCreditCards: 18.0, // %
+          familyLoans: 3.0, // %
+          friendLoans: 5.0 // %
+        },
+        repaymentTerms: {
+          bankLoans: 60, // months
+          sbaLoans: 84, // months
+          equipmentFinancing: 36, // months
+          lineOfCredit: 24, // months
+          familyLoans: 120, // months
+          friendLoans: 60 // months
+        },
+        collateral: {
+          personalGuarantee: true,
+          businessAssets: true,
+          realEstate: false,
+          equipment: true
+        }
+      }
+    },
+    
     startupCosts: {
       leaseholdImprovements: 0,
       kitchenEquipment: 0,
@@ -812,6 +873,67 @@ const createSampleDrafts = () => {
           salaryPartTime: 140000,
           payrollTaxRate: 0.12
         },
+        
+        // Funding Sources
+        fundingSources: {
+          // Personal Investment
+          personalSavings: 150000,
+          personalAssets: 25000,
+          homeEquity: 0,
+          retirementFunds: 0,
+          
+          // Family & Friends
+          familyLoans: 50000,
+          friendLoans: 0,
+          familyGifts: 25000,
+          
+          // Traditional Financing
+          bankLoans: 200000,
+          sbaLoans: 150000,
+          equipmentFinancing: 100000,
+          lineOfCredit: 50000,
+          businessCreditCards: 25000,
+          
+          // Alternative Financing
+          crowdfunding: 0,
+          angelInvestors: 0,
+          ventureCapital: 0,
+          grants: 10000,
+          privateInvestors: 100000,
+          
+          // Other Sources
+          businessPartners: 75000,
+          supplierCredit: 15000,
+          otherSources: 0,
+          
+          // Funding Terms
+          fundingTerms: {
+            interestRates: {
+              bankLoans: 6.5, // %
+              sbaLoans: 4.5, // %
+              equipmentFinancing: 8.0, // %
+              lineOfCredit: 7.5, // %
+              businessCreditCards: 18.0, // %
+              familyLoans: 3.0, // %
+              friendLoans: 5.0 // %
+            },
+            repaymentTerms: {
+              bankLoans: 60, // months
+              sbaLoans: 84, // months
+              equipmentFinancing: 36, // months
+              lineOfCredit: 24, // months
+              familyLoans: 120, // months
+              friendLoans: 60 // months
+            },
+            collateral: {
+              personalGuarantee: true,
+              businessAssets: true,
+              realEstate: false,
+              equipment: true
+            }
+          }
+        },
+        
         startupCosts: {
           leaseholdImprovements: 200000,
           kitchenEquipment: 145000,

@@ -272,6 +272,82 @@ const FinancialProjections = () => {
     };
   }, [data.marketTrends, data.yearlyPermits, data.maintenanceCosts, dailySalesProjections.annual.totalRevenue, laborProjections.annual.totalCost]);
 
+  // Calculate funding sources and debt service
+  const fundingAnalysis = useMemo(() => {
+    const fundingSources = data.fundingSources;
+    const fundingTerms = fundingSources.fundingTerms;
+    
+    // Calculate total funding
+    const personalFunding = fundingSources.personalSavings + fundingSources.personalAssets + 
+                           fundingSources.homeEquity + fundingSources.retirementFunds;
+    
+    const familyFriendsFunding = fundingSources.familyLoans + fundingSources.friendLoans + 
+                                fundingSources.familyGifts;
+    
+    const traditionalFinancing = fundingSources.bankLoans + fundingSources.sbaLoans + 
+                                fundingSources.equipmentFinancing + fundingSources.lineOfCredit + 
+                                fundingSources.businessCreditCards;
+    
+    const alternativeFinancing = fundingSources.crowdfunding + fundingSources.angelInvestors + 
+                                fundingSources.ventureCapital + fundingSources.grants + 
+                                fundingSources.privateInvestors;
+    
+    const otherFunding = fundingSources.businessPartners + fundingSources.supplierCredit + 
+                        fundingSources.otherSources;
+    
+    const totalFunding = personalFunding + familyFriendsFunding + traditionalFinancing + 
+                        alternativeFinancing + otherFunding;
+    
+    // Calculate debt service (monthly payments)
+    const debtService = {
+      bankLoans: fundingSources.bankLoans > 0 ? 
+        (fundingSources.bankLoans * (fundingTerms.interestRates.bankLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (fundingTerms.interestRates.bankLoans / 100 / 12), -fundingTerms.repaymentTerms.bankLoans)) : 0,
+      
+      sbaLoans: fundingSources.sbaLoans > 0 ? 
+        (fundingSources.sbaLoans * (fundingTerms.interestRates.sbaLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (fundingTerms.interestRates.sbaLoans / 100 / 12), -fundingTerms.repaymentTerms.sbaLoans)) : 0,
+      
+      equipmentFinancing: fundingSources.equipmentFinancing > 0 ? 
+        (fundingSources.equipmentFinancing * (fundingTerms.interestRates.equipmentFinancing / 100 / 12)) / 
+        (1 - Math.pow(1 + (fundingTerms.interestRates.equipmentFinancing / 100 / 12), -fundingTerms.repaymentTerms.equipmentFinancing)) : 0,
+      
+      familyLoans: fundingSources.familyLoans > 0 ? 
+        (fundingSources.familyLoans * (fundingTerms.interestRates.familyLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (fundingTerms.interestRates.familyLoans / 100 / 12), -fundingTerms.repaymentTerms.familyLoans)) : 0,
+      
+      friendLoans: fundingSources.friendLoans > 0 ? 
+        (fundingSources.friendLoans * (fundingTerms.interestRates.friendLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (fundingTerms.interestRates.friendLoans / 100 / 12), -fundingTerms.repaymentTerms.friendLoans)) : 0,
+      
+      lineOfCredit: fundingSources.lineOfCredit * (fundingTerms.interestRates.lineOfCredit / 100 / 12),
+      businessCreditCards: fundingSources.businessCreditCards * (fundingTerms.interestRates.businessCreditCards / 100 / 12)
+    };
+    
+    const totalMonthlyDebtService = Object.values(debtService).reduce((sum, payment) => sum + payment, 0);
+    const totalAnnualDebtService = totalMonthlyDebtService * 12;
+    
+    // Calculate funding gap
+    const totalStartupCosts = Object.values(data.startupCosts).reduce((sum, cost) => sum + cost, 0);
+    const fundingGap = totalStartupCosts - totalFunding;
+    
+    return {
+      totalFunding,
+      totalStartupCosts,
+      fundingGap,
+      totalMonthlyDebtService,
+      totalAnnualDebtService,
+      breakdown: {
+        personalFunding,
+        familyFriendsFunding,
+        traditionalFinancing,
+        alternativeFinancing,
+        otherFunding
+      },
+      debtService
+    };
+  }, [data.fundingSources, data.startupCosts]);
+
   // Calculate key metrics
   const calculations = useMemo(() => {
     const totalRevenue = data.revenue.foodSales + data.revenue.beverageSales + 
@@ -323,7 +399,7 @@ const FinancialProjections = () => {
     const totalYearlyPermits = financialAnalysis.totalYearlyPermits;
     const totalMaintenanceCosts = financialAnalysis.totalMaintenanceCosts;
 
-    const totalExpenses = totalOpEx + totalPayroll + totalYearlyPermits + totalMaintenanceCosts;
+    const totalExpenses = totalOpEx + totalPayroll + totalYearlyPermits + totalMaintenanceCosts + fundingAnalysis.totalAnnualDebtService;
     const netIncome = grossProfit - totalExpenses;
     const netMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
 
@@ -350,6 +426,7 @@ const FinancialProjections = () => {
       totalPayroll,
       totalYearlyPermits,
       totalMaintenanceCosts,
+      totalDebtService: fundingAnalysis.totalAnnualDebtService,
       totalExpenses,
       netIncome,
       netMargin,
@@ -1452,6 +1529,286 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
+      {/* Funding Sources & Debt Service */}
+      <SectionCard title="Funding Sources & Debt Service" color="indigo">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Funding Sources */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Funding Sources</h3>
+            <div className="space-y-4">
+              {/* Personal Investment */}
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-800 mb-3">Personal Investment</h4>
+                <div className="space-y-3">
+                  <FormField
+                    label="Personal Savings"
+                    type="number"
+                    value={data.fundingSources.personalSavings}
+                    onChange={(value) => handleFieldChange('fundingSources', 'personalSavings', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Personal Assets"
+                    type="number"
+                    value={data.fundingSources.personalAssets}
+                    onChange={(value) => handleFieldChange('fundingSources', 'personalAssets', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Home Equity"
+                    type="number"
+                    value={data.fundingSources.homeEquity}
+                    onChange={(value) => handleFieldChange('fundingSources', 'homeEquity', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Retirement Funds"
+                    type="number"
+                    value={data.fundingSources.retirementFunds}
+                    onChange={(value) => handleFieldChange('fundingSources', 'retirementFunds', parseInt(value))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="mt-3 p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between font-semibold">
+                    <span>Personal Total:</span>
+                    <span className="text-blue-600">{formatCurrency(fundingAnalysis.breakdown.personalFunding)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Family & Friends */}
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-800 mb-3">Family & Friends</h4>
+                <div className="space-y-3">
+                  <FormField
+                    label="Family Loans"
+                    type="number"
+                    value={data.fundingSources.familyLoans}
+                    onChange={(value) => handleFieldChange('fundingSources', 'familyLoans', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Friend Loans"
+                    type="number"
+                    value={data.fundingSources.friendLoans}
+                    onChange={(value) => handleFieldChange('fundingSources', 'friendLoans', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Family Gifts"
+                    type="number"
+                    value={data.fundingSources.familyGifts}
+                    onChange={(value) => handleFieldChange('fundingSources', 'familyGifts', parseInt(value))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="mt-3 p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between font-semibold">
+                    <span>Family & Friends Total:</span>
+                    <span className="text-green-600">{formatCurrency(fundingAnalysis.breakdown.familyFriendsFunding)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Traditional Financing */}
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-800 mb-3">Traditional Financing</h4>
+                <div className="space-y-3">
+                  <FormField
+                    label="Bank Loans"
+                    type="number"
+                    value={data.fundingSources.bankLoans}
+                    onChange={(value) => handleFieldChange('fundingSources', 'bankLoans', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="SBA Loans"
+                    type="number"
+                    value={data.fundingSources.sbaLoans}
+                    onChange={(value) => handleFieldChange('fundingSources', 'sbaLoans', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Equipment Financing"
+                    type="number"
+                    value={data.fundingSources.equipmentFinancing}
+                    onChange={(value) => handleFieldChange('fundingSources', 'equipmentFinancing', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Line of Credit"
+                    type="number"
+                    value={data.fundingSources.lineOfCredit}
+                    onChange={(value) => handleFieldChange('fundingSources', 'lineOfCredit', parseInt(value))}
+                    placeholder="0"
+                  />
+                  <FormField
+                    label="Business Credit Cards"
+                    type="number"
+                    value={data.fundingSources.businessCreditCards}
+                    onChange={(value) => handleFieldChange('fundingSources', 'businessCreditCards', parseInt(value))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="mt-3 p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between font-semibold">
+                    <span>Traditional Financing Total:</span>
+                    <span className="text-purple-600">{formatCurrency(fundingAnalysis.breakdown.traditionalFinancing)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Alternative & Other Funding + Debt Service */}
+          <div>
+            {/* Alternative Financing */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4">Alternative & Other Funding</h3>
+              <div className="space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Alternative Financing</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Crowdfunding"
+                      type="number"
+                      value={data.fundingSources.crowdfunding}
+                      onChange={(value) => handleFieldChange('fundingSources', 'crowdfunding', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Angel Investors"
+                      type="number"
+                      value={data.fundingSources.angelInvestors}
+                      onChange={(value) => handleFieldChange('fundingSources', 'angelInvestors', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Venture Capital"
+                      type="number"
+                      value={data.fundingSources.ventureCapital}
+                      onChange={(value) => handleFieldChange('fundingSources', 'ventureCapital', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Grants"
+                      type="number"
+                      value={data.fundingSources.grants}
+                      onChange={(value) => handleFieldChange('fundingSources', 'grants', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Private Investors"
+                      type="number"
+                      value={data.fundingSources.privateInvestors}
+                      onChange={(value) => handleFieldChange('fundingSources', 'privateInvestors', parseInt(value))}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="mt-3 p-2 bg-gray-50 rounded">
+                    <div className="flex justify-between font-semibold">
+                      <span>Alternative Total:</span>
+                      <span className="text-orange-600">{formatCurrency(fundingAnalysis.breakdown.alternativeFinancing)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Other Sources</h4>
+                  <div className="space-y-3">
+                    <FormField
+                      label="Business Partners"
+                      type="number"
+                      value={data.fundingSources.businessPartners}
+                      onChange={(value) => handleFieldChange('fundingSources', 'businessPartners', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Supplier Credit"
+                      type="number"
+                      value={data.fundingSources.supplierCredit}
+                      onChange={(value) => handleFieldChange('fundingSources', 'supplierCredit', parseInt(value))}
+                      placeholder="0"
+                    />
+                    <FormField
+                      label="Other Sources"
+                      type="number"
+                      value={data.fundingSources.otherSources}
+                      onChange={(value) => handleFieldChange('fundingSources', 'otherSources', parseInt(value))}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="mt-3 p-2 bg-gray-50 rounded">
+                    <div className="flex justify-between font-semibold">
+                      <span>Other Sources Total:</span>
+                      <span className="text-red-600">{formatCurrency(fundingAnalysis.breakdown.otherFunding)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Debt Service Summary */}
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4">Debt Service Analysis</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <div className="text-sm font-medium text-blue-600">Monthly Debt Service</div>
+                    <div className="text-xl font-bold text-blue-700">{formatCurrency(fundingAnalysis.totalMonthlyDebtService)}</div>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <div className="text-sm font-medium text-purple-600">Annual Debt Service</div>
+                    <div className="text-xl font-bold text-purple-700">{formatCurrency(fundingAnalysis.totalAnnualDebtService)}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800">Monthly Payments by Source:</h4>
+                  {Object.entries(fundingAnalysis.debtService).map(([source, payment]) => (
+                    payment > 0 && (
+                      <div key={source} className="flex justify-between p-2 bg-gray-50 rounded">
+                        <span className="capitalize">{source.replace(/([A-Z])/g, ' $1')}:</span>
+                        <span className="font-semibold">{formatCurrency(payment)}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Funding Summary */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-4 bg-indigo-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Total Funding:</span>
+              <span className="text-xl font-bold text-indigo-600">
+                {formatCurrency(fundingAnalysis.totalFunding)}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Total Startup Costs:</span>
+              <span className="text-xl font-bold text-green-600">
+                {formatCurrency(fundingAnalysis.totalStartupCosts)}
+              </span>
+            </div>
+          </div>
+          <div className={`p-4 rounded-lg ${fundingAnalysis.fundingGap >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Funding Gap:</span>
+              <span className={`text-xl font-bold ${fundingAnalysis.fundingGap >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(fundingAnalysis.fundingGap)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
       {/* Revenue Projections */}
       <SectionCard title="Revenue Projections (Year 1)" color="green">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2005,7 +2362,7 @@ const FinancialProjections = () => {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           <div className="p-4 bg-red-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-semibold">Operating Expenses:</span>
@@ -2035,6 +2392,14 @@ const FinancialProjections = () => {
               <span className="font-semibold">Maintenance:</span>
               <span className="text-lg font-bold text-red-600">
                 {formatCurrency(calculations.totalMaintenanceCosts)}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 bg-indigo-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Debt Service:</span>
+              <span className="text-lg font-bold text-indigo-600">
+                {formatCurrency(calculations.totalDebtService)}
               </span>
             </div>
           </div>

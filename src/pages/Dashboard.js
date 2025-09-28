@@ -76,7 +76,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* View Toggle */}
@@ -84,9 +84,9 @@ const Dashboard = () => {
           <div className="modern-card p-1 inline-flex shadow-lg">
             <button
               onClick={() => setShowOverview(true)}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+              className={`px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 showOverview 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
@@ -94,9 +94,9 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setShowOverview(false)}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+              className={`px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 !showOverview 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >

@@ -16,9 +16,11 @@ const SectionCard = ({
       red: 'bg-red-50 border-red-200',
       pink: 'bg-pink-50 border-pink-200',
       yellow: 'bg-yellow-50 border-yellow-200',
-      gray: 'bg-gray-50 border-gray-200'
+      gray: 'bg-gray-50 border-gray-200',
+      indigo: 'bg-indigo-50 border-indigo-200',
+      slate: 'bg-slate-50 border-slate-200'
     };
-    return colors[color] || colors.blue;
+    return colors[color] || colors.slate;
   };
 
   return (

@@ -207,30 +207,30 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 rounded-2xl p-8 text-white shadow-2xl">
+      <div className="bg-slate-800 rounded-lg p-8 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold mb-3 text-white">
               Welcome back, {state.user?.displayName || 'Restaurant Planner'}!
             </h1>
-            <p className="text-indigo-100 text-lg">
+            <p className="text-slate-200 text-lg">
               {currentDraft ? `Working on: ${currentDraft.name}` : 'Ready to start your restaurant journey?'}
             </p>
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">{progress.percentage}%</div>
-            <div className="text-indigo-100 text-sm font-medium">Complete</div>
+            <div className="text-4xl font-bold text-white">{progress.percentage}%</div>
+            <div className="text-slate-300 text-sm font-medium">Complete</div>
           </div>
         </div>
         
         {/* Progress Bar */}
-        <div className="mt-6 bg-white bg-opacity-20 rounded-full h-3 backdrop-blur-sm">
+        <div className="mt-6 bg-slate-700 rounded-full h-3">
           <div 
-            className="bg-gradient-to-r from-white to-blue-100 rounded-full h-3 transition-all duration-700 ease-out shadow-lg"
+            className="bg-blue-600 rounded-full h-3 transition-all duration-700 ease-out"
             style={{ width: `${progress.percentage}%` }}
           />
         </div>
-        <div className="mt-3 text-sm text-indigo-100 font-medium">
+        <div className="mt-3 text-sm text-slate-300 font-medium">
           {progress.completed} of {progress.total} sections completed
         </div>
       </div>
@@ -239,7 +239,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="modern-card p-6 hover-lift">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-green-600 rounded-lg shadow-sm">
               <CheckCircle className="w-7 h-7 text-white" />
             </div>
             <div className="ml-4">
@@ -251,7 +251,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
         <div className="modern-card p-6 hover-lift">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-amber-500 rounded-lg shadow-sm">
               <Clock className="w-7 h-7 text-white" />
             </div>
             <div className="ml-4">
@@ -263,7 +263,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
         <div className="modern-card p-6 hover-lift">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-blue-600 rounded-lg shadow-sm">
               <FileText className="w-7 h-7 text-white" />
             </div>
             <div className="ml-4">
@@ -275,7 +275,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
         <div className="modern-card p-6 hover-lift">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-purple-600 rounded-lg shadow-sm">
               <TrendingUp className="w-7 h-7 text-white" />
             </div>
             <div className="ml-4">
@@ -289,9 +289,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Next Tasks */}
         <div className="modern-card">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center">
-              <div className="p-2 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg mr-3">
+              <div className="p-2 bg-yellow-500 rounded-lg mr-3">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Next Priority Tasks</h2>
@@ -303,9 +303,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 {nextTasks.map((task, index) => {
                   const IconComponent = task.icon;
                   const priorityColors = {
-                    high: 'text-white bg-gradient-to-br from-red-500 to-red-600',
-                    medium: 'text-white bg-gradient-to-br from-yellow-500 to-orange-500',
-                    low: 'text-white bg-gradient-to-br from-green-500 to-green-600'
+                    high: 'text-white bg-red-600',
+                    medium: 'text-white bg-yellow-500',
+                    low: 'text-white bg-green-600'
                   };
                   
                   return (
@@ -342,9 +342,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
         {/* Section Status */}
         <div className="modern-card">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg mr-3">
+              <div className="p-2 bg-blue-600 rounded-lg mr-3">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Section Status</h2>
@@ -357,10 +357,10 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 return (
                   <div key={id} className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-xl shadow-md ${
+                      <div className={`p-3 rounded-lg shadow-sm ${
                         section.completed 
-                          ? 'bg-gradient-to-br from-green-500 to-green-600' 
-                          : 'bg-gradient-to-br from-gray-400 to-gray-500'
+                          ? 'bg-green-600' 
+                          : 'bg-gray-400'
                       }`}>
                         <IconComponent className="w-5 h-5 text-white" />
                       </div>
@@ -394,7 +394,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
       {/* Quick Actions */}
       <div className="modern-card">
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+        <div className="p-6 border-b border-gray-200 bg-gray-50">
           <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
         </div>
         <div className="p-6">
@@ -404,9 +404,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 actions.setActiveTab('startup-journey');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
-              className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 text-center group hover-lift"
+              className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 text-center group hover-lift"
             >
-              <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-4 bg-blue-600 rounded-lg w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Compass className="w-8 h-8 text-white" />
               </div>
               <div className="font-bold text-gray-900 text-lg mb-2">Startup Journey</div>
@@ -418,9 +418,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 actions.setActiveTab('opening-plan');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
-              className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-red-400 hover:bg-gradient-to-br hover:from-red-50 hover:to-pink-50 transition-all duration-200 text-center group hover-lift"
+              className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 text-center group hover-lift"
             >
-              <div className="p-4 bg-gradient-to-br from-red-500 to-red-600 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-4 bg-red-600 rounded-lg w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Target className="w-8 h-8 text-white" />
               </div>
               <div className="font-bold text-gray-900 text-lg mb-2">Opening Plan</div>
@@ -432,9 +432,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 actions.setActiveTab('business-analytics');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
-              className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-green-400 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 transition-all duration-200 text-center group hover-lift"
+              className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all duration-200 text-center group hover-lift"
             >
-              <div className="p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-4 bg-green-600 rounded-lg w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <BarChart3 className="w-8 h-8 text-white" />
               </div>
               <div className="font-bold text-gray-900 text-lg mb-2">Analytics</div>
@@ -446,9 +446,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                 actions.setActiveTab('documents');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
-              className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-orange-400 hover:bg-gradient-to-br hover:from-orange-50 hover:to-red-50 transition-all duration-200 text-center group hover-lift"
+              className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-all duration-200 text-center group hover-lift"
             >
-              <div className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-4 bg-orange-600 rounded-lg w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <div className="font-bold text-gray-900 text-lg mb-2">Health Code</div>
