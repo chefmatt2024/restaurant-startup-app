@@ -296,6 +296,126 @@ const initialState = {
         }
       },
       
+      // Market Trends & Projections
+      marketTrends: {
+        // Industry Benchmarks
+        industryBenchmarks: {
+          avgRevenuePerSeat: 75000, // Annual revenue per seat
+          avgFoodCostPercentage: 28, // 28% food cost
+          avgLaborPercentage: 32, // 32% labor cost
+          avgOccupancyRate: 0.75, // 75% average occupancy
+          avgCheckSize: 25, // Average check size
+          avgTableTurnover: 2.0 // Tables turned per meal period
+        },
+        // Growth Projections
+        growthProjections: {
+          year1: { revenueGrowth: 1.0, costInflation: 1.0 },
+          year2: { revenueGrowth: 1.15, costInflation: 1.03 },
+          year3: { revenueGrowth: 1.25, costInflation: 1.06 },
+          year4: { revenueGrowth: 1.35, costInflation: 1.09 },
+          year5: { revenueGrowth: 1.45, costInflation: 1.12 }
+        },
+        // Seasonal Adjustments
+        seasonalFactors: {
+          spring: { factor: 1.05, months: [3, 4, 5] },
+          summer: { factor: 1.15, months: [6, 7, 8] },
+          fall: { factor: 1.08, months: [9, 10, 11] },
+          winter: { factor: 0.92, months: [12, 1, 2] }
+        }
+      },
+      
+      // Yearly Permits & Compliance Costs
+      yearlyPermits: {
+        // Business Permits
+        businessPermits: {
+          businessLicense: 200, // Annual business license
+          foodServiceLicense: 150, // Annual food service license
+          alcoholLicense: 2500, // Annual alcohol license
+          entertainmentLicense: 300, // Music/entertainment license
+          outdoorDiningPermit: 500, // Outdoor seating permit
+          signagePermit: 150, // Signage permit
+          healthDepartmentFee: 300, // Annual health department fee
+          fireDepartmentInspection: 200, // Fire safety inspection
+          buildingPermitRenewal: 400, // Building permit renewal
+          parkingPermit: 1000, // Parking permits
+          dumpsterPermit: 800, // Waste disposal permit
+          greaseTrapPermit: 300, // Grease trap permit
+          waterPermit: 250, // Water/sewer permit
+          gasPermit: 200, // Gas line permit
+          electricalPermit: 180 // Electrical permit
+        },
+        // Insurance Requirements
+        insuranceCosts: {
+          generalLiability: 2500, // Annual general liability
+          propertyInsurance: 3500, // Property insurance
+          workersCompensation: 4000, // Workers comp
+          liquorLiability: 1200, // Liquor liability
+          foodContamination: 800, // Food contamination insurance
+          businessInterruption: 1500, // Business interruption
+          cyberLiability: 600, // Cyber security insurance
+          umbrellaPolicy: 2000 // Umbrella coverage
+        },
+        // Professional Services
+        professionalServices: {
+          accountingServices: 8000, // Annual accounting
+          legalServices: 5000, // Legal services
+          taxPreparation: 2000, // Tax preparation
+          payrollServices: 2400, // Payroll processing
+          bookkeeping: 6000, // Monthly bookkeeping
+          consulting: 3000, // Business consulting
+          marketingServices: 4000, // Marketing support
+          hrServices: 2000 // HR services
+        }
+      },
+      
+      // Maintenance & Equipment Costs
+      maintenanceCosts: {
+        // Equipment Maintenance
+        equipmentMaintenance: {
+          kitchenEquipment: 8000, // Annual kitchen equipment maintenance
+          hvacMaintenance: 3600, // HVAC maintenance (quarterly)
+          plumbingMaintenance: 2400, // Plumbing maintenance
+          electricalMaintenance: 1800, // Electrical maintenance
+          refrigerationMaintenance: 3000, // Refrigeration maintenance
+          greaseTrapCleaning: 1200, // Quarterly grease trap cleaning
+          hoodCleaning: 2400, // Quarterly hood cleaning
+          floorMaintenance: 2000, // Floor cleaning/maintenance
+          windowCleaning: 1200, // Window cleaning
+          carpetCleaning: 800, // Carpet cleaning
+          pestControl: 1800, // Monthly pest control
+          securitySystem: 1200, // Security system maintenance
+          posSystem: 1200, // POS system maintenance
+          fireSuppression: 600, // Fire suppression maintenance
+          emergencyEquipment: 400 // Emergency equipment maintenance
+        },
+        // Building Maintenance
+        buildingMaintenance: {
+          roofMaintenance: 2000, // Roof maintenance
+          exteriorPainting: 3000, // Exterior painting (every 3 years)
+          interiorPainting: 1500, // Interior painting (every 2 years)
+          doorMaintenance: 800, // Door maintenance
+          windowRepair: 1000, // Window repair/replacement
+          parkingLotMaintenance: 1500, // Parking lot maintenance
+          landscaping: 2400, // Landscaping maintenance
+          snowRemoval: 1800, // Snow removal (seasonal)
+          sidewalkMaintenance: 600, // Sidewalk maintenance
+          fenceMaintenance: 400, // Fence maintenance
+          awningMaintenance: 600, // Awning maintenance
+          signageMaintenance: 800 // Signage maintenance
+        },
+        // Equipment Replacement Schedule
+        equipmentReplacement: {
+          kitchenEquipment: { cost: 50000, years: 7, annualReserve: 7143 },
+          hvacSystem: { cost: 25000, years: 10, annualReserve: 2500 },
+          refrigeration: { cost: 30000, years: 8, annualReserve: 3750 },
+          furniture: { cost: 15000, years: 5, annualReserve: 3000 },
+          electronics: { cost: 10000, years: 3, annualReserve: 3333 },
+          flooring: { cost: 20000, years: 8, annualReserve: 2500 },
+          lighting: { cost: 8000, years: 5, annualReserve: 1600 },
+          plumbing: { cost: 12000, years: 10, annualReserve: 1200 }
+        }
+      },
+      
       // Legacy Payroll (for backward compatibility)
       salaryOwners: 0,
       salaryFullTime: 0,
@@ -564,6 +684,126 @@ const createSampleDrafts = () => {
               unemployment: 0.03,
               workersComp: 0.02,
               benefitsRate: 0.25 // Health insurance, retirement, etc.
+            }
+          },
+          
+          // Market Trends & Projections
+          marketTrends: {
+            // Industry Benchmarks
+            industryBenchmarks: {
+              avgRevenuePerSeat: 80000, // Annual revenue per seat
+              avgFoodCostPercentage: 28, // 28% food cost
+              avgLaborPercentage: 32, // 32% labor cost
+              avgOccupancyRate: 0.75, // 75% average occupancy
+              avgCheckSize: 28, // Average check size
+              avgTableTurnover: 2.0 // Tables turned per meal period
+            },
+            // Growth Projections
+            growthProjections: {
+              year1: { revenueGrowth: 1.0, costInflation: 1.0 },
+              year2: { revenueGrowth: 1.15, costInflation: 1.03 },
+              year3: { revenueGrowth: 1.25, costInflation: 1.06 },
+              year4: { revenueGrowth: 1.35, costInflation: 1.09 },
+              year5: { revenueGrowth: 1.45, costInflation: 1.12 }
+            },
+            // Seasonal Adjustments
+            seasonalFactors: {
+              spring: { factor: 1.05, months: [3, 4, 5] },
+              summer: { factor: 1.15, months: [6, 7, 8] },
+              fall: { factor: 1.08, months: [9, 10, 11] },
+              winter: { factor: 0.92, months: [12, 1, 2] }
+            }
+          },
+          
+          // Yearly Permits & Compliance Costs
+          yearlyPermits: {
+            // Business Permits
+            businessPermits: {
+              businessLicense: 200, // Annual business license
+              foodServiceLicense: 150, // Annual food service license
+              alcoholLicense: 2500, // Annual alcohol license
+              entertainmentLicense: 300, // Music/entertainment license
+              outdoorDiningPermit: 500, // Outdoor seating permit
+              signagePermit: 150, // Signage permit
+              healthDepartmentFee: 300, // Annual health department fee
+              fireDepartmentInspection: 200, // Fire safety inspection
+              buildingPermitRenewal: 400, // Building permit renewal
+              parkingPermit: 1000, // Parking permits
+              dumpsterPermit: 800, // Waste disposal permit
+              greaseTrapPermit: 300, // Grease trap permit
+              waterPermit: 250, // Water/sewer permit
+              gasPermit: 200, // Gas line permit
+              electricalPermit: 180 // Electrical permit
+            },
+            // Insurance Requirements
+            insuranceCosts: {
+              generalLiability: 2500, // Annual general liability
+              propertyInsurance: 3500, // Property insurance
+              workersCompensation: 4000, // Workers comp
+              liquorLiability: 1200, // Liquor liability
+              foodContamination: 800, // Food contamination insurance
+              businessInterruption: 1500, // Business interruption
+              cyberLiability: 600, // Cyber security insurance
+              umbrellaPolicy: 2000 // Umbrella coverage
+            },
+            // Professional Services
+            professionalServices: {
+              accountingServices: 8000, // Annual accounting
+              legalServices: 5000, // Legal services
+              taxPreparation: 2000, // Tax preparation
+              payrollServices: 2400, // Payroll processing
+              bookkeeping: 6000, // Monthly bookkeeping
+              consulting: 3000, // Business consulting
+              marketingServices: 4000, // Marketing support
+              hrServices: 2000 // HR services
+            }
+          },
+          
+          // Maintenance & Equipment Costs
+          maintenanceCosts: {
+            // Equipment Maintenance
+            equipmentMaintenance: {
+              kitchenEquipment: 8000, // Annual kitchen equipment maintenance
+              hvacMaintenance: 3600, // HVAC maintenance (quarterly)
+              plumbingMaintenance: 2400, // Plumbing maintenance
+              electricalMaintenance: 1800, // Electrical maintenance
+              refrigerationMaintenance: 3000, // Refrigeration maintenance
+              greaseTrapCleaning: 1200, // Quarterly grease trap cleaning
+              hoodCleaning: 2400, // Quarterly hood cleaning
+              floorMaintenance: 2000, // Floor cleaning/maintenance
+              windowCleaning: 1200, // Window cleaning
+              carpetCleaning: 800, // Carpet cleaning
+              pestControl: 1800, // Monthly pest control
+              securitySystem: 1200, // Security system maintenance
+              posSystem: 1200, // POS system maintenance
+              fireSuppression: 600, // Fire suppression maintenance
+              emergencyEquipment: 400 // Emergency equipment maintenance
+            },
+            // Building Maintenance
+            buildingMaintenance: {
+              roofMaintenance: 2000, // Roof maintenance
+              exteriorPainting: 3000, // Exterior painting (every 3 years)
+              interiorPainting: 1500, // Interior painting (every 2 years)
+              doorMaintenance: 800, // Door maintenance
+              windowRepair: 1000, // Window repair/replacement
+              parkingLotMaintenance: 1500, // Parking lot maintenance
+              landscaping: 2400, // Landscaping maintenance
+              snowRemoval: 1800, // Snow removal (seasonal)
+              sidewalkMaintenance: 600, // Sidewalk maintenance
+              fenceMaintenance: 400, // Fence maintenance
+              awningMaintenance: 600, // Awning maintenance
+              signageMaintenance: 800 // Signage maintenance
+            },
+            // Equipment Replacement Schedule
+            equipmentReplacement: {
+              kitchenEquipment: { cost: 50000, years: 7, annualReserve: 7143 },
+              hvacSystem: { cost: 25000, years: 10, annualReserve: 2500 },
+              refrigeration: { cost: 30000, years: 8, annualReserve: 3750 },
+              furniture: { cost: 15000, years: 5, annualReserve: 3000 },
+              electronics: { cost: 10000, years: 3, annualReserve: 3333 },
+              flooring: { cost: 20000, years: 8, annualReserve: 2500 },
+              lighting: { cost: 8000, years: 5, annualReserve: 1600 },
+              plumbing: { cost: 12000, years: 10, annualReserve: 1200 }
             }
           },
           

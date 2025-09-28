@@ -191,6 +191,87 @@ const FinancialProjections = () => {
     };
   }, [data.operatingExpenses.labor]);
 
+  // Calculate comprehensive financial analysis
+  const financialAnalysis = useMemo(() => {
+    const marketTrends = data.marketTrends;
+    const yearlyPermits = data.yearlyPermits;
+    const maintenanceCosts = data.maintenanceCosts;
+    
+    // Calculate total yearly permits and compliance costs
+    const totalBusinessPermits = Object.values(yearlyPermits.businessPermits).reduce((sum, cost) => sum + cost, 0);
+    const totalInsuranceCosts = Object.values(yearlyPermits.insuranceCosts).reduce((sum, cost) => sum + cost, 0);
+    const totalProfessionalServices = Object.values(yearlyPermits.professionalServices).reduce((sum, cost) => sum + cost, 0);
+    const totalYearlyPermits = totalBusinessPermits + totalInsuranceCosts + totalProfessionalServices;
+    
+    // Calculate total maintenance costs
+    const totalEquipmentMaintenance = Object.values(maintenanceCosts.equipmentMaintenance).reduce((sum, cost) => sum + cost, 0);
+    const totalBuildingMaintenance = Object.values(maintenanceCosts.buildingMaintenance).reduce((sum, cost) => sum + cost, 0);
+    const totalEquipmentReplacement = Object.values(maintenanceCosts.equipmentReplacement).reduce((sum, item) => sum + item.annualReserve, 0);
+    const totalMaintenanceCosts = totalEquipmentMaintenance + totalBuildingMaintenance + totalEquipmentReplacement;
+    
+    // Calculate 5-year projections
+    const projections = [];
+    for (let year = 1; year <= 5; year++) {
+      const growthData = marketTrends.growthProjections[`year${year}`];
+      const baseRevenue = dailySalesProjections.annual.totalRevenue;
+      const projectedRevenue = baseRevenue * growthData.revenueGrowth;
+      const projectedLaborCost = laborProjections.annual.totalCost * growthData.costInflation;
+      const projectedPermitsCost = totalYearlyPermits * growthData.costInflation;
+      const projectedMaintenanceCost = totalMaintenanceCosts * growthData.costInflation;
+      
+      // Calculate seasonal revenue adjustments
+      const seasonalRevenue = projectedRevenue * 1.05; // Average seasonal factor
+      
+      projections.push({
+        year,
+        revenue: projectedRevenue,
+        seasonalRevenue,
+        laborCost: projectedLaborCost,
+        permitsCost: projectedPermitsCost,
+        maintenanceCost: projectedMaintenanceCost,
+        totalCosts: projectedLaborCost + projectedPermitsCost + projectedMaintenanceCost,
+        netIncome: projectedRevenue - (projectedLaborCost + projectedPermitsCost + projectedMaintenanceCost),
+        growthRate: (growthData.revenueGrowth - 1) * 100,
+        costInflation: (growthData.costInflation - 1) * 100
+      });
+    }
+    
+    // Calculate industry benchmarks comparison
+    const seats = data.restaurantOperations.seats;
+    const industryRevenueTarget = marketTrends.industryBenchmarks.avgRevenuePerSeat * seats;
+    const currentRevenue = dailySalesProjections.annual.totalRevenue;
+    const revenueVsBenchmark = (currentRevenue / industryRevenueTarget) * 100;
+    
+    // Calculate seasonal projections
+    const seasonalProjections = Object.entries(marketTrends.seasonalFactors).map(([season, data]) => ({
+      season,
+      factor: data.factor,
+      months: data.months,
+      monthlyRevenue: (dailySalesProjections.annual.totalRevenue / 12) * data.factor,
+      quarterlyRevenue: (dailySalesProjections.annual.totalRevenue / 4) * data.factor
+    }));
+    
+    return {
+      totalYearlyPermits,
+      totalMaintenanceCosts,
+      projections,
+      industryBenchmarks: {
+        revenueTarget: industryRevenueTarget,
+        currentRevenue,
+        performance: revenueVsBenchmark
+      },
+      seasonalProjections,
+      breakdown: {
+        businessPermits: totalBusinessPermits,
+        insuranceCosts: totalInsuranceCosts,
+        professionalServices: totalProfessionalServices,
+        equipmentMaintenance: totalEquipmentMaintenance,
+        buildingMaintenance: totalBuildingMaintenance,
+        equipmentReplacement: totalEquipmentReplacement
+      }
+    };
+  }, [data.marketTrends, data.yearlyPermits, data.maintenanceCosts, dailySalesProjections.annual.totalRevenue, laborProjections.annual.totalCost]);
+
   // Calculate key metrics
   const calculations = useMemo(() => {
     const totalRevenue = data.revenue.foodSales + data.revenue.beverageSales + 
@@ -237,8 +318,12 @@ const FinancialProjections = () => {
                      data.operatingExpenses.businessTaxes;
 
     const totalPayroll = laborProjections.annual.totalCost;
+    
+    // Add yearly permits and maintenance costs
+    const totalYearlyPermits = financialAnalysis.totalYearlyPermits;
+    const totalMaintenanceCosts = financialAnalysis.totalMaintenanceCosts;
 
-    const totalExpenses = totalOpEx + totalPayroll;
+    const totalExpenses = totalOpEx + totalPayroll + totalYearlyPermits + totalMaintenanceCosts;
     const netIncome = grossProfit - totalExpenses;
     const netMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
 
@@ -263,6 +348,8 @@ const FinancialProjections = () => {
       grossMargin,
       totalOpEx,
       totalPayroll,
+      totalYearlyPermits,
+      totalMaintenanceCosts,
       totalExpenses,
       netIncome,
       netMargin,
@@ -1004,6 +1091,367 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
+      {/* Market Trends & Industry Analysis */}
+      <SectionCard title="Market Trends & Industry Analysis" color="purple">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Industry Benchmarks */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Industry Benchmarks</h3>
+            <div className="space-y-4">
+              <FormField
+                label="Average Revenue per Seat (Annual)"
+                type="number"
+                value={data.marketTrends.industryBenchmarks.avgRevenuePerSeat}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgRevenuePerSeat', parseInt(value))}
+                placeholder="75000"
+              />
+              <FormField
+                label="Average Food Cost %"
+                type="number"
+                step="0.1"
+                value={data.marketTrends.industryBenchmarks.avgFoodCostPercentage}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgFoodCostPercentage', parseFloat(value))}
+                placeholder="28"
+              />
+              <FormField
+                label="Average Labor Cost %"
+                type="number"
+                step="0.1"
+                value={data.marketTrends.industryBenchmarks.avgLaborPercentage}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgLaborPercentage', parseFloat(value))}
+                placeholder="32"
+              />
+              <FormField
+                label="Average Occupancy Rate"
+                type="number"
+                step="0.01"
+                min="0"
+                max="1"
+                value={data.marketTrends.industryBenchmarks.avgOccupancyRate}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgOccupancyRate', parseFloat(value))}
+                placeholder="0.75"
+              />
+              <FormField
+                label="Average Check Size"
+                type="number"
+                value={data.marketTrends.industryBenchmarks.avgCheckSize}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgCheckSize', parseFloat(value))}
+                placeholder="25"
+              />
+              <FormField
+                label="Average Table Turnover"
+                type="number"
+                step="0.1"
+                value={data.marketTrends.industryBenchmarks.avgTableTurnover}
+                onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgTableTurnover', parseFloat(value))}
+                placeholder="2.0"
+              />
+            </div>
+          </div>
+
+          {/* Performance vs Benchmarks */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Performance vs Industry</h3>
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Industry Revenue Target:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatCurrency(financialAnalysis.industryBenchmarks.revenueTarget)}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Current Revenue:</span>
+                  <span className="text-lg font-bold text-green-600">
+                    {formatCurrency(financialAnalysis.industryBenchmarks.currentRevenue)}
+                  </span>
+                </div>
+              </div>
+              <div className={`p-4 rounded-lg ${financialAnalysis.industryBenchmarks.performance >= 100 ? 'bg-green-50' : 'bg-yellow-50'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Performance vs Benchmark:</span>
+                  <span className={`text-lg font-bold ${financialAnalysis.industryBenchmarks.performance >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {financialAnalysis.industryBenchmarks.performance.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Seasonal Projections */}
+            <div className="mt-6">
+              <h4 className="font-semibold mb-3">Seasonal Revenue Projections</h4>
+              <div className="space-y-2">
+                {financialAnalysis.seasonalProjections.map((season) => (
+                  <div key={season.season} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="capitalize font-medium">{season.season}:</span>
+                    <span className="text-sm">
+                      {formatCurrency(season.quarterlyRevenue)} 
+                      <span className="text-gray-500 ml-2">({(season.factor * 100).toFixed(0)}%)</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Yearly Permits & Compliance Costs */}
+      <SectionCard title="Yearly Permits & Compliance Costs" color="orange">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Business Permits */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Business Permits</h3>
+            <div className="space-y-3">
+              {Object.entries(data.yearlyPermits.businessPermits).map(([permit, cost]) => (
+                <FormField
+                  key={permit}
+                  label={permit.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  type="number"
+                  value={cost}
+                  onChange={(value) => handleFieldChange('yearlyPermits', `businessPermits.${permit}`, parseInt(value))}
+                  placeholder="0"
+                />
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Total Business Permits:</span>
+                <span className="font-bold text-orange-600">
+                  {formatCurrency(financialAnalysis.breakdown.businessPermits)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Insurance Costs */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Insurance Requirements</h3>
+            <div className="space-y-3">
+              {Object.entries(data.yearlyPermits.insuranceCosts).map(([insurance, cost]) => (
+                <FormField
+                  key={insurance}
+                  label={insurance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  type="number"
+                  value={cost}
+                  onChange={(value) => handleFieldChange('yearlyPermits', `insuranceCosts.${insurance}`, parseInt(value))}
+                  placeholder="0"
+                />
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Total Insurance Costs:</span>
+                <span className="font-bold text-orange-600">
+                  {formatCurrency(financialAnalysis.breakdown.insuranceCosts)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Services */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Professional Services</h3>
+            <div className="space-y-3">
+              {Object.entries(data.yearlyPermits.professionalServices).map(([service, cost]) => (
+                <FormField
+                  key={service}
+                  label={service.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  type="number"
+                  value={cost}
+                  onChange={(value) => handleFieldChange('yearlyPermits', `professionalServices.${service}`, parseInt(value))}
+                  placeholder="0"
+                />
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Total Professional Services:</span>
+                <span className="font-bold text-orange-600">
+                  {formatCurrency(financialAnalysis.breakdown.professionalServices)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-6 p-4 bg-orange-100 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-semibold">Total Yearly Permits & Compliance:</span>
+            <span className="text-xl font-bold text-orange-700">
+              {formatCurrency(financialAnalysis.totalYearlyPermits)}
+            </span>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Maintenance & Equipment Costs */}
+      <SectionCard title="Maintenance & Equipment Costs" color="red">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Equipment Maintenance */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Equipment Maintenance</h3>
+            <div className="space-y-3">
+              {Object.entries(data.maintenanceCosts.equipmentMaintenance).map(([maintenance, cost]) => (
+                <FormField
+                  key={maintenance}
+                  label={maintenance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  type="number"
+                  value={cost}
+                  onChange={(value) => handleFieldChange('maintenanceCosts', `equipmentMaintenance.${maintenance}`, parseInt(value))}
+                  placeholder="0"
+                />
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Total Equipment Maintenance:</span>
+                <span className="font-bold text-red-600">
+                  {formatCurrency(financialAnalysis.breakdown.equipmentMaintenance)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Building Maintenance */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Building Maintenance</h3>
+            <div className="space-y-3">
+              {Object.entries(data.maintenanceCosts.buildingMaintenance).map(([maintenance, cost]) => (
+                <FormField
+                  key={maintenance}
+                  label={maintenance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  type="number"
+                  value={cost}
+                  onChange={(value) => handleFieldChange('maintenanceCosts', `buildingMaintenance.${maintenance}`, parseInt(value))}
+                  placeholder="0"
+                />
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">Total Building Maintenance:</span>
+                <span className="font-bold text-red-600">
+                  {formatCurrency(financialAnalysis.breakdown.buildingMaintenance)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Equipment Replacement Schedule */}
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">Equipment Replacement Schedule</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.entries(data.maintenanceCosts.equipmentReplacement).map(([equipment, data]) => (
+              <div key={equipment} className="border border-gray-200 rounded-lg p-4">
+                <h4 className="font-semibold mb-2">{equipment.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Replacement Cost:</span>
+                    <span>{formatCurrency(data.cost)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Lifespan:</span>
+                    <span>{data.years} years</span>
+                  </div>
+                  <FormField
+                    label="Annual Reserve"
+                    type="number"
+                    value={data.annualReserve}
+                    onChange={(value) => handleFieldChange('maintenanceCosts', `equipmentReplacement.${equipment}.annualReserve`, parseInt(value))}
+                    placeholder="0"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 p-3 bg-red-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Total Equipment Replacement Reserve:</span>
+              <span className="font-bold text-red-600">
+                {formatCurrency(financialAnalysis.breakdown.equipmentReplacement)}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-6 p-4 bg-red-100 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-semibold">Total Annual Maintenance Costs:</span>
+            <span className="text-xl font-bold text-red-700">
+              {formatCurrency(financialAnalysis.totalMaintenanceCosts)}
+            </span>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* 5-Year Financial Projections */}
+      <SectionCard title="5-Year Financial Projections" color="green">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projected Revenue</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Costs</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permits & Compliance</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Maintenance</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Costs</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Income</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Growth Rate</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {financialAnalysis.projections.map((projection) => (
+                <tr key={projection.year} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">Year {projection.year}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(projection.revenue)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(projection.laborCost)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(projection.permitsCost)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(projection.maintenanceCost)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(projection.totalCosts)}</td>
+                  <td className={`px-4 py-3 text-sm font-medium ${projection.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(projection.netIncome)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{projection.growthRate.toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">5-Year Revenue Growth:</span>
+              <span className="text-lg font-bold text-green-600">
+                {formatCurrency(financialAnalysis.projections[4].revenue - financialAnalysis.projections[0].revenue)}
+              </span>
+            </div>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Average Annual Growth:</span>
+              <span className="text-lg font-bold text-blue-600">
+                {((financialAnalysis.projections[4].revenue / financialAnalysis.projections[0].revenue) ** (1/4) - 1 * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Year 5 Net Income:</span>
+              <span className={`text-lg font-bold ${financialAnalysis.projections[4].netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(financialAnalysis.projections[4].netIncome)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
       {/* Revenue Projections */}
       <SectionCard title="Revenue Projections (Year 1)" color="green">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1557,7 +2005,7 @@ const FinancialProjections = () => {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="p-4 bg-red-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-semibold">Operating Expenses:</span>
@@ -1571,6 +2019,22 @@ const FinancialProjections = () => {
               <span className="font-semibold">Total Payroll:</span>
               <span className="text-lg font-bold text-purple-600">
                 {formatCurrency(calculations.totalPayroll)}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 bg-orange-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Permits & Compliance:</span>
+              <span className="text-lg font-bold text-orange-600">
+                {formatCurrency(calculations.totalYearlyPermits)}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 bg-red-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Maintenance:</span>
+              <span className="text-lg font-bold text-red-600">
+                {formatCurrency(calculations.totalMaintenanceCosts)}
               </span>
             </div>
           </div>
