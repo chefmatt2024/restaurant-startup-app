@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
+import FeatureGate from '../payment/FeatureGate';
 import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle } from 'lucide-react';
 
 const FinancialProjections = () => {
@@ -1168,8 +1169,9 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
-      {/* Market Trends & Industry Analysis */}
-      <SectionCard title="Market Trends & Industry Analysis" color="purple">
+      {/* Market Trends & Industry Analysis - Premium Feature */}
+      <FeatureGate feature="hasAdvancedAnalytics">
+        <SectionCard title="Market Trends & Industry Analysis" color="purple">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Industry Benchmarks */}
           <div>
@@ -1464,10 +1466,12 @@ const FinancialProjections = () => {
             </span>
           </div>
         </div>
-      </SectionCard>
+        </SectionCard>
+      </FeatureGate>
 
-      {/* 5-Year Financial Projections */}
-      <SectionCard title="5-Year Financial Projections" color="green">
+      {/* 5-Year Financial Projections - Premium Feature */}
+      <FeatureGate feature="hasAdvancedAnalytics">
+        <SectionCard title="5-Year Financial Projections" color="green">
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg">
             <thead className="bg-gray-50">
@@ -1527,7 +1531,8 @@ const FinancialProjections = () => {
             </div>
           </div>
         </div>
-      </SectionCard>
+        </SectionCard>
+      </FeatureGate>
 
       {/* Funding Sources & Debt Service */}
       <SectionCard title="Funding Sources & Debt Service" color="indigo">

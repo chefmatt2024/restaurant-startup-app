@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { MessageSquare } from 'lucide-react';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Dashboard from './pages/Dashboard';
+import UnifiedPlatform from './components/unified/UnifiedPlatform';
 import SignInModal from './components/auth/SignInModal';
 import TermsAndPrivacy from './components/auth/TermsAndPrivacy';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -95,15 +96,19 @@ function AppContent() {
     );
   }
   
-  // Show sign-in modal if not authenticated
+  // Show app landing page if not authenticated
   if (!state.isAuthenticated || !state.userId) {
     return (
-      <div className="App min-h-screen bg-gray-50">
-        <SignInModal 
-          isOpen={true}
-          onClose={() => {}} // Prevent closing when not authenticated
-          allowClose={false} // Disable close button when not authenticated
-        />
+      <div className="App min-h-screen bg-white">
+        <UnifiedPlatform />
+        {/* Show sign-in modal when user clicks sign in or get started */}
+        {state.activeTab === 'sign-in' && (
+          <SignInModal 
+            isOpen={true}
+            onClose={() => {}} // Prevent closing when not authenticated
+            allowClose={true}
+          />
+        )}
       </div>
     );
   }

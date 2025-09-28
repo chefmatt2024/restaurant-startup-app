@@ -22,6 +22,10 @@ import BrandingPlanner from '../components/branding/BrandingPlanner';
 import CompetitiveAnalysis from '../components/business-plan/CompetitiveAnalysis';
 import StartupJourney from '../components/startup/StartupJourney';
 import OpeningPlan from '../components/startup/OpeningPlan';
+import PricingPage from '../components/payment/PricingPage';
+import SubscriptionManager from '../components/payment/SubscriptionManager';
+import SubscriptionDemo from '../components/payment/SubscriptionDemo';
+import BrandingUpdater from '../components/tools/BrandingUpdater';
 import DebugInfo from '../components/ui/DebugInfo';
 import WelcomeMessage from '../components/auth/WelcomeMessage';
 
@@ -70,6 +74,14 @@ const Dashboard = () => {
           return <DocumentsCompliance />;
       case 'business-analytics':
         return <BusinessAnalytics />;
+      case 'pricing':
+        return <PricingPage />;
+      case 'subscription':
+        return <SubscriptionManager />;
+      case 'subscription-demo':
+        return <SubscriptionDemo />;
+      case 'branding-updater':
+        return <BrandingUpdater />;
       default:
         return <StartupJourney />;
     }

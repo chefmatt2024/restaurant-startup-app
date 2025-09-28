@@ -41,6 +41,14 @@ const initialState = {
   isAuthenticated: false,
   userId: null,
   user: null,
+  subscription: {
+    status: 'active',
+    plan: 'free',
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+    stripeCustomerId: null,
+    stripeSubscriptionId: null
+  },
   
   // UI state
   activeTab: 'idea-formation',
@@ -492,12 +500,6 @@ const initialState = {
       depositsLicenses: 0,
       initialMarketing: 0,
       contingency: 0
-    },
-    fundingSources: {
-      ownersEquity: 0,
-      investorFunds: 0,
-      bankLoans: 0,
-      otherFunding: 0
     },
     restaurantDetails: {
       seats: 50,
