@@ -10,6 +10,21 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID', {
+            page_title: 'Restaurant Business Planner Landing',
+            page_location: window.location.href,
+            custom_map: {
+                'custom_parameter_1': 'landing_page'
+            }
+        });
+    </script>
+    
     <!-- Custom Styles -->
     <style>
         .gradient-bg { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); }
@@ -432,7 +447,7 @@
                             </div>
                         </div>
 
-                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
+                        <button onclick="trackPricingView('Free Trial'); launchApp();" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
                             Start Free Trial
                         </button>
                     </div>
@@ -498,7 +513,7 @@
                             </div>
                         </div>
 
-                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-all duration-200">
+                        <button onclick="trackPricingView('Professional'); launchApp();" class="w-full py-3 px-6 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-all duration-200">
                             Start Free Trial
                         </button>
                     </div>
@@ -560,7 +575,7 @@
                             </div>
                         </div>
 
-                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
+                        <button onclick="trackPricingView('Enterprise'); launchApp();" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
                             Contact Sales
                         </button>
                     </div>
@@ -655,13 +670,52 @@
     <!-- JavaScript -->
     <script>
         function launchApp() {
+            // Track conversion event
+            gtag('event', 'click', {
+                event_category: 'CTA',
+                event_label: 'Start Free Trial',
+                value: 1
+            });
+            
+            // Track trial signup attempt
+            gtag('event', 'conversion', {
+                send_to: 'GA_MEASUREMENT_ID/conversion_label',
+                event_category: 'Trial Signup',
+                event_label: 'Landing Page CTA'
+            });
+            
             // Redirect to the Firebase app
             window.open('https://restaurant-startup-app.web.app', '_blank');
         }
 
         function scrollToDemo() {
+            // Track demo video interest
+            gtag('event', 'click', {
+                event_category: 'Engagement',
+                event_label: 'Watch Demo',
+                value: 1
+            });
+            
             // Scroll to demo section (you can add a demo section later)
             alert('Demo video coming soon! Start your free trial to see the platform in action.');
+        }
+        
+        function trackPricingView(planName) {
+            // Track pricing plan views
+            gtag('event', 'view_item', {
+                event_category: 'Pricing',
+                event_label: planName,
+                value: 1
+            });
+        }
+        
+        function trackEmailSubmit() {
+            // Track email form submissions
+            gtag('event', 'generate_lead', {
+                event_category: 'Lead Generation',
+                event_label: 'Email Signup',
+                value: 1
+            });
         }
 
         // Smooth scrolling for anchor links
