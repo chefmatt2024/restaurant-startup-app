@@ -5,6 +5,8 @@ import { AppProvider, useApp } from './contexts/AppContext';
 import Dashboard from './pages/Dashboard';
 import RestaurantBusinessPlannerLanding from './components/unified/RestaurantBusinessPlannerLanding';
 import SignInModal from './components/auth/SignInModal';
+import TrialSignup from './components/auth/TrialSignup';
+import TrialOnboarding from './components/auth/TrialOnboarding';
 import TermsAndPrivacy from './components/auth/TermsAndPrivacy';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import MessageModal from './components/ui/MessageModal';
@@ -14,8 +16,10 @@ import FeedbackCollector from './components/feedback/FeedbackCollector';
 import './App.css';
 
 function AppContent() {
-  const { state } = useApp();
+  const { state, actions } = useApp();
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showTrialSignup, setShowTrialSignup] = useState(false);
+  const [showTrialOnboarding, setShowTrialOnboarding] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
@@ -32,12 +36,16 @@ function AppContent() {
         setHasAcceptedTerms(true);
       }
       
-      // Always require authentication - show terms first, then sign-in
+      // Always require authentication - show terms first, then trial signup
       if (!termsAccepted) {
         setShowTermsModal(true);
       } else if (!state.isAuthenticated || !state.userId) {
-        // Force sign-in - no anonymous access allowed
-        setShowSignInModal(true);
+        // Show trial signup instead of regular sign-in
+        if (state.activeTab === 'trial-signup') {
+          setShowTrialSignup(true);
+        } else {
+          setShowTrialSignup(true);
+        }
       } else if (state.userId) {
         // Start session tracking
         SessionManager.startSession(state.userId);
@@ -62,9 +70,9 @@ function AppContent() {
     // Track terms acceptance
     trackUsage('TERMS', 'accepted', { userId: state.userId || 'anonymous' });
     
-    // Show sign-in modal if not authenticated
-    if (!state.isAuthenticated && !state.userId) {
-      setShowSignInModal(true);
+    // Show trial signup if not authenticated or if trial-signup tab is active
+    if ((!state.isAuthenticated && !state.userId) || state.activeTab === 'trial-signup') {
+      setShowTrialSignup(true);
     }
   };
 
@@ -123,6 +131,26 @@ function AppContent() {
       </Routes>
       <LoadingSpinner />
       <MessageModal />
+      
+      {/* Trial Signup Modal */}
+      <TrialSignup 
+        isOpen={showTrialSignup}
+        onClose={() => setShowTrialSignup(false)}
+        onSuccess={() => {
+          setShowTrialSignup(false);
+          setShowTrialOnboarding(true);
+        }}
+      />
+      
+      {/* Trial Onboarding Modal */}
+      <TrialOnboarding 
+        isOpen={showTrialOnboarding}
+        onComplete={() => {
+          setShowTrialOnboarding(false);
+          // Navigate to dashboard or first step
+          actions.setActiveTab('idea-formation');
+        }}
+      />
       
       {/* Sign-in Modal Overlay */}
       <SignInModal 

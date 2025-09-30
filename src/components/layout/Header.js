@@ -5,6 +5,7 @@ import DraftManager from './DraftManager';
 import DraftComparison from './DraftComparison';
 import AuthModal from '../auth/AuthModal';
 import UserProfile from '../auth/UserProfile';
+import TrialStatus from '../auth/TrialStatus';
 
 const Header = () => {
   const { state, actions } = useApp();
@@ -131,6 +132,11 @@ const Header = () => {
             
             {/* Right Side - Desktop */}
             <div className="hidden lg:flex items-center space-x-4">
+              {/* Trial Status */}
+              {state.user?.trialData && (
+                <TrialStatus onUpgrade={() => actions.setActiveTab('pricing')} />
+              )}
+              
               {/* User Info */}
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <User className="w-4 h-4" />

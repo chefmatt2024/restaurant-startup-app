@@ -43,7 +43,17 @@ const RestaurantBusinessPlannerLanding = () => {
   }, []);
 
   const handleLaunchRestaurantPlanner = () => {
-    actions.setActiveTab('idea-formation');
+    // Track conversion event
+    if (window.gtag) {
+      window.gtag('event', 'click', {
+        event_category: 'CTA',
+        event_label: 'Start Free Trial',
+        value: 1
+      });
+    }
+    
+    // Trigger trial signup flow
+    actions.setActiveTab('trial-signup');
   };
 
   const handleJoinWaitlist = (appName) => {
