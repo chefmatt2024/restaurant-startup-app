@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "restaurant-startup-app"
+  },
+  "targets": {
+    "restaurant-startup-app": {
+      "hosting": {
+        "app": [
+          "restaurant-startup-app"
+        ],
+        "landing": [
+          "iterumfoods-landing"
+        ]
+      }
+    }
   }
 }

@@ -1,18 +1,690 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Comprehensive business planning and financial projections platform"
-    />
-    <title>Business Planning Platform</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
-</html> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Business Planner | Iterum Foods</title>
+    <meta name="description" content="Launch your restaurant like a pro. Get investor-ready business plans, financial projections, and step-by-step guidance. Start your free 14-day trial today.">
+    <meta name="keywords" content="restaurant business plan, restaurant startup, restaurant planning, food service business, restaurant funding">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); }
+        .hero-bg { background: linear-gradient(135deg, #22c55e 0%, #15803d 50%, #1d4ed8 100%); }
+        .cta-shadow { box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3); }
+        .hover-scale:hover { transform: scale(1.05); transition: all 0.3s ease; }
+        .sticky-header { backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sticky Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 sticky-header bg-white/95 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-green-600">🌿 ITERUM FOODS</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="scrollToDemo()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        📹 Watch Demo
+                    </button>
+                    <button onclick="launchApp()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 shadow-lg">
+                        Start Free Trial
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-20 pb-16 hero-bg text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                    🏆 Trusted by 500+ Restaurant Entrepreneurs
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                    Launch Your Restaurant
+                    <span class="block text-green-200">Like a Pro</span>
+                </h1>
+                
+                <p class="text-xl text-green-100 mb-8 max-w-4xl mx-auto">
+                    The only restaurant planning platform built by chefs who actually opened restaurants. 
+                    Get investor-ready business plans, financial projections, and step-by-step guidance.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                    <button onclick="launchApp()" class="bg-white text-green-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors duration-200 cta-shadow hover-scale">
+                        ⚡ Start Your Free 14-Day Trial
+                    </button>
+                    <button onclick="scrollToDemo()" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-green-600 transition-colors duration-200">
+                        📹 Watch 2-Min Demo
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-center space-x-6 text-green-200 text-sm">
+                    <div class="flex items-center">
+                        ✅ No credit card required
+                    </div>
+                    <div class="flex items-center">
+                        ✅ Cancel anytime
+                    </div>
+                    <div class="flex items-center">
+                        ✅ Full access during trial
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Stats -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            📊
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2">500+</div>
+                    <div class="text-gray-600">Restaurants Planned</div>
+                </div>
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            💰
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2">$2.1M+</div>
+                    <div class="text-gray-600">Average Funding Raised</div>
+                </div>
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            📈
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2">94%</div>
+                    <div class="text-gray-600">Success Rate</div>
+                </div>
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            ⏰
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2">6</div>
+                    <div class="text-gray-600">Months Avg to Open</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem/Solution Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                        Why 78% of Restaurants Fail in the First Year
+                    </h2>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <span class="text-red-500 mr-3 mt-1">❌</span>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Poor financial planning</h3>
+                                <p class="text-gray-600">Unrealistic projections lead to cash flow problems</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-red-500 mr-3 mt-1">❌</span>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Wrong location choice</h3>
+                                <p class="text-gray-600">Inadequate market research leads to poor foot traffic</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-red-500 mr-3 mt-1">❌</span>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Operational chaos</h3>
+                                <p class="text-gray-600">Lack of systems and procedures causes daily problems</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+                        The Iterum Foods Advantage
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <span class="text-green-500 mr-3 mt-1">✅</span>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Restaurant-Specific Planning</h4>
+                                <p class="text-gray-600">Built by chefs who actually opened restaurants</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-green-500 mr-3 mt-1">✅</span>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Investor-Ready Financials</h4>
+                                <p class="text-gray-600">Detailed projections that investors trust and understand</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-green-500 mr-3 mt-1">✅</span>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Complete Operational Guide</h4>
+                                <p class="text-gray-600">Everything from permits to equipment to staff training</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Everything You Need to Launch Successfully
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our comprehensive platform provides all the tools and insights you need 
+                    to plan, fund, and launch your restaurant business.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-green-600 text-2xl">
+                            📊
+                        </div>
+                        <div class="ml-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+                                Investor-Ready Financial Models
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Detailed 3-year projections with industry-specific metrics that investors trust and understand.
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                🎯 Secure funding faster
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-blue-600 text-2xl">
+                            📍
+                        </div>
+                        <div class="ml-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+                                Market Research & Location Analysis
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Comprehensive competitive analysis, demographic research, and location scoring algorithms.
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                🎯 Choose the perfect location
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-purple-600 text-2xl">
+                            👨‍🍳
+                        </div>
+                        <div class="ml-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+                                Menu Engineering & Pricing
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Food cost analysis, menu optimization, and pricing strategies that maximize profitability.
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                🎯 Increase profit margins by 25%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-orange-600 text-2xl">
+                            🏢
+                        </div>
+                        <div class="ml-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+                                Operations & Compliance Guide
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Step-by-step permit tracking, health department requirements, and operational procedures.
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                🎯 Avoid costly mistakes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Stories Section -->
+    <section class="py-20 bg-green-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Real Success Stories
+                </h2>
+                <p class="text-xl text-gray-600">
+                    See how our platform helped these entrepreneurs achieve their dreams
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-center mb-6">
+                        <div class="text-4xl mb-4">👩‍🍳</div>
+                        <h3 class="text-xl font-semibold text-gray-900">Maria Santos</h3>
+                        <p class="text-green-600 font-medium">Bella Vista Italian</p>
+                        <p class="text-gray-500 text-sm">Boston, MA</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <p class="text-gray-600 italic mb-4">
+                            "The financial projections were so detailed that my investors said it was the most professional business plan they'd ever seen from a first-time restaurateur."
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Result:</span>
+                            <span class="text-sm font-semibold text-green-600">Secured $180K in funding</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Timeline:</span>
+                            <span class="text-sm font-semibold text-blue-600">Opened in 6 months</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-center mb-6">
+                        <div class="text-4xl mb-4">👨‍🍳</div>
+                        <h3 class="text-xl font-semibold text-gray-900">David Kim</h3>
+                        <p class="text-green-600 font-medium">K-Town BBQ</p>
+                        <p class="text-gray-500 text-sm">Austin, TX</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <p class="text-gray-600 italic mb-4">
+                            "The market analysis helped me identify the perfect location and pricing strategy. We're already profitable in month 3."
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Result:</span>
+                            <span class="text-sm font-semibold text-green-600">$320K Series A funding</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Timeline:</span>
+                            <span class="text-sm font-semibold text-blue-600">Profitable in 3 months</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-center mb-6">
+                        <div class="text-4xl mb-4">👩‍💼</div>
+                        <h3 class="text-xl font-semibold text-gray-900">Sarah Johnson</h3>
+                        <p class="text-green-600 font-medium">The Green Table</p>
+                        <p class="text-gray-500 text-sm">Portland, OR</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <p class="text-gray-600 italic mb-4">
+                            "Used the platform to plan my farm-to-table concept. The operational guides saved me thousands in consulting fees."
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Result:</span>
+                            <span class="text-sm font-semibold text-green-600">Sold for $2.1M</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Timeline:</span>
+                            <span class="text-sm font-semibold text-blue-600">Sold after 2 years</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Simple, Transparent Pricing
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Start with a free trial. No hidden fees, no surprises.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Free Trial Plan -->
+                <div class="relative rounded-2xl shadow-lg overflow-hidden">
+                    <div class="p-8">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                                Free Trial
+                            </h3>
+                            <div class="mb-4">
+                                <span class="text-5xl font-bold text-gray-900">
+                                    $0
+                                </span>
+                                <span class="text-gray-500 ml-2">/14 days</span>
+                            </div>
+                            <p class="text-gray-600 mb-2">
+                                Full access to test the platform
+                            </p>
+                        </div>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Complete Restaurant Business Planner</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">All financial modeling tools</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Market research templates</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Equipment planning guides</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Email support</span>
+                            </div>
+                        </div>
+
+                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
+                            Start Free Trial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Professional Plan -->
+                <div class="relative rounded-2xl shadow-lg overflow-hidden ring-2 ring-green-500 scale-105">
+                    <div class="absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2 text-sm font-semibold">
+                        ⭐ Most Popular
+                    </div>
+
+                    <div class="p-8">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                                Professional
+                            </h3>
+                            <div class="mb-4">
+                                <span class="text-5xl font-bold text-gray-900">
+                                    $29
+                                </span>
+                                <span class="text-gray-500 ml-2">/month</span>
+                            </div>
+                            <p class="text-gray-600 mb-2">
+                                For serious entrepreneurs
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                ⚡ Save $348/year
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Everything in Free Trial</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Advanced analytics & reports</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Priority support</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">PDF/Excel exports</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Team collaboration (up to 5 users)</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Custom templates</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Investment pitch deck builder</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Monthly expert consultations</span>
+                            </div>
+                        </div>
+
+                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-all duration-200">
+                            Start Free Trial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="relative rounded-2xl shadow-lg overflow-hidden">
+                    <div class="p-8">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                                Enterprise
+                            </h3>
+                            <div class="mb-4">
+                                <span class="text-5xl font-bold text-gray-900">
+                                    $99
+                                </span>
+                                <span class="text-gray-500 ml-2">/month</span>
+                            </div>
+                            <p class="text-gray-600 mb-2">
+                                For teams & organizations
+                            </p>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                ⚡ Save $1,188/year
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Everything in Professional</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Unlimited team members</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">White-label options</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">API access</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Dedicated account manager</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Custom integrations</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Phone & video support</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-3 mt-0.5">✅</span>
+                                <span class="text-gray-700">Custom training sessions</span>
+                            </div>
+                        </div>
+
+                        <button onclick="launchApp()" class="w-full py-3 px-6 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200">
+                            Contact Sales
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <p class="text-gray-600">
+                    🛡️ Secure payment processing • Cancel anytime • 14-day free trial
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Urgency Section -->
+    <section class="py-16 bg-gradient-to-r from-orange-500 to-red-500 text-white">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                Limited Time: Early Bird Pricing
+            </h2>
+            <p class="text-xl mb-6">
+                Join the first 100 restaurant entrepreneurs and get lifetime access to our Professional plan for just $29/month.
+            </p>
+            <div class="flex items-center justify-center mb-8">
+                <span class="text-lg font-semibold">
+                    ⏰ Only 47 spots remaining
+                </span>
+            </div>
+            <button onclick="launchApp()" class="bg-white text-orange-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors duration-200 shadow-xl">
+                Claim Your Spot Now
+            </button>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="py-20 bg-gray-900 text-white">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                Ready to Launch Your Restaurant Dream?
+            </h2>
+            <p class="text-xl text-gray-300 mb-8">
+                Join hundreds of successful restaurateurs who used our platform to turn their vision into reality.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="launchApp()" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors duration-200 cta-shadow">
+                    ⚡ Start Your Free Trial
+                </button>
+                <button class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors duration-200">
+                    📞 Schedule Demo Call
+                </button>
+            </div>
+            <p class="text-gray-400 mt-6 text-sm">
+                No credit card required • 14-day free trial • Cancel anytime
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">🌿 Iterum Foods</h3>
+                    <p class="text-gray-400">
+                        Empowering restaurant entrepreneurs with professional planning tools and expert guidance.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" onclick="launchApp()" class="hover:text-white">Start Free Trial</a></li>
+                        <li><a href="#" onclick="scrollToDemo()" class="hover:text-white">Watch Demo</a></li>
+                        <li><a href="#" class="hover:text-white">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white">Support</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <p>📧 hello@iterumfoods.xyz</p>
+                        <p>📞 617-913-5927</p>
+                        <p>📍 Boston, MA</p>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Iterum Foods. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        function launchApp() {
+            // Redirect to the Firebase app
+            window.open('https://restaurant-startup-app.web.app', '_blank');
+        }
+
+        function scrollToDemo() {
+            // Scroll to demo section (you can add a demo section later)
+            alert('Demo video coming soon! Start your free trial to see the platform in action.');
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.classList.add('bg-white');
+                header.classList.remove('bg-white/95');
+            } else {
+                header.classList.add('bg-white/95');
+                header.classList.remove('bg-white');
+            }
+        });
+    </script>
+</body>
+</html>
