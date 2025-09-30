@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { MessageSquare } from 'lucide-react';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Dashboard from './pages/Dashboard';
-import UnifiedPlatform from './components/unified/UnifiedPlatform';
+import RestaurantBusinessPlannerLanding from './components/unified/RestaurantBusinessPlannerLanding';
 import SignInModal from './components/auth/SignInModal';
 import TermsAndPrivacy from './components/auth/TermsAndPrivacy';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -100,7 +100,7 @@ function AppContent() {
   if (!state.isAuthenticated || !state.userId) {
     return (
       <div className="App min-h-screen bg-white">
-        <UnifiedPlatform />
+        <RestaurantBusinessPlannerLanding />
         {/* Show sign-in modal when user clicks sign in or get started */}
         {state.activeTab === 'sign-in' && (
           <SignInModal 
