@@ -1,12 +1,13 @@
-# 🌐 Domain Setup Guide for iterumfoods.xyz
+# 🌐 Domain Setup Guide for Restaurant Planning Platform
 
 ## Overview
-This guide will help you set up your main domain `iterumfoods.xyz` to host the sales landing page, which then links to your Firebase app for the actual functionality.
+This guide will help you set up your main domain to host the sales landing page for your restaurant planning platform, which then links to your Firebase app for the actual functionality. The platform is designed to expand to multiple cities, starting with Boston as the first market.
 
 ## 🎯 Strategy
 - **Main Domain**: `iterumfoods.xyz` → Sales landing page
 - **App Domain**: `restaurant-startup-app.web.app` → Full application
 - **Flow**: Landing page → "Start Free Trial" → Firebase app
+- **Multi-City Ready**: Framework supports expansion to additional cities beyond Boston
 
 ---
 
@@ -32,6 +33,7 @@ Set up Firebase hosting for your custom domain.
 1. Visit `https://iterumfoods.xyz`
 2. Verify the landing page loads correctly
 3. Test the "Start Free Trial" button links to the app
+4. Confirm city selection functionality works (Boston as default)
 
 ### Step 3: Update DNS (if needed)
 If your domain isn't pointing to your hosting:
@@ -110,6 +112,8 @@ firebase deploy --only hosting --project your-main-project
 - [ ] `https://iterumfoods.xyz` loads the landing page
 - [ ] `https://www.iterumfoods.xyz` redirects properly
 - [ ] "Start Free Trial" button opens the app
+- [ ] City selection works (Boston as default)
+- [ ] Multi-city framework is ready for expansion
 - [ ] Mobile version works correctly
 - [ ] All CTAs are functional
 - [ ] Page loads quickly (< 3 seconds)
@@ -209,6 +213,8 @@ Track these events:
 After setup:
 - **Professional landing page** on your domain
 - **Clear path to conversion** for visitors
+- **Multi-city ready platform** starting with Boston
+- **Scalable framework** for adding new cities
 - **Branded experience** that builds trust
 - **Mobile-optimized** for all devices
 - **Fast loading** for better SEO
@@ -221,9 +227,33 @@ After setup:
 2. **Test all functionality** thoroughly
 3. **Set up analytics** tracking
 4. **Monitor performance** and conversions
-5. **Optimize based on data**
+5. **Plan city expansion** strategy
+6. **Optimize based on data**
 
-**Your domain will now serve as a powerful sales funnel that converts visitors into Restaurant Business Planner customers!** 🚀
+**Your domain will now serve as a powerful sales funnel that converts visitors into Restaurant Business Planner customers, with a scalable framework for multi-city expansion!** 🚀
+
+---
+
+## 🌆 Multi-City Expansion Framework
+
+### Current Cities
+- **Boston, MA** (Launch City) - Full features and local insights
+
+### Future Expansion Cities
+The platform is designed to easily add new cities with:
+- Local market research templates
+- City-specific permit and license guides
+- Neighborhood analysis frameworks
+- Local vendor network integration
+- Regional compliance requirements
+
+### Adding New Cities
+When ready to expand:
+1. **Market Research**: Analyze target city's restaurant market
+2. **Local Partnerships**: Build vendor and consultant networks
+3. **Content Creation**: Develop city-specific insights and guides
+4. **Platform Updates**: Add new city to selection interface
+5. **Launch Strategy**: Gradual rollout with beta testing
 
 ---
 
@@ -235,4 +265,4 @@ If you need help with setup:
 3. Review Firebase hosting documentation
 4. Test with browser developer tools
 
-**Ready to launch your restaurant-focused sales funnel?** 🎯
+**Ready to launch your multi-city restaurant planning platform?** 🎯

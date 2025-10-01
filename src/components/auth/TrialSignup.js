@@ -224,7 +224,7 @@ const TrialSignup = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.location}
                 onChange={handleInputChange}
                 required
-                placeholder="e.g., Boston, MA"
+                placeholder="e.g., Boston, MA (or your city)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>

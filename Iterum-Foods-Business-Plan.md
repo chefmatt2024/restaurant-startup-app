@@ -11,7 +11,7 @@
 **Tagline:** "Built by chefs, for chefs - no bullshit, just results"
 
 ### Key Value Proposition
-Iterum Foods offers a comprehensive suite of five integrated applications focused on the hands-on, day-to-day operations of running a food business - from recipe development to business planning, staff training, and operational management. We deliberately avoid POS systems and complex accounting software, instead focusing on the practical tools that chefs and restaurant owners use daily. Unlike fragmented solutions, our platform provides seamless integration and real-world insights from actual culinary professionals.
+Iterum Foods offers a comprehensive suite of five integrated applications focused on the hands-on, day-to-day operations of running a food business - from recipe development to business planning, staff training, and operational management. We deliberately avoid POS systems and complex accounting software, instead focusing on the practical tools that chefs and restaurant owners use daily. Unlike fragmented solutions, our platform provides seamless integration and real-world insights from actual culinary professionals, with city-specific guidance starting with Boston and expanding to major markets nationwide.
 
 ### Market Opportunity
 - **Total Addressable Market:** $8.2B (Restaurant Operations & Planning Software)
@@ -71,18 +71,20 @@ We believe in **complementing** existing systems rather than replacing them:
 **Target:** Restaurant Entrepreneurs & Investors
 
 **Core Features:**
-- Complete business plan templates with Boston-specific insights
+- Complete business plan templates with city-specific insights (starting with Boston)
 - Financial projections and break-even analysis
 - Equipment planning with vendor management
 - 6-phase opening timeline with task management
 - Market analysis and competitive research
 - Funding source planning and investor presentations
+- Multi-city expansion framework for future markets
 
 **Unique Value:**
 - Built by someone who's actually opened restaurants
 - Real-world financial models, not theoretical MBA frameworks
-- Local market insights and vendor networks
+- Local market insights and vendor networks for each supported city
 - Battle-tested opening procedures
+- Scalable platform ready for nationwide expansion
 
 ### 2. CULINARY R&D APP (Recipe Development)
 **Status:** ✅ Live (Free)  
@@ -268,7 +270,7 @@ All applications share a unified data architecture that allows for:
 ## 🚀 MARKETING STRATEGY
 
 ### Brand Positioning
-"The only hands-on restaurant management platform built by people who've actually worked in kitchens - no POS systems, no complex accounting, just the tools you need to run your business"
+"The only hands-on restaurant management platform built by people who've actually worked in kitchens - no POS systems, no complex accounting, just the tools you need to run your business. Starting with Boston, expanding nationwide."
 
 ### Marketing Channels
 
@@ -294,20 +296,23 @@ All applications share a unified data architecture that allows for:
 
 ### Customer Acquisition Strategy
 
-#### Phase 1: Early Adopters (Months 1-6)
-- Target: Tech-savvy chefs and restaurant owners
-- Channels: Social media, industry forums, direct outreach
-- Goal: 100 paying customers
+#### Phase 1: Early Adopters - Boston Launch (Months 1-6)
+- Target: Tech-savvy chefs and restaurant owners in Boston
+- Channels: Social media, industry forums, direct outreach, local partnerships
+- Goal: 100 paying customers in Boston market
+- Focus: Perfect Boston-specific features and gather feedback
 
-#### Phase 2: Market Penetration (Months 7-18)
-- Target: Independent restaurants in major markets
-- Channels: Content marketing, partnerships, referrals
-- Goal: 1,000 paying customers
+#### Phase 2: Market Penetration - Boston Domination (Months 7-18)
+- Target: Independent restaurants in Boston and surrounding areas
+- Channels: Content marketing, partnerships, referrals, local events
+- Goal: 1,000 paying customers in Boston market
+- Focus: Establish market leadership in Boston
 
-#### Phase 3: Scale & Expansion (Months 19-36)
-- Target: Restaurant groups and enterprise clients
+#### Phase 3: Scale & Expansion - Multi-City Rollout (Months 19-36)
+- Target: Restaurant groups and enterprise clients across multiple cities
 - Channels: Sales team, enterprise partnerships, industry events
-- Goal: 3,000+ paying customers
+- Goal: 3,000+ paying customers across 5+ major markets
+- Focus: Expand to New York, Chicago, Los Angeles, and other major markets
 
 ---
 
@@ -315,28 +320,32 @@ All applications share a unified data architecture that allows for:
 
 ### Development Roadmap
 
-#### Q1 2024: Foundation
-- ✅ Restaurant Command Center (Live)
+#### Q1 2024: Foundation - Boston Launch
+- ✅ Restaurant Command Center (Live - Boston)
 - ✅ Culinary R&D App (Live)
 - 🔧 Skills Development App (Beta)
 - 📋 Recipe Library (Planning)
+- 🔧 Multi-city framework development
 
-#### Q2 2024: Integration
+#### Q2 2024: Integration - Boston Optimization
 - 🔧 Skills Development App (Launch)
 - 🔧 Payroll App (Development)
 - 🔧 Cross-app data integration
 - 🔧 Mobile applications
+- 🔧 Boston market penetration
 
-#### Q3 2024: Scale
+#### Q3 2024: Scale - Multi-City Preparation
 - 🔧 Payroll App (Launch)
 - 🔧 Recipe Library (Launch)
 - 🔧 Enterprise features
 - 🔧 API development
+- 🔧 New York market research and preparation
 
-#### Q4 2024: Expansion
+#### Q4 2024: Expansion - Multi-City Rollout
 - 🔧 Advanced analytics
 - 🔧 Third-party integrations
-- 🔧 International expansion
+- 🔧 New York market launch
+- 🔧 Chicago market preparation
 - 🔧 Franchise solutions
 
 ### Team Structure
@@ -357,6 +366,70 @@ All applications share a unified data architecture that allows for:
 - **Product Manager:** Feature development, user research
 - **DevOps Engineer:** Infrastructure, scalability
 - **Customer Support Team:** Multi-channel support
+
+---
+
+## 🌆 MULTI-CITY EXPANSION STRATEGY
+
+### Market Selection Criteria
+We prioritize cities based on:
+- **Restaurant Density**: High concentration of independent restaurants
+- **Economic Indicators**: Strong local economy and disposable income
+- **Regulatory Environment**: Reasonable permitting and licensing requirements
+- **Competition**: Limited existing specialized restaurant planning tools
+- **Network Effects**: Ability to leverage existing vendor relationships
+
+### Phase 1: Boston (Launch City)
+- **Timeline**: Months 1-18
+- **Focus**: Perfect the platform and establish market leadership
+- **Key Metrics**: 1,000+ paying customers, 80% market penetration
+- **Local Features**: 
+  - Boston-specific permit guides
+  - North End, Back Bay, South End neighborhood insights
+  - Local vendor networks and partnerships
+
+### Phase 2: New York City (Months 19-30)
+- **Target**: Manhattan, Brooklyn, Queens markets
+- **Focus**: High-volume, high-value customers
+- **Local Features**:
+  - NYC DOH compliance guides
+  - Borough-specific regulations
+  - Union Square, SoHo, Williamsburg market analysis
+
+### Phase 3: Chicago (Months 31-42)
+- **Target**: Loop, River North, Wicker Park markets
+- **Focus**: Midwest expansion and franchise opportunities
+- **Local Features**:
+  - Chicago health department requirements
+  - Neighborhood-specific insights
+  - Local food scene analysis
+
+### Phase 4: Los Angeles (Months 43-54)
+- **Target**: Hollywood, Santa Monica, DTLA markets
+- **Focus**: West Coast expansion and celebrity chef partnerships
+- **Local Features**:
+  - LA County health department guides
+  - Beach cities vs. urban market analysis
+  - Entertainment industry partnerships
+
+### Expansion Framework
+Each new city requires:
+1. **Market Research** (4-6 weeks)
+   - Local restaurant landscape analysis
+   - Competitor mapping
+   - Regulatory requirement research
+2. **Content Creation** (6-8 weeks)
+   - City-specific guides and templates
+   - Local vendor database
+   - Neighborhood analysis frameworks
+3. **Partnership Development** (8-12 weeks)
+   - Local consultant networks
+   - Vendor partnerships
+   - Industry association relationships
+4. **Platform Integration** (2-4 weeks)
+   - City selection interface updates
+   - Local content integration
+   - Beta testing with local restaurants
 
 ---
 

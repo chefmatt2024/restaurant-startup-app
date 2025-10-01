@@ -17,7 +17,8 @@ import {
   Utensils,
   Palette,
   CreditCard,
-  Star
+  Star,
+  Settings
 } from 'lucide-react';
 
 const TabNavigation = () => {
@@ -41,6 +42,7 @@ const TabNavigation = () => {
     { id: 'subscription', label: 'Subscription', icon: CreditCard, color: 'purple' },
     { id: 'subscription-demo', label: 'Subscription Demo', icon: Star, color: 'blue' },
     { id: 'branding-updater', label: 'Branding Tool', icon: Palette, color: 'purple' },
+    { id: 'admin', label: 'Admin Dashboard', icon: Settings, color: 'gray', description: 'User & lead management' },
     { id: 'timeline', label: 'Project Timeline', icon: Calendar, color: 'indigo' },
     { id: 'vendors', label: 'Vendor Management', icon: Truck, color: 'orange' },
     { id: 'equipment-planning', label: 'Equipment Planning', icon: Wrench, color: 'purple' },

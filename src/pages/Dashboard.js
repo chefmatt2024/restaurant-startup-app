@@ -26,6 +26,7 @@ import PricingPage from '../components/payment/PricingPage';
 import SubscriptionManager from '../components/payment/SubscriptionManager';
 import SubscriptionDemo from '../components/payment/SubscriptionDemo';
 import BrandingUpdater from '../components/tools/BrandingUpdater';
+import AdminDashboard from '../components/admin/AdminDashboard';
 import DebugInfo from '../components/ui/DebugInfo';
 import WelcomeMessage from '../components/auth/WelcomeMessage';
 
@@ -82,6 +83,8 @@ const Dashboard = () => {
         return <SubscriptionDemo />;
       case 'branding-updater':
         return <BrandingUpdater />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return <StartupJourney />;
     }

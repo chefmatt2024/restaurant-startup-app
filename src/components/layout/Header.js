@@ -57,11 +57,11 @@ const Header = () => {
                 <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600 flex-shrink-0" />
                 <div className="min-w-0">
                   <h1 className="text-lg lg:text-2xl font-bold text-gray-900 truncate">
-                    <span className="hidden sm:inline">Boston Restaurant Business Planning</span>
+                    <span className="hidden sm:inline">Restaurant Business Planning</span>
                     <span className="sm:hidden">Restaurant Planner</span>
                   </h1>
                   <p className="text-xs lg:text-sm text-gray-600 hidden lg:block">
-                    Create comprehensive restaurant business plans with local market data
+                    Create comprehensive restaurant business plans with city-specific market data
                   </p>
                 </div>
               </div>

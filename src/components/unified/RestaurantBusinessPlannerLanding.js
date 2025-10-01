@@ -73,7 +73,7 @@ const RestaurantBusinessPlannerLanding = () => {
     {
       name: "Maria Santos",
       restaurant: "Bella Vista Italian",
-      location: "Boston, MA",
+      location: "Boston, MA (Launch City)",
       image: "👩‍🍳",
       result: "Secured $180K in funding",
       quote: "The financial projections were so detailed that my investors said it was the most professional business plan they'd ever seen from a first-time restaurateur.",
