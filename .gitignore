@@ -11,10 +11,16 @@ node_modules/
 
 # Misc
 .DS_Store
+
+# Environment files with sensitive data (NEVER COMMIT)
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env
+.env.*.local
+*.env
+!.env.example
 
 # Logs
 npm-debug.log*

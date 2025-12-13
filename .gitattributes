@@ -1,0 +1,9 @@
+# Ensure .env files are never committed
+.env* filter=git-crypt diff=git-crypt
+*.local filter=git-crypt diff=git-crypt
+
+# Protect sensitive files
+*.key linguist-vendored
+*.pem linguist-vendored
+*.p12 linguist-vendored
+

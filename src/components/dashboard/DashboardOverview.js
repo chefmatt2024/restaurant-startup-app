@@ -33,82 +33,110 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
     const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
     if (!currentDraft) return {};
 
+    // Helper function to check if an object has meaningful content
+    const hasContent = (obj) => {
+      if (!obj) return false;
+      if (typeof obj === 'string') return obj.trim().length > 0;
+      if (Array.isArray(obj)) return obj.length > 0;
+      if (typeof obj === 'object') {
+        return Object.values(obj).some(val => {
+          if (typeof val === 'string') return val.trim().length > 0;
+          if (typeof val === 'number') return val > 0;
+          if (Array.isArray(val)) return val.length > 0;
+          if (typeof val === 'object') return hasContent(val);
+          return false;
+        });
+      }
+      return false;
+    };
+
     const sections = {
       'idea-formation': {
         label: 'Idea Formation',
         icon: Lightbulb,
         color: 'yellow',
-        completed: !!(currentDraft.ideationData?.concept && currentDraft.ideationData?.targetMarket),
+        completed: !!(currentDraft.businessPlan?.ideation?.businessConcept && 
+                     currentDraft.businessPlan?.ideation?.targetAudience),
         priority: 'high'
       },
       'elevator-pitch': {
         label: 'Elevator Pitch',
         icon: Mic,
         color: 'green',
-        completed: !!(currentDraft.ideationData?.elevatorPitch),
+        completed: !!(currentDraft.businessPlan?.elevatorPitch?.finalPitch || 
+                     currentDraft.businessPlan?.elevatorPitch?.hook),
         priority: 'high'
       },
       'executive-summary': {
         label: 'Executive Summary',
         icon: FileText,
         color: 'blue',
-        completed: !!(currentDraft.businessPlan?.executiveSummary),
+        completed: !!(currentDraft.businessPlan?.executiveSummary?.businessName || 
+                     currentDraft.businessPlan?.executiveSummary?.missionStatement),
         priority: 'high'
       },
       'market-analysis': {
         label: 'Market Analysis',
         icon: BarChart3,
         color: 'green',
-        completed: !!(currentDraft.businessPlan?.marketAnalysis),
+        completed: !!(currentDraft.businessPlan?.marketAnalysis?.targetMarket || 
+                     currentDraft.businessPlan?.marketAnalysis?.marketSize ||
+                     currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis),
         priority: 'high'
       },
       'competitive-analysis': {
         label: 'Competitive Analysis',
         icon: Target,
         color: 'blue',
-        completed: !!(currentDraft.businessPlan?.competitiveAnalysis),
+        completed: !!(currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis),
         priority: 'medium'
       },
       'services': {
         label: 'Products/Services',
         icon: Target,
         color: 'purple',
-        completed: !!(currentDraft.businessPlan?.serviceDescription),
+        completed: !!(currentDraft.businessPlan?.serviceDescription?.productsServices),
         priority: 'high'
       },
       'operations': {
         label: 'Operations Plan',
         icon: Building,
         color: 'purple',
-        completed: !!(currentDraft.businessPlan?.operationsPlan),
+        completed: !!(currentDraft.businessPlan?.operationsPlan?.location || 
+                     currentDraft.businessPlan?.operationsPlan?.staffingPlan),
         priority: 'medium'
       },
       'management': {
         label: 'Management Team',
         icon: Users,
         color: 'indigo',
-        completed: !!(currentDraft.businessPlan?.managementTeam),
+        completed: !!(currentDraft.businessPlan?.managementTeam?.keyPersonnel),
         priority: 'medium'
       },
       'marketing': {
         label: 'Marketing Strategy',
         icon: Target,
         color: 'pink',
-        completed: !!(currentDraft.businessPlan?.marketingStrategy),
+        completed: !!(currentDraft.businessPlan?.marketingStrategy?.marketingMix || 
+                     currentDraft.businessPlan?.marketingStrategy?.customerAcquisition),
         priority: 'medium'
       },
       'financials': {
         label: 'Financial Projections',
         icon: DollarSign,
         color: 'green',
-        completed: !!(currentDraft.financialData?.projections),
+        completed: !!(currentDraft.financialData?.revenue?.foodSales > 0 || 
+                     currentDraft.financialData?.revenue?.beverageSales > 0 ||
+                     currentDraft.financialData?.operatingExpenses?.rent > 0 ||
+                     currentDraft.financialData?.startupCosts?.totalBuildCost > 0 ||
+                     currentDraft.financialData?.startupCosts?.purchasePrice > 0),
         priority: 'high'
       },
       'vendors': {
         label: 'Vendor Management',
         icon: Truck,
         color: 'orange',
-        completed: !!(currentDraft.vendorData?.vendors?.length > 0),
+        completed: !!(currentDraft.vendors && currentDraft.vendors.length > 0),
         priority: 'low'
       },
       'equipment-planning': {
