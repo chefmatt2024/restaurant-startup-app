@@ -3,11 +3,25 @@ import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
 import FeatureGate from '../payment/FeatureGate';
-import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle } from 'lucide-react';
+import RentCalculator from './RentCalculator';
+import SalesProjectionsCalculator from './SalesProjectionsCalculator';
+import ManagementCostProjector from './ManagementCostProjector';
+import DocumentGenerator from '../documents/DocumentGenerator';
+import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench } from 'lucide-react';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
   const data = state.financialData;
+
+  // Get restaurant type data or initialize
+  const restaurantType = data.restaurantType || { type: 'new', buildCosts: 0, purchasePrice: 0, renovations: 0, needsRenovations: false };
+  
+  const handleRestaurantTypeChange = (field, value) => {
+    actions.updateFinancialData('restaurantType', {
+      ...restaurantType,
+      [field]: value
+    });
+  };
 
   const handleFieldChange = (section, field, value) => {
     const numValue = value === '' ? 0 : parseFloat(value) || 0;
@@ -460,9 +474,217 @@ const FinancialProjections = () => {
   };
 
   return (
-    <div className="animate-fade-in space-y-8">
-      {/* Header with Boston Context */}
-      <SectionCard 
+    <FeatureGate featureKey="financial_projections">
+      <div className="space-y-8">
+        {/* Restaurant Type & Initial Costs Section */}
+        <SectionCard title="Restaurant Type & Initial Costs" color="blue">
+          <div className="space-y-6">
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Store className="w-5 h-5 mr-2 text-blue-600" />
+                Restaurant Type
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <button
+                  onClick={() => handleRestaurantTypeChange('type', 'new')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    restaurantType.type === 'new'
+                      ? 'border-blue-600 bg-blue-100'
+                      : 'border-gray-300 bg-white hover:border-blue-400'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Building2 className={`w-6 h-6 ${restaurantType.type === 'new' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <div className="text-left">
+                      <div className="font-semibold">New Restaurant</div>
+                      <div className="text-sm text-gray-600">Building from scratch</div>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleRestaurantTypeChange('type', 'existing')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    restaurantType.type === 'existing'
+                      ? 'border-blue-600 bg-blue-100'
+                      : 'border-gray-300 bg-white hover:border-blue-400'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Store className={`w-6 h-6 ${restaurantType.type === 'existing' ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <div className="text-left">
+                      <div className="font-semibold">Existing Restaurant</div>
+                      <div className="text-sm text-gray-600">Purchasing existing location</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* New Restaurant - Build Costs */}
+            {restaurantType.type === 'new' && (
+              <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Building2 className="w-5 h-5 mr-2 text-green-600" />
+                  Build Costs
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    label="Total Build Costs"
+                    type="number"
+                    value={restaurantType.buildCosts || 0}
+                    onChange={(value) => handleRestaurantTypeChange('buildCosts', parseFloat(value) || 0)}
+                    placeholder="300000"
+                    helpText="Includes construction, permits, design, etc."
+                  />
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="text-sm text-gray-600 mb-2">Estimated Breakdown:</div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Construction/Leasehold Improvements:</span>
+                        <span className="font-semibold">${((restaurantType.buildCosts || 0) * 0.50).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Kitchen Equipment:</span>
+                        <span className="font-semibold">${((restaurantType.buildCosts || 0) * 0.25).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Furniture & Fixtures:</span>
+                        <span className="font-semibold">${((restaurantType.buildCosts || 0) * 0.15).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Permits & Licenses:</span>
+                        <span className="font-semibold">${((restaurantType.buildCosts || 0) * 0.05).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Design & Professional Fees:</span>
+                        <span className="font-semibold">${((restaurantType.buildCosts || 0) * 0.05).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Existing Restaurant - Purchase Price & Renovations */}
+            {restaurantType.type === 'existing' && (
+              <div className="space-y-4">
+                <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Store className="w-5 h-5 mr-2 text-purple-600" />
+                    Purchase Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      label="Purchase Price"
+                      type="number"
+                      value={restaurantType.purchasePrice || 0}
+                      onChange={(value) => handleRestaurantTypeChange('purchasePrice', parseFloat(value) || 0)}
+                      placeholder="500000"
+                      helpText="Total purchase price for the existing restaurant"
+                    />
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-600 mb-2">Purchase Breakdown:</div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Business Assets:</span>
+                          <span className="font-semibold">${((restaurantType.purchasePrice || 0) * 0.60).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Equipment & Inventory:</span>
+                          <span className="font-semibold">${((restaurantType.purchasePrice || 0) * 0.30).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Goodwill/Brand Value:</span>
+                          <span className="font-semibold">${((restaurantType.purchasePrice || 0) * 0.10).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Wrench className="w-5 h-5 mr-2 text-orange-600" />
+                    Renovations
+                  </h3>
+                  <div className="space-y-4">
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={restaurantType.needsRenovations || false}
+                        onChange={(e) => handleRestaurantTypeChange('needsRenovations', e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="font-medium">Renovations Required</span>
+                    </label>
+                    
+                    {restaurantType.needsRenovations && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <FormField
+                          label="Renovation Costs"
+                          type="number"
+                          value={restaurantType.renovations || 0}
+                          onChange={(value) => handleRestaurantTypeChange('renovations', parseFloat(value) || 0)}
+                          placeholder="100000"
+                          helpText="Costs for updates, repairs, and improvements"
+                        />
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="text-sm text-gray-600 mb-2">Typical Renovation Areas:</div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Kitchen Updates:</span>
+                              <span className="font-semibold">${((restaurantType.renovations || 0) * 0.40).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Dining Area Refresh:</span>
+                              <span className="font-semibold">${((restaurantType.renovations || 0) * 0.30).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Bathroom/Utilities:</span>
+                              <span className="font-semibold">${((restaurantType.renovations || 0) * 0.15).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Exterior/Signage:</span>
+                              <span className="font-semibold">${((restaurantType.renovations || 0) * 0.15).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total Investment Summary */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold mb-4">Total Initial Investment</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-600 mb-1">Purchase Price</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        ${(restaurantType.purchasePrice || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-600 mb-1">Renovations</div>
+                      <div className="text-2xl font-bold text-orange-600">
+                        ${(restaurantType.needsRenovations ? (restaurantType.renovations || 0) : 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border-2 border-blue-500">
+                      <div className="text-sm text-gray-600 mb-1">Total Investment</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        ${((restaurantType.purchasePrice || 0) + (restaurantType.needsRenovations ? (restaurantType.renovations || 0) : 0)).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        {/* Header with Boston Context */}
+        <SectionCard 
         title="Boston Restaurant Financial Projections" 
         description="Comprehensive financial modeling tailored for Boston's restaurant market with local benchmarks and regulations."
         color="blue"
@@ -653,6 +875,26 @@ const FinancialProjections = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Planning Calculators */}
+      <SectionCard title="Planning Calculators" color="indigo">
+        <div className="space-y-8">
+          {/* Rent Calculator */}
+          <div>
+            <RentCalculator />
+          </div>
+
+          {/* Sales Projections Calculator */}
+          <div className="mt-8">
+            <SalesProjectionsCalculator baseAnnualRevenue={dailySalesProjections.annual.totalRevenue} />
+          </div>
+
+          {/* Management Cost Projector */}
+          <div className="mt-8">
+            <ManagementCostProjector baseAnnualRevenue={dailySalesProjections.annual.totalRevenue} />
           </div>
         </div>
       </SectionCard>
@@ -2529,6 +2771,11 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
+      {/* Document Generator */}
+      <SectionCard title="Generate Investor Documents" color="indigo">
+        <DocumentGenerator />
+      </SectionCard>
+
       {/* Financial Insights & Export */}
       <SectionCard title="Financial Insights & Export" color="emerald">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -2800,6 +3047,7 @@ ${calculations.fundingGap > 0 ? `• Secure additional funding of ${formatCurren
         </div>
       </SectionCard>
     </div>
+    </FeatureGate>
   );
 };
 

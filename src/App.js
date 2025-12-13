@@ -104,29 +104,24 @@ function AppContent() {
     );
   }
   
-  // Show app landing page if not authenticated
-  if (!state.isAuthenticated || !state.userId) {
-    return (
-      <div className="App min-h-screen bg-white">
-        <RestaurantBusinessPlannerLanding />
-        {/* Show sign-in modal when user clicks sign in or get started */}
-        {state.activeTab === 'sign-in' && (
-          <SignInModal 
-            isOpen={true}
-            onClose={() => {}} // Prevent closing when not authenticated
-            allowClose={true}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Show dashboard with sign-in modal overlay if needed
+  // Show dashboard - accessible to all users
   return (
     <div className="App min-h-screen bg-gray-50">
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/landing" element={
+          <div className="App min-h-screen bg-white">
+            <RestaurantBusinessPlannerLanding />
+            {state.activeTab === 'sign-in' && (
+              <SignInModal 
+                isOpen={true}
+                onClose={() => {}}
+                allowClose={true}
+              />
+            )}
+          </div>
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <LoadingSpinner />

@@ -15,8 +15,8 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.263.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-hook-form": "^7.43.9",
     "react-router-dom": "^6.11.2",
     "react-scripts": "5.0.1",
@@ -30,8 +30,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy:firebase": "npm run build && firebase deploy --only hosting:app",
+    "deploy:all": "npm run build && firebase deploy"
   },
   "eslintConfig": {
     "extends": [

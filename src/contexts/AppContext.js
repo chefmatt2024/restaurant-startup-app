@@ -506,6 +506,13 @@ const initialState = {
       squareFootage: 2000,
       operatingHours: '11:00 AM - 10:00 PM',
       daysOpen: 7
+    },
+    restaurantType: {
+      type: 'new', // 'new' or 'existing'
+      buildCosts: 0, // For new restaurants
+      purchasePrice: 0, // For existing restaurants
+      renovations: 0, // Renovation costs if needed
+      needsRenovations: false // Whether renovations are required
     }
   },
   
