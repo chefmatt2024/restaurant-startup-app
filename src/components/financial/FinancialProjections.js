@@ -7,7 +7,8 @@ import RentCalculator from './RentCalculator';
 import SalesProjectionsCalculator from './SalesProjectionsCalculator';
 import ManagementCostProjector from './ManagementCostProjector';
 import DocumentGenerator from '../documents/DocumentGenerator';
-import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench } from 'lucide-react';
+import AIAssistant from '../ai/AIAssistant';
+import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles } from 'lucide-react';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
@@ -2771,8 +2772,35 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
-      {/* Document Generator */}
-      <SectionCard title="Generate Investor Documents" color="indigo">
+      {/* AI Financial Advisor */}
+      <SectionCard title="AI Financial Advisor" color="indigo">
+        <div className="space-y-4">
+          <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+            <div className="flex items-center space-x-2 mb-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <h4 className="font-semibold text-gray-900">Get AI-Powered Financial Insights</h4>
+            </div>
+            <p className="text-sm text-gray-600">
+              Ask questions about your financial projections, get recommendations, or have AI analyze your numbers for risks and opportunities.
+            </p>
+          </div>
+          <AIAssistant
+            context={{
+              financialData: data,
+              projections: dailySalesProjections,
+              calculations: calculations
+            }}
+            section="financialProjections"
+            placeholder="Ask: 'What are the biggest risks in my financial plan?' or 'How can I improve my profit margins?'..."
+            onGenerate={(recommendations) => {
+              // Show recommendations in a modal or update a recommendations section
+              console.log('AI Recommendations:', recommendations);
+            }}
+          />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Generate Investor Documents" color="purple">
         <DocumentGenerator />
       </SectionCard>
 

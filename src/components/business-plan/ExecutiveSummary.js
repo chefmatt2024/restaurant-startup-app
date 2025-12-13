@@ -2,7 +2,8 @@ import React from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
-import { MapPin, Building, DollarSign, Users } from 'lucide-react';
+import AIAssistant from '../ai/AIAssistant';
+import { MapPin, Building, DollarSign, Users, Sparkles } from 'lucide-react';
 
 const ExecutiveSummary = () => {
   const { state, actions } = useApp();
@@ -208,6 +209,39 @@ const ExecutiveSummary = () => {
             <div className="text-sm text-green-700 font-medium">Revenue Model</div>
             <div className="text-xs text-green-600 mt-1">Dine-in, takeout, catering, delivery</div>
           </div>
+        </div>
+
+        {/* AI Assistant */}
+        <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+          <div className="flex items-center space-x-2 mb-4">
+            <Sparkles className="w-6 h-6 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-900">AI Writing Assistant</h3>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            Let AI help you write a compelling executive summary. Provide your restaurant concept details and AI will generate professional content.
+          </p>
+          <AIAssistant
+            context={{
+              concept: data.restaurantConcept,
+              location: data.location,
+              targetMarket: data.targetMarket,
+              uniqueValue: data.uniqueValueProposition,
+              financialHighlights: data.financialHighlights
+            }}
+            section="executiveSummary"
+            placeholder="Ask: 'Write an executive summary for my restaurant' or 'Improve my executive summary'..."
+            onGenerate={(generatedContent) => {
+              // Parse and apply generated content
+              if (window.confirm('Apply AI-generated executive summary? You can edit it after.')) {
+                // Try to extract key sections from AI response
+                const sections = generatedContent.split(/\n\n/);
+                actions.updateBusinessPlan('executiveSummary', {
+                  executiveSummary: generatedContent,
+                  lastUpdated: new Date().toISOString()
+                });
+              }
+            }}
+          />
         </div>
       </SectionCard>
     </div>

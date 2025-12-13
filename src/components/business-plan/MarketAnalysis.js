@@ -2,7 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
-import { TrendingUp, Users, MapPin, DollarSign, Target, BarChart3, Globe, Building, Utensils, RefreshCw, Lightbulb, Star, Zap, Heart } from 'lucide-react';
+import AIResearchPanel from '../ai/AIResearchPanel';
+import AIAssistant from '../ai/AIAssistant';
+import { TrendingUp, Users, MapPin, DollarSign, Target, BarChart3, Globe, Building, Utensils, RefreshCw, Lightbulb, Star, Zap, Heart, Sparkles } from 'lucide-react';
 
 // Enhanced Boston restaurant market data with location-specific demographics
 const bostonMarketData = {
@@ -568,39 +570,84 @@ const MarketAnalysis = () => {
         {activeTab === 'trends' && renderTrends()}
         {activeTab === 'analysis' && renderAnalysis()}
         {activeTab === 'location-insights' && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Lightbulb className="h-5 w-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Location Insights</h3>
+          <div className="space-y-6">
+            {/* AI Research Panel */}
+            <AIResearchPanel
+              location={data.location || 'Boston'}
+              restaurantType={data.restaurantConcept || null}
+              onDataReceived={(results) => {
+                // Auto-populate fields with AI research results
+                if (results) {
+                  actions.updateBusinessPlan('marketAnalysis', {
+                    marketSize: results,
+                    lastUpdated: new Date().toISOString()
+                  });
+                }
+              }}
+            />
+
+            {/* Existing Location Insights */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lightbulb className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Location Insights</h3>
+              </div>
+              <p className="text-gray-700">
+                Based on your selected location, here are some key insights and recommendations:
+              </p>
+              <ul className="list-disc list-inside space-y-2 mt-4">
+                <li>
+                  <strong>Target Market:</strong> {data.targetMarket || 'No specific target market defined yet.'}
+                </li>
+                <li>
+                  <strong>Competitive Positioning:</strong> {data.competitiveAnalysis || 'No competitive analysis provided.'}
+                </li>
+                <li>
+                  <strong>Market Opportunity:</strong> {data.marketSize || 'No market opportunity assessment provided.'}
+                </li>
+                <li>
+                  <strong>Trend Alignment:</strong> {data.marketTrends || 'No trend alignment strategy provided.'}
+                </li>
+                <li>
+                  <strong>Customer Demographics:</strong> {data.customerDemographics || 'No customer demographics provided.'}
+                </li>
+              </ul>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={autoUpdateMarketAnalysis}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Update Insights
+                </button>
+              </div>
             </div>
-            <p className="text-gray-700">
-              Based on your selected location, here are some key insights and recommendations:
-            </p>
-            <ul className="list-disc list-inside space-y-2 mt-4">
-              <li>
-                <strong>Target Market:</strong> {data.targetMarket || 'No specific target market defined yet.'}
-              </li>
-              <li>
-                <strong>Competitive Positioning:</strong> {data.competitiveAnalysis || 'No competitive analysis provided.'}
-              </li>
-              <li>
-                <strong>Market Opportunity:</strong> {data.marketSize || 'No market opportunity assessment provided.'}
-              </li>
-              <li>
-                <strong>Trend Alignment:</strong> {data.marketTrends || 'No trend alignment strategy provided.'}
-              </li>
-              <li>
-                <strong>Customer Demographics:</strong> {data.customerDemographics || 'No customer demographics provided.'}
-              </li>
-            </ul>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={autoUpdateMarketAnalysis}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Update Insights
-              </button>
+
+            {/* AI Assistant for Market Analysis */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+              </div>
+              <AIAssistant
+                context={{
+                  location: data.location || 'Boston',
+                  concept: data.restaurantConcept,
+                  targetMarket: data.targetMarket,
+                  competitiveAnalysis: data.competitiveAnalysis
+                }}
+                section="marketAnalysis"
+                placeholder="Ask about market trends, demographics, competition, or get help writing your analysis..."
+                onGenerate={(generatedContent) => {
+                  // Allow user to review and apply AI-generated content
+                  if (window.confirm('Apply AI-generated content to your market analysis?')) {
+                    actions.updateBusinessPlan('marketAnalysis', {
+                      marketAnalysis: generatedContent,
+                      lastUpdated: new Date().toISOString()
+                    });
+                  }
+                }}
+              />
             </div>
           </div>
         )}

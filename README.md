@@ -8,9 +8,17 @@ A comprehensive business planning application specifically designed for restaura
 
 ## ✨ Features
 
+### 🤖 AI-Powered Assistance (NEW!)
+- **Auto-Fill Forms**: AI intelligently completes business plan sections
+- **Market Research**: Get AI-powered market data and insights for your location
+- **Financial Advisor**: AI analyzes your projections and provides recommendations
+- **Content Generation**: Generate professional business plan content
+- **Question Answering**: Ask questions and get expert restaurant advice
+- **See [AI_SETUP_GUIDE.md](AI_SETUP_GUIDE.md) for setup instructions**
+
 ### 🏗️ Business Planning
 - **Idea Formation**: Structured approach to concept development
-- **Market Analysis**: Boston-specific market data and neighborhood insights
+- **Market Analysis**: Boston-specific market data and neighborhood insights with AI research
 - **Financial Planning**: Comprehensive cost projections and revenue modeling
 - **Management Team**: Organizational structure and role planning
 
