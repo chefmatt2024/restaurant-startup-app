@@ -21,9 +21,15 @@ const PricingPage = () => {
       );
 
       // Redirect to Stripe Checkout
-      const stripe = (await import('@stripe/stripe-js')).loadStripe(
-        process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
-      );
+      const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+      if (!stripeKey) {
+        throw new Error('Stripe publishable key not configured');
+      }
+      const { loadStripe } = await import('@stripe/stripe-js');
+      const stripe = await loadStripe(stripeKey);
+      if (!stripe) {
+        throw new Error('Failed to initialize Stripe');
+      }
       const { error } = await stripe.redirectToCheckout({ sessionId });
 
       if (error) {

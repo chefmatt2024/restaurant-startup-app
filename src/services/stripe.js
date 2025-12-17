@@ -1,7 +1,8 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+// Initialize Stripe with your publishable key (only if key exists)
+const stripePublishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 // Subscription plans configuration
 export const SUBSCRIPTION_PLANS = {
@@ -94,7 +95,13 @@ export const SUBSCRIPTION_PLANS = {
 };
 
 // Helper functions
-export const getStripe = () => stripePromise;
+export const getStripe = () => {
+  if (!stripePublishableKey) {
+    console.warn('Stripe publishable key not configured. Payment features will be disabled.');
+    return null;
+  }
+  return stripePromise;
+};
 
 export const formatPrice = (priceInCents) => {
   return new Intl.NumberFormat('en-US', {
