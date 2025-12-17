@@ -209,26 +209,46 @@ const FinancialProjections = () => {
 
   // Calculate comprehensive financial analysis
   const financialAnalysis = useMemo(() => {
-    const marketTrends = data.marketTrends;
-    const yearlyPermits = data.yearlyPermits;
-    const maintenanceCosts = data.maintenanceCosts;
+    const marketTrends = data.marketTrends || {};
+    const yearlyPermits = data.yearlyPermits || {
+      businessPermits: {},
+      insuranceCosts: {},
+      professionalServices: {}
+    };
+    const maintenanceCosts = data.maintenanceCosts || {
+      equipmentMaintenance: {},
+      buildingMaintenance: {},
+      equipmentReplacement: []
+    };
     
     // Calculate total yearly permits and compliance costs
-    const totalBusinessPermits = Object.values(yearlyPermits.businessPermits).reduce((sum, cost) => sum + cost, 0);
-    const totalInsuranceCosts = Object.values(yearlyPermits.insuranceCosts).reduce((sum, cost) => sum + cost, 0);
-    const totalProfessionalServices = Object.values(yearlyPermits.professionalServices).reduce((sum, cost) => sum + cost, 0);
+    const totalBusinessPermits = yearlyPermits.businessPermits 
+      ? Object.values(yearlyPermits.businessPermits).reduce((sum, cost) => sum + (cost || 0), 0)
+      : 0;
+    const totalInsuranceCosts = yearlyPermits.insuranceCosts
+      ? Object.values(yearlyPermits.insuranceCosts).reduce((sum, cost) => sum + (cost || 0), 0)
+      : 0;
+    const totalProfessionalServices = yearlyPermits.professionalServices
+      ? Object.values(yearlyPermits.professionalServices).reduce((sum, cost) => sum + (cost || 0), 0)
+      : 0;
     const totalYearlyPermits = totalBusinessPermits + totalInsuranceCosts + totalProfessionalServices;
     
     // Calculate total maintenance costs
-    const totalEquipmentMaintenance = Object.values(maintenanceCosts.equipmentMaintenance).reduce((sum, cost) => sum + cost, 0);
-    const totalBuildingMaintenance = Object.values(maintenanceCosts.buildingMaintenance).reduce((sum, cost) => sum + cost, 0);
-    const totalEquipmentReplacement = Object.values(maintenanceCosts.equipmentReplacement).reduce((sum, item) => sum + item.annualReserve, 0);
+    const totalEquipmentMaintenance = maintenanceCosts.equipmentMaintenance
+      ? Object.values(maintenanceCosts.equipmentMaintenance).reduce((sum, cost) => sum + (cost || 0), 0)
+      : 0;
+    const totalBuildingMaintenance = maintenanceCosts.buildingMaintenance
+      ? Object.values(maintenanceCosts.buildingMaintenance).reduce((sum, cost) => sum + (cost || 0), 0)
+      : 0;
+    const totalEquipmentReplacement = maintenanceCosts.equipmentReplacement && Array.isArray(maintenanceCosts.equipmentReplacement)
+      ? maintenanceCosts.equipmentReplacement.reduce((sum, item) => sum + (item?.annualReserve || 0), 0)
+      : 0;
     const totalMaintenanceCosts = totalEquipmentMaintenance + totalBuildingMaintenance + totalEquipmentReplacement;
     
     // Calculate 5-year projections
     const projections = [];
     for (let year = 1; year <= 5; year++) {
-      const growthData = marketTrends.growthProjections[`year${year}`];
+      const growthData = marketTrends.growthProjections?.[`year${year}`] || { revenueGrowth: 1, costInflation: 1 };
       const baseRevenue = dailySalesProjections.annual.totalRevenue;
       const projectedRevenue = baseRevenue * growthData.revenueGrowth;
       const projectedLaborCost = laborProjections.annual.totalCost * growthData.costInflation;
@@ -1527,7 +1547,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Business Permits</h3>
             <div className="space-y-3">
-              {Object.entries(data.yearlyPermits.businessPermits).map(([permit, cost]) => (
+              {data.yearlyPermits?.businessPermits ? Object.entries(data.yearlyPermits.businessPermits).map(([permit, cost]) => (
                 <FormField
                   key={permit}
                   label={permit.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -1536,7 +1556,7 @@ const FinancialProjections = () => {
                   onChange={(value) => handleFieldChange('yearlyPermits', `businessPermits.${permit}`, parseInt(value))}
                   placeholder="0"
                 />
-              ))}
+              )) : <p className="text-gray-500 text-sm">No business permits configured</p>}
             </div>
             <div className="mt-4 p-3 bg-orange-50 rounded-lg">
               <div className="flex items-center justify-between">
@@ -1552,7 +1572,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Insurance Requirements</h3>
             <div className="space-y-3">
-              {Object.entries(data.yearlyPermits.insuranceCosts).map(([insurance, cost]) => (
+              {data.yearlyPermits?.insuranceCosts ? Object.entries(data.yearlyPermits.insuranceCosts).map(([insurance, cost]) => (
                 <FormField
                   key={insurance}
                   label={insurance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -1561,7 +1581,7 @@ const FinancialProjections = () => {
                   onChange={(value) => handleFieldChange('yearlyPermits', `insuranceCosts.${insurance}`, parseInt(value))}
                   placeholder="0"
                 />
-              ))}
+              )) : <p className="text-gray-500 text-sm">No insurance costs configured</p>}
             </div>
             <div className="mt-4 p-3 bg-orange-50 rounded-lg">
               <div className="flex items-center justify-between">
@@ -1577,7 +1597,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Professional Services</h3>
             <div className="space-y-3">
-              {Object.entries(data.yearlyPermits.professionalServices).map(([service, cost]) => (
+              {data.yearlyPermits?.professionalServices ? Object.entries(data.yearlyPermits.professionalServices).map(([service, cost]) => (
                 <FormField
                   key={service}
                   label={service.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -1586,7 +1606,7 @@ const FinancialProjections = () => {
                   onChange={(value) => handleFieldChange('yearlyPermits', `professionalServices.${service}`, parseInt(value))}
                   placeholder="0"
                 />
-              ))}
+              )) : <p className="text-gray-500 text-sm">No professional services configured</p>}
             </div>
             <div className="mt-4 p-3 bg-orange-50 rounded-lg">
               <div className="flex items-center justify-between">
@@ -1616,7 +1636,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Equipment Maintenance</h3>
             <div className="space-y-3">
-              {Object.entries(data.maintenanceCosts.equipmentMaintenance).map(([maintenance, cost]) => (
+              {data.maintenanceCosts?.equipmentMaintenance ? Object.entries(data.maintenanceCosts.equipmentMaintenance).map(([maintenance, cost]) => (
                 <FormField
                   key={maintenance}
                   label={maintenance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -1641,7 +1661,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Building Maintenance</h3>
             <div className="space-y-3">
-              {Object.entries(data.maintenanceCosts.buildingMaintenance).map(([maintenance, cost]) => (
+              {data.maintenanceCosts?.buildingMaintenance ? Object.entries(data.maintenanceCosts.buildingMaintenance).map(([maintenance, cost]) => (
                 <FormField
                   key={maintenance}
                   label={maintenance.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -1667,29 +1687,30 @@ const FinancialProjections = () => {
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-4">Equipment Replacement Schedule</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(data.maintenanceCosts.equipmentReplacement).map(([equipment, data]) => (
+            {data.maintenanceCosts?.equipmentReplacement && typeof data.maintenanceCosts.equipmentReplacement === 'object' && !Array.isArray(data.maintenanceCosts.equipmentReplacement) 
+              ? Object.entries(data.maintenanceCosts.equipmentReplacement).map(([equipment, equipmentData]) => (
               <div key={equipment} className="border border-gray-200 rounded-lg p-4">
                 <h4 className="font-semibold mb-2">{equipment.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Replacement Cost:</span>
-                    <span>{formatCurrency(data.cost)}</span>
+                    <span>{formatCurrency(equipmentData?.cost || 0)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Lifespan:</span>
-                    <span>{data.years} years</span>
+                    <span>{equipmentData?.years || 0} years</span>
                   </div>
                   <FormField
                     label="Annual Reserve"
                     type="number"
-                    value={data.annualReserve}
+                    value={equipmentData?.annualReserve || 0}
                     onChange={(value) => handleFieldChange('maintenanceCosts', `equipmentReplacement.${equipment}.annualReserve`, parseInt(value))}
                     placeholder="0"
                     className="text-sm"
                   />
                 </div>
               </div>
-            ))}
+            )) : <p className="text-gray-500 text-sm col-span-full">No equipment replacement schedule configured</p>}
           </div>
           <div className="mt-4 p-3 bg-red-50 rounded-lg">
             <div className="flex items-center justify-between">
