@@ -45,23 +45,13 @@ jobs:
           REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
           REACT_APP_FIREBASE_APP_ID: ${{ secrets.REACT_APP_FIREBASE_APP_ID }}
       
-      - name: Copy landing page and setup custom domain
+      - name: Setup SPA routing
         run: |
-          # Copy landing page as the main index.html (homepage)
-          cp landing-page.html build/landing.html
-          
-          # Copy app redirect page
-          cp app.html build/app.html
-          
-          # Create CNAME file for custom domain
-          echo "iterumfoods.xyz" > build/CNAME
-          
           # Setup custom 404 for SPA routing
           cp build/index.html build/404.html
           
-          # Make landing page the homepage
-          mv build/index.html build/app/index.html || mkdir -p build/app && mv build/index.html build/app/
-          cp build/landing.html build/index.html
+          # Create CNAME file for custom domain (if needed)
+          # echo "iterumfoods.xyz" > build/CNAME
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
