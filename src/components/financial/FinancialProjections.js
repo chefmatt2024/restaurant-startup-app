@@ -1673,7 +1673,7 @@ const FinancialProjections = () => {
                   onChange={(value) => handleFieldChange('maintenanceCosts', `equipmentMaintenance.${maintenance}`, parseInt(value))}
                   placeholder="0"
                 />
-              ))}
+              )) : <p className="text-gray-500 text-sm">No equipment maintenance configured</p>}
             </div>
             <div className="mt-4 p-3 bg-red-50 rounded-lg">
               <div className="flex items-center justify-between">
@@ -1698,7 +1698,7 @@ const FinancialProjections = () => {
                   onChange={(value) => handleFieldChange('maintenanceCosts', `buildingMaintenance.${maintenance}`, parseInt(value))}
                   placeholder="0"
                 />
-              ))}
+              )) : <p className="text-gray-500 text-sm">No building maintenance configured</p>}
             </div>
             <div className="mt-4 p-3 bg-red-50 rounded-lg">
               <div className="flex items-center justify-between">
