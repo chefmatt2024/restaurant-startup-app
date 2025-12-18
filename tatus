@@ -1,0 +1,21 @@
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 357d94e..216a023 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -11,10 +11,16 @@[m [mnode_modules/[m
+ [m
+ # Misc[m
+ .DS_Store[m
+[32m+[m
+[32m+[m[32m# Environment files with sensitive data (NEVER COMMIT)[m
+ .env.local[m
+ .env.development.local[m
+ .env.test.local[m
+ .env.production.local[m
+[32m+[m[32m.env[m
+[32m+[m[32m.env.*.local[m
+[32m+[m[32m*.env[m
+[32m+[m[32m!.env.example[m
+ [m
+ # Logs[m
+ npm-debug.log*[m
