@@ -60,7 +60,7 @@ class AIService {
       messages.push({ role: 'user', content: prompt });
 
       const response = await this.makeRequest('/chat/completions', {
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o', // Updated to latest model
         messages,
         max_tokens: maxTokens,
         temperature,
