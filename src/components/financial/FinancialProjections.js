@@ -43,11 +43,17 @@ const FinancialProjections = () => {
 
   // Calculate daily sales projections
   const dailySalesProjections = useMemo(() => {
-    const ops = data.restaurantOperations;
+    const ops = data.restaurantOperations || {
+      seats: 50,
+      hoursOfOperation: {},
+      averageCheck: { lunch: 18, dinner: 32, brunch: 24, beverages: 8 },
+      tableTurnover: { lunch: 1.5, dinner: 2.0, brunch: 2.5, average: 2.0 },
+      occupancyRate: { lunch: 0.7, dinner: 0.9, brunch: 0.8, average: 0.8 }
+    };
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     
     const dailyProjections = days.map(day => {
-      const hours = ops.hoursOfOperation[day];
+      const hours = ops.hoursOfOperation?.[day] || { closed: true, open: '11:00', close: '22:00' };
       if (hours.closed) return { day, totalRevenue: 0, covers: 0, foodSales: 0, beverageSales: 0 };
       
       // Parse hours
@@ -115,8 +121,30 @@ const FinancialProjections = () => {
 
   // Calculate detailed labor projections
   const laborProjections = useMemo(() => {
-    const labor = data.operatingExpenses.labor;
-    const taxRates = labor.taxRates;
+    const labor = data.operatingExpenses?.labor || {
+      management: [],
+      frontOfHouse: [],
+      backOfHouse: [],
+      support: [],
+      taxRates: {
+        federalIncomeTax: 0.22,
+        stateIncomeTax: 0.05,
+        socialSecurity: 0.062,
+        medicare: 0.0145,
+        unemployment: 0.006,
+        workersComp: 0.015,
+        benefitsRate: 0.30
+      }
+    };
+    const taxRates = labor.taxRates || {
+      federalIncomeTax: 0.22,
+      stateIncomeTax: 0.05,
+      socialSecurity: 0.062,
+      medicare: 0.0145,
+      unemployment: 0.006,
+      workersComp: 0.015,
+      benefitsRate: 0.30
+    };
     
     const calculateEmployeeCosts = (employee) => {
       const weeklyHours = employee.hoursPerWeek;
@@ -167,10 +195,10 @@ const FinancialProjections = () => {
     };
 
     // Process all position arrays
-    const management = labor.management.map(calculateEmployeeCosts);
-    const frontOfHouse = labor.frontOfHouse.map(calculateEmployeeCosts);
-    const backOfHouse = labor.backOfHouse.map(calculateEmployeeCosts);
-    const support = labor.support.map(calculateEmployeeCosts);
+    const management = (labor.management || []).map(calculateEmployeeCosts);
+    const frontOfHouse = (labor.frontOfHouse || []).map(calculateEmployeeCosts);
+    const backOfHouse = (labor.backOfHouse || []).map(calculateEmployeeCosts);
+    const support = (labor.support || []).map(calculateEmployeeCosts);
 
     const allPositions = [...management, ...frontOfHouse, ...backOfHouse, ...support];
 
@@ -273,7 +301,7 @@ const FinancialProjections = () => {
     }
     
     // Calculate industry benchmarks comparison
-    const seats = data.restaurantOperations.seats;
+    const seats = data.restaurantOperations?.seats || 50;
     const industryRevenueTarget = marketTrends.industryBenchmarks.avgRevenuePerSeat * seats;
     const currentRevenue = dailySalesProjections.annual.totalRevenue;
     const revenueVsBenchmark = (currentRevenue / industryRevenueTarget) * 100;
@@ -748,7 +776,7 @@ const FinancialProjections = () => {
               <FormField
                 label="Total Seats"
                 type="number"
-                value={data.restaurantOperations.seats}
+                value={data.restaurantOperations?.seats || 50}
                 onChange={(value) => handleFieldChange('restaurantOperations', 'seats', parseInt(value))}
                 placeholder="50"
               />
@@ -756,7 +784,7 @@ const FinancialProjections = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Hours of Operation</label>
                 <div className="grid grid-cols-1 gap-2">
-                  {Object.entries(data.restaurantOperations.hoursOfOperation).map(([day, hours]) => (
+                  {Object.entries(data.restaurantOperations?.hoursOfOperation || {}).map(([day, hours]) => (
                     <div key={day} className="flex items-center space-x-2">
                       <div className="w-20 text-sm font-medium capitalize">{day}:</div>
                       <div className="flex items-center space-x-1">
@@ -802,28 +830,28 @@ const FinancialProjections = () => {
                   <FormField
                     label="Lunch"
                     type="number"
-                    value={data.restaurantOperations.averageCheck.lunch}
+                    value={data.restaurantOperations?.averageCheck?.lunch || 18}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.lunch', parseFloat(value))}
                     placeholder="18"
                   />
                   <FormField
                     label="Dinner"
                     type="number"
-                    value={data.restaurantOperations.averageCheck.dinner}
+                    value={data.restaurantOperations?.averageCheck?.dinner || 32}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.dinner', parseFloat(value))}
                     placeholder="32"
                   />
                   <FormField
                     label="Brunch"
                     type="number"
-                    value={data.restaurantOperations.averageCheck.brunch}
+                    value={data.restaurantOperations?.averageCheck?.brunch || 24}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.brunch', parseFloat(value))}
                     placeholder="24"
                   />
                   <FormField
                     label="Beverages"
                     type="number"
-                    value={data.restaurantOperations.averageCheck.beverages}
+                    value={data.restaurantOperations?.averageCheck?.beverages || 8}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.beverages', parseFloat(value))}
                     placeholder="8"
                   />
@@ -837,7 +865,7 @@ const FinancialProjections = () => {
                     label="Lunch"
                     type="number"
                     step="0.1"
-                    value={data.restaurantOperations.tableTurnover.lunch}
+                    value={data.restaurantOperations?.tableTurnover?.lunch || 1.5}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'tableTurnover.lunch', parseFloat(value))}
                     placeholder="1.5"
                   />
@@ -845,7 +873,7 @@ const FinancialProjections = () => {
                     label="Dinner"
                     type="number"
                     step="0.1"
-                    value={data.restaurantOperations.tableTurnover.dinner}
+                    value={data.restaurantOperations?.tableTurnover?.dinner || 2.0}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'tableTurnover.dinner', parseFloat(value))}
                     placeholder="2.0"
                   />
@@ -853,7 +881,7 @@ const FinancialProjections = () => {
                     label="Brunch"
                     type="number"
                     step="0.1"
-                    value={data.restaurantOperations.tableTurnover.brunch}
+                    value={data.restaurantOperations?.tableTurnover?.brunch || 2.5}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'tableTurnover.brunch', parseFloat(value))}
                     placeholder="2.5"
                   />
@@ -869,7 +897,7 @@ const FinancialProjections = () => {
                     step="0.1"
                     min="0"
                     max="1"
-                    value={data.restaurantOperations.occupancyRate.lunch}
+                    value={data.restaurantOperations?.occupancyRate?.lunch || 0.7}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'occupancyRate.lunch', parseFloat(value))}
                     placeholder="0.7"
                   />
@@ -879,7 +907,7 @@ const FinancialProjections = () => {
                     step="0.1"
                     min="0"
                     max="1"
-                    value={data.restaurantOperations.occupancyRate.dinner}
+                    value={data.restaurantOperations?.occupancyRate?.dinner || 0.9}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'occupancyRate.dinner', parseFloat(value))}
                     placeholder="0.9"
                   />
@@ -889,7 +917,7 @@ const FinancialProjections = () => {
                     step="0.1"
                     min="0"
                     max="1"
-                    value={data.restaurantOperations.occupancyRate.brunch}
+                    value={data.restaurantOperations?.occupancyRate?.brunch || 0.8}
                     onChange={(value) => handleFieldChange('restaurantOperations', 'occupancyRate.brunch', parseFloat(value))}
                     placeholder="0.8"
                   />
@@ -1034,7 +1062,7 @@ const FinancialProjections = () => {
                 label="Federal Income Tax"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.federalIncomeTax}
+                value={data.operatingExpenses?.labor?.taxRates?.federalIncomeTax || 0.22}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.federalIncomeTax', parseFloat(value))}
                 placeholder="0.15"
               />
@@ -1042,7 +1070,7 @@ const FinancialProjections = () => {
                 label="State Income Tax"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.stateIncomeTax}
+                value={data.operatingExpenses?.labor?.taxRates?.stateIncomeTax || 0.05}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.stateIncomeTax', parseFloat(value))}
                 placeholder="0.05"
               />
@@ -1050,7 +1078,7 @@ const FinancialProjections = () => {
                 label="Social Security"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.socialSecurity}
+                value={data.operatingExpenses?.labor?.taxRates?.socialSecurity || 0.062}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.socialSecurity', parseFloat(value))}
                 placeholder="0.062"
               />
@@ -1058,7 +1086,7 @@ const FinancialProjections = () => {
                 label="Medicare"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.medicare}
+                value={data.operatingExpenses?.labor?.taxRates?.medicare || 0.0145}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.medicare', parseFloat(value))}
                 placeholder="0.0145"
               />
@@ -1066,7 +1094,7 @@ const FinancialProjections = () => {
                 label="Unemployment"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.unemployment}
+                value={data.operatingExpenses?.labor?.taxRates?.unemployment || 0.006}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.unemployment', parseFloat(value))}
                 placeholder="0.03"
               />
@@ -1074,7 +1102,7 @@ const FinancialProjections = () => {
                 label="Workers Comp"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.workersComp}
+                value={data.operatingExpenses?.labor?.taxRates?.workersComp || 0.015}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.workersComp', parseFloat(value))}
                 placeholder="0.02"
               />
@@ -1082,7 +1110,7 @@ const FinancialProjections = () => {
                 label="Benefits Rate"
                 type="number"
                 step="0.001"
-                value={data.operatingExpenses.labor.taxRates.benefitsRate}
+                value={data.operatingExpenses?.labor?.taxRates?.benefitsRate || 0.30}
                 onChange={(value) => handleFieldChange('operatingExpenses', 'labor.taxRates.benefitsRate', parseFloat(value))}
                 placeholder="0.25"
               />
@@ -1093,7 +1121,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Management Positions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {data.operatingExpenses.labor.management.map((employee, index) => (
+              {(data.operatingExpenses?.labor?.management || []).map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
@@ -1130,7 +1158,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Front of House Positions</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.operatingExpenses.labor.frontOfHouse.map((employee, index) => (
+              {(data.operatingExpenses?.labor?.frontOfHouse || []).map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
@@ -1165,7 +1193,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Back of House Positions</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.operatingExpenses.labor.backOfHouse.map((employee, index) => (
+              {(data.operatingExpenses?.labor?.backOfHouse || []).map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
@@ -1202,7 +1230,7 @@ const FinancialProjections = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Support Staff</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.operatingExpenses.labor.support.map((employee, index) => (
+              {(data.operatingExpenses?.labor?.support || []).map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-3">{employee.name}</h4>
                   <div className="space-y-3">
