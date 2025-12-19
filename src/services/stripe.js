@@ -23,7 +23,8 @@ export const SUBSCRIPTION_PLANS = {
       maxExports: 3,
       hasAdvancedAnalytics: false,
       hasCollaboration: false,
-      hasApiAccess: false
+      hasApiAccess: false,
+      financial_projections: true // Available to all users
     }
   },
   professional: {
@@ -45,7 +46,8 @@ export const SUBSCRIPTION_PLANS = {
       maxExports: -1, // unlimited
       hasAdvancedAnalytics: true,
       hasCollaboration: false,
-      hasApiAccess: false
+      hasApiAccess: false,
+      financial_projections: true
     }
   },
   business: {
@@ -67,7 +69,8 @@ export const SUBSCRIPTION_PLANS = {
       maxExports: -1,
       hasAdvancedAnalytics: true,
       hasCollaboration: true,
-      hasApiAccess: false
+      hasApiAccess: false,
+      financial_projections: true
     }
   },
   enterprise: {
@@ -89,7 +92,8 @@ export const SUBSCRIPTION_PLANS = {
       maxExports: -1,
       hasAdvancedAnalytics: true,
       hasCollaboration: true,
-      hasApiAccess: true
+      hasApiAccess: true,
+      financial_projections: true
     }
   }
 };

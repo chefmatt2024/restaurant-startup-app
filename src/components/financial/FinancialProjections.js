@@ -546,7 +546,7 @@ const FinancialProjections = () => {
   };
 
   return (
-    <FeatureGate featureKey="financial_projections">
+    <FeatureGate feature="financial_projections">
       <div className="space-y-8">
         {/* Restaurant Type & Initial Costs Section */}
         <SectionCard title="Restaurant Type & Initial Costs" color="blue">

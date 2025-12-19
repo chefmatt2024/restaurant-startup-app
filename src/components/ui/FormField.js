@@ -10,6 +10,7 @@ const FormField = ({
   options = [],
   rows = 3,
   className = '',
+  helpText,
   ...props
 }) => {
   const baseInputClasses = `
@@ -84,6 +85,9 @@ const FormField = ({
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {renderInput()}
+      {helpText && (
+        <p className="text-sm text-gray-500 mt-1">{helpText}</p>
+      )}
     </div>
   );
 };
