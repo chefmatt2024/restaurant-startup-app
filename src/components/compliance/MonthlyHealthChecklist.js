@@ -421,15 +421,13 @@ const MonthlyHealthChecklist = () => {
     }));
   };
 
-  const getCompletionStats = () => {
+  const stats = useMemo(() => {
     const totalItems = healthCodeCategories.reduce((total, category) => 
       total + category.items.reduce((catTotal, item) => catTotal + item.checklist.length, 0), 0
     );
-    const completedItems = Object.values(completedItems).filter(Boolean).length;
-    return { completed: completedItems, total: totalItems, percentage: Math.round((completedItems / totalItems) * 100) };
-  };
-
-  const stats = getCompletionStats();
+    const completedCount = Object.values(completedItems).filter(Boolean).length;
+    return { completed: completedCount, total: totalItems, percentage: totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0 };
+  }, [completedItems]);
 
   return (
     <SectionCard

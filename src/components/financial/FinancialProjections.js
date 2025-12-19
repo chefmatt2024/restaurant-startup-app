@@ -302,18 +302,21 @@ const FinancialProjections = () => {
     
     // Calculate industry benchmarks comparison
     const seats = data.restaurantOperations?.seats || 50;
-    const industryRevenueTarget = marketTrends.industryBenchmarks.avgRevenuePerSeat * seats;
+    const avgRevenuePerSeat = marketTrends?.industryBenchmarks?.avgRevenuePerSeat || bostonBenchmarks.avgRevPerSeat;
+    const industryRevenueTarget = avgRevenuePerSeat * seats;
     const currentRevenue = dailySalesProjections.annual.totalRevenue;
-    const revenueVsBenchmark = (currentRevenue / industryRevenueTarget) * 100;
+    const revenueVsBenchmark = industryRevenueTarget > 0 ? (currentRevenue / industryRevenueTarget) * 100 : 0;
     
     // Calculate seasonal projections
-    const seasonalProjections = Object.entries(marketTrends.seasonalFactors).map(([season, data]) => ({
-      season,
-      factor: data.factor,
-      months: data.months,
-      monthlyRevenue: (dailySalesProjections.annual.totalRevenue / 12) * data.factor,
-      quarterlyRevenue: (dailySalesProjections.annual.totalRevenue / 4) * data.factor
-    }));
+    const seasonalProjections = marketTrends?.seasonalFactors 
+      ? Object.entries(marketTrends.seasonalFactors).map(([season, seasonData]) => ({
+          season,
+          factor: seasonData?.factor || 1,
+          months: seasonData?.months || [],
+          monthlyRevenue: (dailySalesProjections.annual.totalRevenue / 12) * (seasonData?.factor || 1),
+          quarterlyRevenue: (dailySalesProjections.annual.totalRevenue / 4) * (seasonData?.factor || 1)
+        }))
+      : [];
     
     return {
       totalYearlyPermits,
@@ -338,54 +341,74 @@ const FinancialProjections = () => {
 
   // Calculate funding sources and debt service
   const fundingAnalysis = useMemo(() => {
-    const fundingSources = data.fundingSources;
-    const fundingTerms = fundingSources.fundingTerms;
+    const fundingSources = data.fundingSources || {};
+    const fundingTerms = fundingSources?.fundingTerms || {
+      interestRates: {
+        bankLoans: 7,
+        sbaLoans: 6,
+        equipmentFinancing: 8,
+        familyLoans: 3,
+        friendLoans: 4,
+        lineOfCredit: 5,
+        businessCreditCards: 18
+      },
+      repaymentTerms: {
+        bankLoans: 60,
+        sbaLoans: 120,
+        equipmentFinancing: 60,
+        familyLoans: 60,
+        friendLoans: 36
+      }
+    };
     
     // Calculate total funding
-    const personalFunding = fundingSources.personalSavings + fundingSources.personalAssets + 
-                           fundingSources.homeEquity + fundingSources.retirementFunds;
+    const personalFunding = (fundingSources.personalSavings || 0) + (fundingSources.personalAssets || 0) + 
+                           (fundingSources.homeEquity || 0) + (fundingSources.retirementFunds || 0);
     
-    const familyFriendsFunding = fundingSources.familyLoans + fundingSources.friendLoans + 
-                                fundingSources.familyGifts;
+    const familyFriendsFunding = (fundingSources.familyLoans || 0) + (fundingSources.friendLoans || 0) + 
+                                (fundingSources.familyGifts || 0);
     
-    const traditionalFinancing = fundingSources.bankLoans + fundingSources.sbaLoans + 
-                                fundingSources.equipmentFinancing + fundingSources.lineOfCredit + 
-                                fundingSources.businessCreditCards;
+    const traditionalFinancing = (fundingSources.bankLoans || 0) + (fundingSources.sbaLoans || 0) + 
+                                (fundingSources.equipmentFinancing || 0) + (fundingSources.lineOfCredit || 0) + 
+                                (fundingSources.businessCreditCards || 0);
     
-    const alternativeFinancing = fundingSources.crowdfunding + fundingSources.angelInvestors + 
-                                fundingSources.ventureCapital + fundingSources.grants + 
-                                fundingSources.privateInvestors;
+    const alternativeFinancing = (fundingSources.crowdfunding || 0) + (fundingSources.angelInvestors || 0) + 
+                                (fundingSources.ventureCapital || 0) + (fundingSources.grants || 0) + 
+                                (fundingSources.privateInvestors || 0);
     
-    const otherFunding = fundingSources.businessPartners + fundingSources.supplierCredit + 
-                        fundingSources.otherSources;
+    const otherFunding = (fundingSources.businessPartners || 0) + (fundingSources.supplierCredit || 0) + 
+                        (fundingSources.otherSources || 0);
     
     const totalFunding = personalFunding + familyFriendsFunding + traditionalFinancing + 
                         alternativeFinancing + otherFunding;
     
     // Calculate debt service (monthly payments)
+    const interestRates = fundingTerms?.interestRates || {};
+    const repaymentTerms = fundingTerms?.repaymentTerms || {};
+    
     const debtService = {
-      bankLoans: fundingSources.bankLoans > 0 ? 
-        (fundingSources.bankLoans * (fundingTerms.interestRates.bankLoans / 100 / 12)) / 
-        (1 - Math.pow(1 + (fundingTerms.interestRates.bankLoans / 100 / 12), -fundingTerms.repaymentTerms.bankLoans)) : 0,
+      bankLoans: (fundingSources.bankLoans || 0) > 0 && interestRates.bankLoans && repaymentTerms.bankLoans ? 
+        ((fundingSources.bankLoans * (interestRates.bankLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (interestRates.bankLoans / 100 / 12), -repaymentTerms.bankLoans))) : 0,
       
-      sbaLoans: fundingSources.sbaLoans > 0 ? 
-        (fundingSources.sbaLoans * (fundingTerms.interestRates.sbaLoans / 100 / 12)) / 
-        (1 - Math.pow(1 + (fundingTerms.interestRates.sbaLoans / 100 / 12), -fundingTerms.repaymentTerms.sbaLoans)) : 0,
+      sbaLoans: (fundingSources.sbaLoans || 0) > 0 && interestRates.sbaLoans && repaymentTerms.sbaLoans ? 
+        ((fundingSources.sbaLoans * (interestRates.sbaLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (interestRates.sbaLoans / 100 / 12), -repaymentTerms.sbaLoans))) : 0,
       
-      equipmentFinancing: fundingSources.equipmentFinancing > 0 ? 
-        (fundingSources.equipmentFinancing * (fundingTerms.interestRates.equipmentFinancing / 100 / 12)) / 
-        (1 - Math.pow(1 + (fundingTerms.interestRates.equipmentFinancing / 100 / 12), -fundingTerms.repaymentTerms.equipmentFinancing)) : 0,
+      equipmentFinancing: (fundingSources.equipmentFinancing || 0) > 0 && interestRates.equipmentFinancing && repaymentTerms.equipmentFinancing ? 
+        ((fundingSources.equipmentFinancing * (interestRates.equipmentFinancing / 100 / 12)) / 
+        (1 - Math.pow(1 + (interestRates.equipmentFinancing / 100 / 12), -repaymentTerms.equipmentFinancing))) : 0,
       
-      familyLoans: fundingSources.familyLoans > 0 ? 
-        (fundingSources.familyLoans * (fundingTerms.interestRates.familyLoans / 100 / 12)) / 
-        (1 - Math.pow(1 + (fundingTerms.interestRates.familyLoans / 100 / 12), -fundingTerms.repaymentTerms.familyLoans)) : 0,
+      familyLoans: (fundingSources.familyLoans || 0) > 0 && interestRates.familyLoans && repaymentTerms.familyLoans ? 
+        ((fundingSources.familyLoans * (interestRates.familyLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (interestRates.familyLoans / 100 / 12), -repaymentTerms.familyLoans))) : 0,
       
-      friendLoans: fundingSources.friendLoans > 0 ? 
-        (fundingSources.friendLoans * (fundingTerms.interestRates.friendLoans / 100 / 12)) / 
-        (1 - Math.pow(1 + (fundingTerms.interestRates.friendLoans / 100 / 12), -fundingTerms.repaymentTerms.friendLoans)) : 0,
+      friendLoans: (fundingSources.friendLoans || 0) > 0 && interestRates.friendLoans && repaymentTerms.friendLoans ? 
+        ((fundingSources.friendLoans * (interestRates.friendLoans / 100 / 12)) / 
+        (1 - Math.pow(1 + (interestRates.friendLoans / 100 / 12), -repaymentTerms.friendLoans))) : 0,
       
-      lineOfCredit: fundingSources.lineOfCredit * (fundingTerms.interestRates.lineOfCredit / 100 / 12),
-      businessCreditCards: fundingSources.businessCreditCards * (fundingTerms.interestRates.businessCreditCards / 100 / 12)
+      lineOfCredit: (fundingSources.lineOfCredit || 0) * ((interestRates.lineOfCredit || 5) / 100 / 12),
+      businessCreditCards: (fundingSources.businessCreditCards || 0) * ((interestRates.businessCreditCards || 18) / 100 / 12)
     };
     
     const totalMonthlyDebtService = Object.values(debtService).reduce((sum, payment) => sum + payment, 0);
@@ -1471,7 +1494,7 @@ const FinancialProjections = () => {
               <FormField
                 label="Average Revenue per Seat (Annual)"
                 type="number"
-                value={data.marketTrends.industryBenchmarks.avgRevenuePerSeat}
+                value={data.marketTrends?.industryBenchmarks?.avgRevenuePerSeat || bostonBenchmarks.avgRevPerSeat}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgRevenuePerSeat', parseInt(value))}
                 placeholder="75000"
               />
@@ -1479,7 +1502,7 @@ const FinancialProjections = () => {
                 label="Average Food Cost %"
                 type="number"
                 step="0.1"
-                value={data.marketTrends.industryBenchmarks.avgFoodCostPercentage}
+                value={data.marketTrends?.industryBenchmarks?.avgFoodCostPercentage || (bostonBenchmarks.avgFoodCostPercent * 100)}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgFoodCostPercentage', parseFloat(value))}
                 placeholder="28"
               />
@@ -1487,7 +1510,7 @@ const FinancialProjections = () => {
                 label="Average Labor Cost %"
                 type="number"
                 step="0.1"
-                value={data.marketTrends.industryBenchmarks.avgLaborPercentage}
+                value={data.marketTrends?.industryBenchmarks?.avgLaborPercentage || (bostonBenchmarks.avgLaborPercent * 100)}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgLaborPercentage', parseFloat(value))}
                 placeholder="32"
               />
@@ -1497,14 +1520,14 @@ const FinancialProjections = () => {
                 step="0.01"
                 min="0"
                 max="1"
-                value={data.marketTrends.industryBenchmarks.avgOccupancyRate}
+                value={data.marketTrends?.industryBenchmarks?.avgOccupancyRate || 0.75}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgOccupancyRate', parseFloat(value))}
                 placeholder="0.75"
               />
               <FormField
                 label="Average Check Size"
                 type="number"
-                value={data.marketTrends.industryBenchmarks.avgCheckSize}
+                value={data.marketTrends?.industryBenchmarks?.avgCheckSize || bostonBenchmarks.avgSeatPrice}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgCheckSize', parseFloat(value))}
                 placeholder="25"
               />
@@ -1512,7 +1535,7 @@ const FinancialProjections = () => {
                 label="Average Table Turnover"
                 type="number"
                 step="0.1"
-                value={data.marketTrends.industryBenchmarks.avgTableTurnover}
+                value={data.marketTrends?.industryBenchmarks?.avgTableTurnover || bostonBenchmarks.avgTurnovers}
                 onChange={(value) => handleFieldChange('marketTrends', 'industryBenchmarks.avgTableTurnover', parseFloat(value))}
                 placeholder="2.0"
               />

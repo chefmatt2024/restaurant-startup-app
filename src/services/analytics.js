@@ -240,7 +240,8 @@ class AnalyticsService {
   async sendToServer(events) {
     // For now, store in localStorage for demo purposes
     // In production, this would send to your analytics API
-    const userId = this.getCurrentUser()?.uid || 'anonymous';
+    const user = authService.getCurrentUser();
+    const userId = user?.uid || 'anonymous';
     const key = `analytics_events_${userId}`;
     const stored = JSON.parse(localStorage.getItem(key) || '[]');
     stored.push(...events);

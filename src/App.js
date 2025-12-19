@@ -22,7 +22,7 @@ function AppContent() {
   const [showTrialOnboarding, setShowTrialOnboarding] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [, setHasAcceptedTerms] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   
   // Check authentication status on mount
@@ -59,7 +59,7 @@ function AppContent() {
         });
       }
     }
-  }, [state.isLoading, state.isAuthenticated, state.userId, hasCheckedAuth]);
+  }, [state.isLoading, state.isAuthenticated, state.userId, state.activeTab, hasCheckedAuth]);
 
   // Handle terms acceptance
   const handleTermsAccept = () => {
