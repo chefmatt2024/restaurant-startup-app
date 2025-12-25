@@ -29,6 +29,7 @@ import BrandingUpdater from '../components/tools/BrandingUpdater';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import DebugInfo from '../components/ui/DebugInfo';
 import WelcomeMessage from '../components/auth/WelcomeMessage';
+import DocumentImporter from '../components/import/DocumentImporter';
 
 const Dashboard = () => {
   const { state, actions } = useApp();
@@ -85,6 +86,8 @@ const Dashboard = () => {
         return <BrandingUpdater />;
       case 'admin':
         return <AdminDashboard />;
+      case 'import':
+        return <DocumentImporter />;
       default:
         return <StartupJourney />;
     }

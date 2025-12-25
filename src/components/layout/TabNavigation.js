@@ -27,6 +27,7 @@ const TabNavigation = () => {
   const tabs = [
     { id: 'startup-journey', label: 'Startup Journey', icon: Compass, color: 'blue', description: 'Complete process guide' },
     { id: 'opening-plan', label: 'Opening Plan', icon: Target, color: 'red', description: 'Boston restaurant roadmap' },
+    { id: 'import', label: 'Import Document', icon: FileText, color: 'blue', description: 'Upload & extract data' },
     { id: 'idea-formation', label: 'Idea Formation', icon: Lightbulb, color: 'yellow' },
     { id: 'elevator-pitch', label: 'Elevator Pitch', icon: Mic, color: 'green' },
     { id: 'executive-summary', label: 'Executive Summary', icon: FileText, color: 'blue' },

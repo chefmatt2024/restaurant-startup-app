@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
+import { getTemplateOptions, applyTemplate } from '../../utils/restaurantTemplates';
 import { 
   Plus, 
   Copy, 
@@ -26,6 +27,7 @@ const DraftManager = ({ isOpen, onClose }) => {
   const [newDraftName, setNewDraftName] = useState('');
   const [newConceptName, setNewConceptName] = useState('');
   const [newConceptDescription, setNewConceptDescription] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedForComparison, setSelectedForComparison] = useState([]);
   const [expandedConcepts, setExpandedConcepts] = useState(new Set());
   const [activeTab, setActiveTab] = useState('concepts'); // 'concepts' or 'all-drafts'
@@ -75,7 +77,16 @@ const DraftManager = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!newDraftName.trim()) return;
 
-    const newDraft = actions.createDraft(newDraftName.trim());
+    let newDraft = actions.createDraft(newDraftName.trim());
+    
+    // Apply template if selected
+    if (selectedTemplate) {
+      newDraft = applyTemplate(selectedTemplate, newDraft);
+      actions.updateDraft(newDraft.id, {
+        businessPlan: newDraft.businessPlan,
+        financialData: newDraft.financialData
+      });
+    }
     
     // If we're in a concept view, assign the concept
     if (activeTab === 'concepts' && concepts.length > 0) {
@@ -87,8 +98,10 @@ const DraftManager = ({ isOpen, onClose }) => {
     }
 
     setNewDraftName('');
+    setSelectedTemplate('');
     setShowCreateForm(false);
-    actions.showMessage('Success', `New draft "${newDraftName}" created!`, 'success');
+    const templateMsg = selectedTemplate ? ` with ${getTemplateOptions().find(t => t.value === selectedTemplate)?.label} template` : '';
+    actions.showMessage('Success', `New draft "${newDraftName}" created${templateMsg}!`, 'success');
   };
 
   const handleCreateDraftInConcept = (conceptName) => {
@@ -341,28 +354,53 @@ const DraftManager = ({ isOpen, onClose }) => {
         {/* Create Draft Form */}
         {showCreateForm && (
           <div className="p-4 bg-green-50 border-b border-green-200">
-            <form onSubmit={handleCreateDraft} className="flex items-center space-x-3">
-              <input
-                type="text"
-                value={newDraftName}
-                onChange={(e) => setNewDraftName(e.target.value)}
-                placeholder="Enter draft name (e.g., 'Location A', 'Budget Version', 'Premium Concept')"
-                className="form-input flex-1"
-                autoFocus
-              />
-              <button type="submit" className="btn-primary">
-                Create Draft
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setNewDraftName('');
-                }}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
+            <form onSubmit={handleCreateDraft} className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={newDraftName}
+                  onChange={(e) => setNewDraftName(e.target.value)}
+                  placeholder="Enter draft name (e.g., 'Location A', 'Budget Version', 'Premium Concept')"
+                  className="form-input flex-1"
+                  autoFocus
+                />
+                <button type="submit" className="btn-primary">
+                  Create Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setNewDraftName('');
+                    setSelectedTemplate('');
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Choose a Restaurant Type Template (Optional)
+                </label>
+                <select
+                  value={selectedTemplate}
+                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                  className="form-input w-full"
+                >
+                  <option value="">Start from scratch</option>
+                  {getTemplateOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label} - {option.description}
+                    </option>
+                  ))}
+                </select>
+                {selectedTemplate && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Template will pre-fill restaurant operations, financial data, and business concept
+                  </p>
+                )}
+              </div>
             </form>
           </div>
         )}

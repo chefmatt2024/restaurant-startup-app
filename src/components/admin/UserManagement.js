@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAllUsers } from '../../services/firebase';
 import { 
   Users, 
   Search, 
@@ -14,7 +15,8 @@ import {
   XCircle,
   Clock,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Loader2
 } from 'lucide-react';
 
 const UserManagement = () => {
@@ -24,65 +26,69 @@ const UserManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with real data from your backend
-  const mockUsers = [
-    {
-      id: '1',
-      email: 'maria.santos@email.com',
-      name: 'Maria Santos',
-      status: 'trial',
-      plan: 'Free Trial',
-      signupDate: '2024-01-15',
-      lastActive: '2024-01-20',
-      trialDaysLeft: 8,
-      progress: 65,
-      totalValue: 0,
-      phone: '+1-555-0123',
-      company: 'Bella Vista Italian',
-      location: 'Boston, MA',
-      source: 'Google Ads',
-      notes: 'Very engaged, completed financial projections'
-    },
-    {
-      id: '2',
-      email: 'david.kim@email.com',
-      name: 'David Kim',
-      status: 'paid',
-      plan: 'Professional',
-      signupDate: '2024-01-10',
-      lastActive: '2024-01-21',
-      trialDaysLeft: 0,
-      progress: 90,
-      totalValue: 348,
-      phone: '+1-555-0456',
-      company: 'K-Town BBQ',
-      location: 'Austin, TX',
-      source: 'Referral',
-      notes: 'High-value customer, potential for Enterprise upgrade'
-    },
-    {
-      id: '3',
-      email: 'sarah.johnson@email.com',
-      name: 'Sarah Johnson',
-      status: 'expired',
-      plan: 'Free Trial',
-      signupDate: '2024-01-05',
-      lastActive: '2024-01-18',
-      trialDaysLeft: 0,
-      progress: 30,
-      totalValue: 0,
-      phone: '+1-555-0789',
-      company: 'The Green Table',
-      location: 'Portland, OR',
-      source: 'Social Media',
-      notes: 'Trial expired, follow up needed'
-    }
-  ];
-
+  // Load users from Firebase
   useEffect(() => {
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
+    const loadUsers = async () => {
+      setLoading(true);
+      try {
+        const firebaseUsers = await getAllUsers();
+        
+        // Transform Firebase users to match UI format
+        const transformedUsers = firebaseUsers.map(user => {
+          // Calculate progress from drafts
+          const drafts = user.drafts || [];
+          const totalSections = 14; // Total sections in business plan
+          const completedSections = drafts.reduce((count, draft) => {
+            let completed = 0;
+            if (draft.businessPlan?.executiveSummary?.businessName) completed++;
+            if (draft.businessPlan?.ideation?.businessConcept) completed++;
+            if (draft.financialData?.revenue?.foodSales > 0) completed++;
+            // Add more completion checks as needed
+            return count + (completed / totalSections);
+          }, 0);
+          const progress = Math.round((completedSections / Math.max(drafts.length, 1)) * 100);
+          
+          return {
+            id: user.id || user.uid,
+            email: user.email || 'No email',
+            name: user.displayName || user.name || 'Anonymous User',
+            status: user.subscription?.status === 'active' ? 'paid' : 
+                   user.subscription?.status === 'trialing' ? 'trial' : 'free',
+            plan: user.subscription?.plan === 'price_professional' ? 'Professional' :
+                  user.subscription?.plan === 'price_business' ? 'Business' :
+                  user.subscription?.plan === 'price_enterprise' ? 'Enterprise' : 'Free',
+            signupDate: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'N/A',
+            lastActive: user.lastActive ? new Date(user.lastActive).toISOString().split('T')[0] : 'N/A',
+            trialDaysLeft: user.subscription?.trialEnd ? 
+              Math.ceil((new Date(user.subscription.trialEnd) - new Date()) / (1000 * 60 * 60 * 24)) : 0,
+            progress: progress,
+            totalValue: user.subscription?.plan === 'price_professional' ? 348 :
+                       user.subscription?.plan === 'price_business' ? 1188 :
+                       user.subscription?.plan === 'price_enterprise' ? 3588 : 0,
+            phone: user.phone || 'N/A',
+            company: user.company || 'N/A',
+            location: user.location || 'N/A',
+            source: user.source || 'Direct',
+            notes: user.notes || '',
+            draftsCount: drafts.length
+          };
+        });
+        
+        setUsers(transformedUsers);
+        setFilteredUsers(transformedUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // Fallback to empty array on error
+        setUsers([]);
+        setFilteredUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUsers();
   }, []);
 
   useEffect(() => {
@@ -278,6 +284,17 @@ const UserManagement = () => {
           </div>
         </div>
 
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+            <span className="text-gray-600">Loading users...</span>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No users found</p>
+          </div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -380,6 +397,7 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

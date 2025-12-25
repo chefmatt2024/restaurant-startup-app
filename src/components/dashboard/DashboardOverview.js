@@ -55,8 +55,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         label: 'Idea Formation',
         icon: Lightbulb,
         color: 'yellow',
-        completed: !!(currentDraft.businessPlan?.ideation?.businessConcept && 
-                     currentDraft.businessPlan?.ideation?.targetAudience),
+        completed: !!(currentDraft.businessPlan?.ideation?.businessConcept || 
+                     currentDraft.businessPlan?.ideation?.coreInspiration ||
+                     currentDraft.businessPlan?.ideation?.solutionIdea),
         priority: 'high'
       },
       'elevator-pitch': {
@@ -129,7 +130,10 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                      currentDraft.financialData?.revenue?.beverageSales > 0 ||
                      currentDraft.financialData?.operatingExpenses?.rent > 0 ||
                      currentDraft.financialData?.startupCosts?.totalBuildCost > 0 ||
-                     currentDraft.financialData?.startupCosts?.purchasePrice > 0),
+                     currentDraft.financialData?.startupCosts?.purchasePrice > 0 ||
+                     currentDraft.financialData?.restaurantOperations?.seats > 0 ||
+                     currentDraft.financialData?.restaurantType?.buildCosts > 0 ||
+                     currentDraft.financialData?.restaurantType?.purchasePrice > 0),
         priority: 'high'
       },
       'vendors': {

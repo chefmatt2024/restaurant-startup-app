@@ -26,7 +26,34 @@ const FinancialProjections = () => {
 
   const handleFieldChange = (section, field, value) => {
     const numValue = value === '' ? 0 : parseFloat(value) || 0;
-    actions.updateFinancialData(section, { [field]: numValue });
+    
+    // Handle nested fields (e.g., 'averageCheck.lunch')
+    if (field.includes('.')) {
+      const parts = field.split('.');
+      const currentData = data[section] || {};
+      
+      // Deep clone to avoid mutation
+      const updatedData = JSON.parse(JSON.stringify(currentData));
+      
+      // Navigate to nested property and set value
+      let current = updatedData;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) {
+          current[parts[i]] = {};
+        }
+        current = current[parts[i]];
+      }
+      
+      // Set the final value
+      current[parts[parts.length - 1]] = numValue;
+      
+      // Update the entire section
+      actions.updateFinancialData(section, updatedData);
+    } else {
+      // Simple field update
+      const currentData = data[section] || {};
+      actions.updateFinancialData(section, { ...currentData, [field]: numValue });
+    }
   };
 
   // Boston Restaurant Industry Benchmarks
