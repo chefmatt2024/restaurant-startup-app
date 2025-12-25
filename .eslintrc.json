@@ -1,20 +1,13 @@
 {
-  "extends": [
-    "react-app",
-    "react-app/jest"
-  ],
+  "extends": ["react-app", "react-app/jest"],
   "rules": {
-    "no-unused-vars": "warn",
     "no-console": "warn",
-    "prefer-const": "error",
-    "no-var": "error",
-    "react/prop-types": "off",
-    "react/no-unescaped-entities": "off",
-    "jsx-a11y/anchor-is-valid": "off"
+    "no-unused-vars": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-dupe-keys": "error"
   },
   "env": {
     "browser": true,
-    "es2021": true,
     "node": true
   }
-} 
+}

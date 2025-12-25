@@ -952,12 +952,6 @@ const createSampleDrafts = () => {
           depositsLicenses: 30000,
           initialMarketing: 20000,
           contingency: 17000
-        },
-        fundingSources: {
-          ownersEquity: 200000,
-          investorFunds: 150000,
-          bankLoans: 135000,
-          otherFunding: 0
         }
       },
       vendors: [

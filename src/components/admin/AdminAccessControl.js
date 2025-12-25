@@ -16,8 +16,41 @@ const AdminAccessControl = ({ children }) => {
     admin: { name: 'Admin', color: 'text-purple-600', icon: Shield }
   };
 
+  const checkAdminAccess = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Check if user is authenticated
+      if (!state.user) {
+        setAccessLevel('none');
+        setIsAuthorized(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check user's admin status
+      const userEmail = state.user.email;
+      const isAdmin = await checkUserAdminStatus(userEmail);
+      
+      if (isAdmin) {
+        setAccessLevel('admin');
+        setIsAuthorized(true);
+      } else {
+        setAccessLevel('none');
+        setIsAuthorized(false);
+      }
+    } catch (error) {
+      // Error checking admin access
+      setAccessLevel('none');
+      setIsAuthorized(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     checkAdminAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.user]);
 
   const checkAdminAccess = async () => {
