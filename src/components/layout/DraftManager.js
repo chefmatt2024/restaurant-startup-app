@@ -15,8 +15,10 @@ import {
   FolderOpen,
   Folder,
   Tag,
-  Layers
+  Layers,
+  Share2
 } from 'lucide-react';
+import ShareProject from '../sharing/ShareProject';
 
 const DraftManager = ({ isOpen, onClose }) => {
   const { state, actions } = useApp();
@@ -31,6 +33,7 @@ const DraftManager = ({ isOpen, onClose }) => {
   const [selectedForComparison, setSelectedForComparison] = useState([]);
   const [expandedConcepts, setExpandedConcepts] = useState(new Set());
   const [activeTab, setActiveTab] = useState('concepts'); // 'concepts' or 'all-drafts'
+  const [sharingDraftId, setSharingDraftId] = useState(null);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
 
@@ -575,6 +578,17 @@ const DraftManager = ({ isOpen, onClose }) => {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        setSharingDraftId(draft.id);
+                                      }}
+                                      className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                                      title="Share Project"
+                                    >
+                                      <Share2 className="w-4 h-4" />
+                                    </button>
+                                    
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
                                         setEditingDraft(draft.id);
                                       }}
                                       className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -701,6 +715,17 @@ const DraftManager = ({ isOpen, onClose }) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            setSharingDraftId(draft.id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                          title="Share Project"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setEditingDraft(draft.id);
                           }}
                           className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -788,6 +813,14 @@ const DraftManager = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
+      
+      {/* Share Project Modal */}
+      {sharingDraftId && (
+        <ShareProject
+          draftId={sharingDraftId}
+          onClose={() => setSharingDraftId(null)}
+        />
+      )}
     </div>
   );
 };

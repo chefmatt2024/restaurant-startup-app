@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X } from 'lucide-react';
+import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell } from 'lucide-react';
 import DraftManager from './DraftManager';
 import DraftComparison from './DraftComparison';
 import AuthModal from '../auth/AuthModal';
 import UserProfile from '../auth/UserProfile';
 import TrialStatus from '../auth/TrialStatus';
+import InvitationManager from '../sharing/InvitationManager';
+import { getPendingInvitations } from '../../services/sharingService';
 
 const Header = () => {
   const { state, actions } = useApp();
@@ -16,6 +18,8 @@ const Header = () => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showInvitations, setShowInvitations] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
 
@@ -42,6 +46,24 @@ const Header = () => {
     } catch (error) {
       // console.error('Error signing out:', error);
       actions.showMessage('Error', 'Failed to sign out. Please try again.', 'error');
+    }
+  };
+
+  // Load pending invitations
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      loadInvitations();
+      const interval = setInterval(loadInvitations, 30000); // Check every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [state.isAuthenticated]);
+
+  const loadInvitations = async () => {
+    try {
+      const invitations = await getPendingInvitations();
+      setPendingInvitations(invitations);
+    } catch (error) {
+      // Silently fail
     }
   };
 
@@ -155,11 +177,47 @@ const Header = () => {
                 </div>
               )}
 
+              {/* Invitation Notification */}
+              {state.isAuthenticated && pendingInvitations.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowInvitations(!showInvitations);
+                      setShowUserDropdown(false);
+                    }}
+                    className="relative flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <Bell className="w-5 h-5" />
+                    <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {pendingInvitations.length}
+                    </span>
+                  </button>
+                  
+                  {/* Invitations Dropdown */}
+                  {showInvitations && (
+                    <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                      <div className="p-4 border-b border-gray-200">
+                        <h3 className="font-semibold text-gray-900 flex items-center">
+                          <Mail className="w-4 h-4 mr-2" />
+                          Pending Invitations ({pendingInvitations.length})
+                        </h3>
+                      </div>
+                      <div className="p-4">
+                        <InvitationManager />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Authentication Buttons */}
               {state.isAuthenticated ? (
                 <div className="relative">
                   <button
-                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    onClick={() => {
+                      setShowUserDropdown(!showUserDropdown);
+                      setShowInvitations(false);
+                    }}
                     className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <UserCircle className="w-5 h-5" />

@@ -13,8 +13,7 @@ import {
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
-import { db } from './firebase';
-import { authService } from './firebase';
+import { db, authService } from './firebase';
 
 const getAppId = () => 'restaurant-startup-app';
 
