@@ -27,7 +27,14 @@ const AIAssistant = ({
       const answer = await aiService.answerQuestion(question, context);
       setResponse(answer);
     } catch (err) {
-      setError(err.message || 'Failed to get AI response. Please check your API key configuration.');
+      let errorMessage = err.message || 'Failed to get AI response. Please check your API key configuration.';
+      
+      // Provide helpful message for quota errors
+      if (err.message && (err.message.includes('quota') || err.message.includes('billing') || err.message.includes('exceeded'))) {
+        errorMessage = err.message + ' You can continue working on your business plan manually.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -71,7 +78,14 @@ const AIAssistant = ({
           break;
       }
     } catch (err) {
-      setError(err.message || 'Failed to process request. Please check your API key configuration.');
+      let errorMessage = err.message || 'Failed to process request. Please check your API key configuration.';
+      
+      // Provide helpful message for quota errors
+      if (err.message && (err.message.includes('quota') || err.message.includes('billing') || err.message.includes('exceeded'))) {
+        errorMessage = err.message + ' You can continue working on your business plan manually.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

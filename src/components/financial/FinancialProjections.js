@@ -8,6 +8,7 @@ import SalesProjectionsCalculator from './SalesProjectionsCalculator';
 import ManagementCostProjector from './ManagementCostProjector';
 import DocumentGenerator from '../documents/DocumentGenerator';
 import AIAssistant from '../ai/AIAssistant';
+import PLImporter from './PLImporter';
 import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles } from 'lucide-react';
 
 const FinancialProjections = () => {
@@ -25,9 +26,23 @@ const FinancialProjections = () => {
   };
 
   const handleFieldChange = (section, field, value) => {
-    const numValue = value === '' ? 0 : parseFloat(value) || 0;
+    // Check if this is a time field (contains 'open' or 'close' in the path)
+    const isTimeField = field.includes('open') || field.includes('close');
+    // Check if this is a boolean field (contains 'closed')
+    const isBooleanField = field.includes('closed');
     
-    // Handle nested fields (e.g., 'averageCheck.lunch')
+    // Determine the value type
+    let processedValue;
+    if (isBooleanField) {
+      processedValue = value; // Boolean value
+    } else if (isTimeField) {
+      processedValue = value; // String value for time (e.g., "11:00")
+    } else {
+      // Numeric value
+      processedValue = value === '' ? 0 : parseFloat(value) || 0;
+    }
+    
+    // Handle nested fields (e.g., 'averageCheck.lunch', 'hoursOfOperation.monday.open')
     if (field.includes('.')) {
       const parts = field.split('.');
       const currentData = data[section] || {};
@@ -45,14 +60,14 @@ const FinancialProjections = () => {
       }
       
       // Set the final value
-      current[parts[parts.length - 1]] = numValue;
+      current[parts[parts.length - 1]] = processedValue;
       
       // Update the entire section
       actions.updateFinancialData(section, updatedData);
     } else {
       // Simple field update
       const currentData = data[section] || {};
-      actions.updateFinancialData(section, { ...currentData, [field]: numValue });
+      actions.updateFinancialData(section, { ...currentData, [field]: processedValue });
     }
   };
 
@@ -464,83 +479,181 @@ const FinancialProjections = () => {
 
   // Calculate key metrics
   const calculations = useMemo(() => {
-    const totalRevenue = data.revenue.foodSales + data.revenue.beverageSales + 
-                        data.revenue.merchandiseSales + data.revenue.cateringSales + 
-                        data.revenue.otherRevenue;
+    // CRITICAL FIX: Use dailySalesProjections instead of data.revenue
+    // dailySalesProjections is calculated from actual operations data
+    const revenue = dailySalesProjections.annual;
+    const totalRevenue = revenue.totalRevenue || 0;
+    const totalFoodSales = revenue.foodSales || 0;
+    const totalBeverageSales = revenue.beverageSales || 0;
+    
+    // Add other revenue sources from data.revenue if they exist
+    const otherRevenue = (data.revenue?.merchandiseSales || 0) + 
+                        (data.revenue?.cateringSales || 0) + 
+                        (data.revenue?.otherRevenue || 0);
+    const totalRevenueWithOther = totalRevenue + otherRevenue;
 
-    const totalCogs = (data.revenue.foodSales * data.cogs.foodCogsPercent) +
-                     (data.revenue.beverageSales * data.cogs.beverageCogsPercent) +
-                     (data.revenue.merchandiseSales * data.cogs.merchandiseCogsPercent) +
-                     (data.revenue.cateringSales * data.cogs.cateringCogsPercent) +
-                     (data.revenue.otherRevenue * data.cogs.otherCogsPercent);
+    // Calculate COGS - use percentages from data.cogs
+    const cogs = data.cogs || {};
+    const foodCogs = totalFoodSales * (cogs.foodCogsPercent || 0.28);
+    const beverageCogs = totalBeverageSales * (cogs.beverageCogsPercent || 0.20);
+    const otherCogs = otherRevenue * (cogs.otherCogsPercent || 0.10);
+    const totalCogs = foodCogs + beverageCogs + otherCogs;
 
-    const grossProfit = totalRevenue - totalCogs;
-    const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+    const grossProfit = totalRevenueWithOther - totalCogs;
+    const grossMargin = totalRevenueWithOther > 0 ? (grossProfit / totalRevenueWithOther) * 100 : 0;
 
-    const totalOpEx = data.operatingExpenses.rent + data.operatingExpenses.utilities +
-                     data.operatingExpenses.insurance + data.operatingExpenses.marketing +
-                     data.operatingExpenses.legalAccounting + data.operatingExpenses.repairsMaintenance +
-                     data.operatingExpenses.supplies + data.operatingExpenses.adminOffice +
-                     data.operatingExpenses.otherOperatingExpenses +
-                     // Detailed operational expenses
-                     data.operatingExpenses.linenService + data.operatingExpenses.trashCollection +
-                     data.operatingExpenses.compostService + data.operatingExpenses.cleaningService +
-                     data.operatingExpenses.hoodCleaning + data.operatingExpenses.greaseTrapCleaning +
-                     data.operatingExpenses.internetPhone + data.operatingExpenses.securitySystem +
-                     data.operatingExpenses.pestControl + data.operatingExpenses.wasteManagement +
-                     data.operatingExpenses.equipmentMaintenance + data.operatingExpenses.uniformService +
-                     data.operatingExpenses.dishwareReplacement + data.operatingExpenses.cleaningSupplies +
-                     data.operatingExpenses.paperGoods + data.operatingExpenses.kitchenSupplies +
-                     data.operatingExpenses.pointOfSale + data.operatingExpenses.creditCardProcessing +
-                     data.operatingExpenses.bankFees + data.operatingExpenses.permitsLicenses +
-                     data.operatingExpenses.musicLicensing + data.operatingExpenses.deliveryServiceFees +
-                     data.operatingExpenses.trainingCertification + data.operatingExpenses.employeeBenefits +
-                     data.operatingExpenses.workersCompensation + data.operatingExpenses.unemploymentInsurance +
-                     data.operatingExpenses.healthInsurance + data.operatingExpenses.retirementBenefits +
-                     data.operatingExpenses.uniformLaundry + data.operatingExpenses.parkingFees +
-                     data.operatingExpenses.storageFees + data.operatingExpenses.professionalServices +
-                     data.operatingExpenses.technologySupport + data.operatingExpenses.softwareSubscriptions +
-                     data.operatingExpenses.inventoryManagement + data.operatingExpenses.qualityControl +
-                     data.operatingExpenses.safetyTraining + data.operatingExpenses.equipmentRental +
-                     data.operatingExpenses.temporaryStaffing + data.operatingExpenses.consulting +
-                     data.operatingExpenses.travelEntertainment + data.operatingExpenses.charitableDonations +
-                     data.operatingExpenses.localTaxes + data.operatingExpenses.propertyTaxes +
-                     data.operatingExpenses.businessTaxes;
+    // Calculate operating expenses with null safety
+    const opEx = data.operatingExpenses || {};
+    const totalOpEx = 
+      (opEx.rent || 0) +
+      (opEx.utilities || 0) +
+      (opEx.insurance || 0) +
+      (opEx.marketing || 0) +
+      (opEx.legalAccounting || 0) +
+      (opEx.repairsMaintenance || 0) +
+      (opEx.supplies || 0) +
+      (opEx.adminOffice || 0) +
+      (opEx.otherOperatingExpenses || 0) +
+      // Detailed operational expenses (with null checks)
+      (opEx.linenService || 0) +
+      (opEx.trashCollection || 0) +
+      (opEx.compostService || 0) +
+      (opEx.cleaningService || 0) +
+      (opEx.hoodCleaning || 0) +
+      (opEx.greaseTrapCleaning || 0) +
+      (opEx.internetPhone || 0) +
+      (opEx.securitySystem || 0) +
+      (opEx.pestControl || 0) +
+      (opEx.wasteManagement || 0) +
+      (opEx.equipmentMaintenance || 0) +
+      (opEx.uniformService || 0) +
+      (opEx.dishwareReplacement || 0) +
+      (opEx.cleaningSupplies || 0) +
+      (opEx.paperGoods || 0) +
+      (opEx.kitchenSupplies || 0) +
+      (opEx.pointOfSale || 0) +
+      (opEx.creditCardProcessing || 0) +
+      (opEx.bankFees || 0) +
+      (opEx.permitsLicenses || 0) +
+      (opEx.musicLicensing || 0) +
+      (opEx.deliveryServiceFees || 0) +
+      (opEx.trainingCertification || 0) +
+      (opEx.employeeBenefits || 0) +
+      (opEx.workersCompensation || 0) +
+      (opEx.unemploymentInsurance || 0) +
+      (opEx.healthInsurance || 0) +
+      (opEx.retirementBenefits || 0) +
+      (opEx.uniformLaundry || 0) +
+      (opEx.parkingFees || 0) +
+      (opEx.storageFees || 0) +
+      (opEx.professionalServices || 0) +
+      (opEx.technologySupport || 0) +
+      (opEx.softwareSubscriptions || 0) +
+      (opEx.inventoryManagement || 0) +
+      (opEx.qualityControl || 0) +
+      (opEx.safetyTraining || 0) +
+      (opEx.equipmentRental || 0) +
+      (opEx.temporaryStaffing || 0) +
+      (opEx.consulting || 0) +
+      (opEx.travelEntertainment || 0) +
+      (opEx.charitableDonations || 0) +
+      (opEx.localTaxes || 0) +
+      (opEx.propertyTaxes || 0) +
+      (opEx.businessTaxes || 0) +
+      (opEx.depreciation || 0) +
+      (opEx.amortization || 0) +
+      (opEx.salaryOwners || 0);
 
-    const totalPayroll = laborProjections.annual.totalCost;
+    const totalPayroll = laborProjections.annual.totalCost || 0;
     
     // Add yearly permits and maintenance costs
-    const totalYearlyPermits = financialAnalysis.totalYearlyPermits;
-    const totalMaintenanceCosts = financialAnalysis.totalMaintenanceCosts;
+    const totalYearlyPermits = financialAnalysis.totalYearlyPermits || 0;
+    const totalMaintenanceCosts = financialAnalysis.totalMaintenanceCosts || 0;
+    const totalDebtService = fundingAnalysis.totalAnnualDebtService || 0;
 
-    const totalExpenses = totalOpEx + totalPayroll + totalYearlyPermits + totalMaintenanceCosts + fundingAnalysis.totalAnnualDebtService;
+    const totalExpenses = totalOpEx + totalPayroll + totalYearlyPermits + totalMaintenanceCosts + totalDebtService;
     const netIncome = grossProfit - totalExpenses;
-    const netMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
+    const netMargin = totalRevenueWithOther > 0 ? (netIncome / totalRevenueWithOther) * 100 : 0;
 
-    const totalStartupCosts = data.startupCosts.leaseholdImprovements + data.startupCosts.kitchenEquipment +
-                             data.startupCosts.furnitureFixtures + data.startupCosts.initialInventory +
-                             data.startupCosts.preOpeningSalaries + data.startupCosts.depositsLicenses +
-                             data.startupCosts.initialMarketing + data.startupCosts.contingency;
+    // Calculate startup costs - include all relevant fields
+    const startupCosts = data.startupCosts || {};
+    const restaurantType = data.restaurantType || {};
+    const totalStartupCosts = 
+      (restaurantType.type === 'new' ? (startupCosts.totalBuildCost || 0) : 0) +
+      (restaurantType.type === 'existing' ? (startupCosts.purchasePrice || 0) : 0) +
+      (restaurantType.type === 'existing' && restaurantType.needsRenovations ? (startupCosts.renovationCosts || 0) : 0) +
+      (startupCosts.leaseholdImprovements || 0) +
+      (startupCosts.kitchenEquipment || 0) +
+      (startupCosts.furnitureFixtures || 0) +
+      (startupCosts.initialInventory || 0) +
+      (startupCosts.preOpeningSalaries || 0) +
+      (startupCosts.depositsLicenses || 0) +
+      (startupCosts.initialMarketing || 0) +
+      (startupCosts.contingency || 0);
 
-    const totalFunding = data.fundingSources.ownersEquity + data.fundingSources.investorFunds +
-                        data.fundingSources.bankLoans + data.fundingSources.otherFunding;
+    // Calculate total funding - include ALL funding sources
+    const funding = data.fundingSources || {};
+    const totalFunding = 
+      (funding.personalSavings || 0) +
+      (funding.personalAssets || 0) +
+      (funding.homeEquity || 0) +
+      (funding.retirementFunds || 0) +
+      (funding.familyLoans || 0) +
+      (funding.friendLoans || 0) +
+      (funding.familyGifts || 0) +
+      (funding.bankLoans || 0) +
+      (funding.sbaLoans || 0) +
+      (funding.equipmentFinancing || 0) +
+      (funding.lineOfCredit || 0) +
+      (funding.businessCreditCards || 0) +
+      (funding.crowdfunding || 0) +
+      (funding.angelInvestors || 0) +
+      (funding.ventureCapital || 0) +
+      (funding.grants || 0) +
+      (funding.privateInvestors || 0) +
+      (funding.businessPartners || 0) +
+      (funding.supplierCredit || 0) +
+      (funding.otherSources || 0) +
+      (funding.ownersEquity || 0) +
+      (funding.investorFunds || 0) +
+      (funding.otherFunding || 0);
 
-    const breakEvenRevenue = totalExpenses / (grossMargin / 100);
+    // Break-even calculation with validation
+    const breakEvenRevenue = grossMargin > 0 ? totalExpenses / (grossMargin / 100) : totalExpenses;
 
+    // Cash flow and working capital calculations
     const monthlyBurnRate = totalExpenses / 12;
-    const runwayMonths = totalFunding > 0 ? totalFunding / monthlyBurnRate : 0;
-    const monthsToBreakEven = totalFunding > 0 ? totalExpenses / (grossMargin / 100) / 12 : 0;
+    const runwayMonths = totalFunding > 0 && monthlyBurnRate > 0 ? totalFunding / monthlyBurnRate : 0;
+    const monthsToBreakEven = grossMargin > 0 && monthlyBurnRate > 0 
+      ? (totalExpenses / (grossMargin / 100)) / monthlyBurnRate 
+      : 0;
+    
+    // Working capital estimate (typically 2-3 months of expenses)
+    const workingCapitalNeeded = monthlyBurnRate * 2.5;
+    const totalCapitalNeeded = totalStartupCosts + workingCapitalNeeded;
+    const capitalGap = totalCapitalNeeded - totalFunding;
+
+    // Cash flow projections (simplified)
+    const monthlyRevenue = totalRevenueWithOther / 12;
+    const monthlyCogs = totalCogs / 12;
+    const monthlyGrossProfit = monthlyRevenue - monthlyCogs;
+    const monthlyNetCashFlow = monthlyGrossProfit - monthlyBurnRate;
 
     return {
-      totalRevenue,
+      totalRevenue: totalRevenueWithOther,
+      totalFoodSales,
+      totalBeverageSales,
+      otherRevenue,
       totalCogs,
+      foodCogs,
+      beverageCogs,
       grossProfit,
       grossMargin,
       totalOpEx,
       totalPayroll,
       totalYearlyPermits,
       totalMaintenanceCosts,
-      totalDebtService: fundingAnalysis.totalAnnualDebtService,
+      totalDebtService,
       totalExpenses,
       netIncome,
       netMargin,
@@ -551,8 +664,18 @@ const FinancialProjections = () => {
       monthlyBurnRate,
       runwayMonths,
       monthsToBreakEven,
+      workingCapitalNeeded,
+      totalCapitalNeeded,
+      capitalGap,
+      monthlyRevenue,
+      monthlyNetCashFlow,
+      // Key ratios
+      rentAsPercentOfRevenue: totalRevenueWithOther > 0 ? ((opEx.rent || 0) / totalRevenueWithOther) * 100 : 0,
+      laborAsPercentOfRevenue: totalRevenueWithOther > 0 ? (totalPayroll / totalRevenueWithOther) * 100 : 0,
+      foodCostPercent: totalFoodSales > 0 ? (foodCogs / totalFoodSales) * 100 : 0,
+      beverageCostPercent: totalBeverageSales > 0 ? (beverageCogs / totalBeverageSales) * 100 : 0,
     };
-  }, [data]);
+  }, [data, dailySalesProjections, laborProjections, financialAnalysis, fundingAnalysis]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -834,37 +957,50 @@ const FinancialProjections = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Hours of Operation</label>
                 <div className="grid grid-cols-1 gap-2">
-                  {Object.entries(data.restaurantOperations?.hoursOfOperation || {}).map(([day, hours]) => (
-                    <div key={day} className="flex items-center space-x-2">
-                      <div className="w-20 text-sm font-medium capitalize">{day}:</div>
-                      <div className="flex items-center space-x-1">
-                        <input
-                          type="checkbox"
-                          checked={!hours.closed}
-                          onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.closed`, !e.target.checked)}
-                          className="rounded border-gray-300"
-                        />
-                        <span className="text-xs text-gray-500">Open</span>
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                    // Get hours or initialize with default (open by default)
+                    const existingHours = data.restaurantOperations?.hoursOfOperation?.[day];
+                    const hours = existingHours || { closed: false, open: '11:00', close: '22:00' };
+                    const isClosed = hours.closed === true; // Explicitly check for true
+                    
+                    return (
+                      <div key={day} className="flex items-center space-x-2">
+                        <div className="w-20 text-sm font-medium capitalize">{day}:</div>
+                        <div className="flex items-center space-x-1">
+                          <input
+                            type="checkbox"
+                            checked={!isClosed}
+                            onChange={(e) => {
+                              const newClosedValue = !e.target.checked; // true if unchecked (closed), false if checked (open)
+                              handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.closed`, newClosedValue);
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-xs text-gray-500">Open</span>
+                        </div>
+                        {!isClosed && (
+                          <>
+                            <input
+                              type="time"
+                              value={hours.open || '11:00'}
+                              onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.open`, e.target.value)}
+                              className="text-sm border border-gray-300 rounded px-2 py-1"
+                            />
+                            <span className="text-gray-500">to</span>
+                            <input
+                              type="time"
+                              value={hours.close || '22:00'}
+                              onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.close`, e.target.value)}
+                              className="text-sm border border-gray-300 rounded px-2 py-1"
+                            />
+                          </>
+                        )}
+                        {isClosed && (
+                          <span className="text-sm text-gray-500 italic">Closed</span>
+                        )}
                       </div>
-                      {!hours.closed && (
-                        <>
-                          <input
-                            type="time"
-                            value={hours.open}
-                            onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.open`, e.target.value)}
-                            className="text-sm border border-gray-300 rounded px-2 py-1"
-                          />
-                          <span className="text-gray-500">to</span>
-                          <input
-                            type="time"
-                            value={hours.close}
-                            onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.close`, e.target.value)}
-                            className="text-sm border border-gray-300 rounded px-2 py-1"
-                          />
-                        </>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -2897,6 +3033,11 @@ const FinancialProjections = () => {
             }}
           />
         </div>
+      </SectionCard>
+
+      {/* P&L Statement Importer */}
+      <SectionCard title="Import P&L Statement" color="green">
+        <PLImporter />
       </SectionCard>
 
       <SectionCard title="Generate Investor Documents" color="purple">

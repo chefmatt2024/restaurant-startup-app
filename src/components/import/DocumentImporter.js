@@ -243,8 +243,14 @@ If information is not found, use null. Extract numbers as numbers, not strings. 
       setParsedData(parsed);
       setImportProgress('Document parsed successfully!');
     } catch (err) {
-      console.error('Error parsing with AI:', err);
-      setError('Failed to parse document with AI. The text has been extracted - you can review it below.');
+      let errorMessage = 'Failed to parse document with AI. The text has been extracted - you can review it below.';
+      
+      // Provide specific error messages for quota/billing issues
+      if (err.message && (err.message.includes('quota') || err.message.includes('billing') || err.message.includes('exceeded'))) {
+        errorMessage = err.message + ' You can still manually review the extracted text below and enter data manually.';
+      }
+      
+      setError(errorMessage);
       setImportProgress('');
     } finally {
       setIsProcessing(false);

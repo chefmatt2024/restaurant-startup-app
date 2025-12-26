@@ -1784,6 +1784,7 @@ export const AppProvider = ({ children }) => {
         if (currentDraft) {
           const updatedDraft = {
             ...currentDraft,
+            name: currentDraft.name || 'Untitled Draft', // Ensure name is always included
             businessPlan: state.businessPlan,
             financialData: state.financialData,
             vendors: state.vendors,

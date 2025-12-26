@@ -35,7 +35,22 @@ class AIService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error?.message || `API request failed: ${response.statusText}`);
+        const errorMessage = error.error?.message || `API request failed: ${response.statusText}`;
+        
+        // Check for quota/billing errors
+        if (errorMessage.toLowerCase().includes('quota') || 
+            errorMessage.toLowerCase().includes('billing') ||
+            errorMessage.toLowerCase().includes('exceeded') ||
+            error.code === 'insufficient_quota') {
+          throw new Error(`API Quota Exceeded: ${errorMessage}. Please check your OpenAI account billing and usage limits at https://platform.openai.com/usage. You may need to upgrade your plan or wait for your quota to reset.`);
+        }
+        
+        // Check for rate limit errors
+        if (errorMessage.toLowerCase().includes('rate limit') || error.code === 'rate_limit_exceeded') {
+          throw new Error(`Rate Limit Exceeded: ${errorMessage}. Please wait a moment and try again.`);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       return await response.json();

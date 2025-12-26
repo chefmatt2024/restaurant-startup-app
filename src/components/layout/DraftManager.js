@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { getTemplateOptions, applyTemplate } from '../../utils/restaurantTemplates';
+import { dbService, getAppId } from '../../services/firebase';
 import { 
   Plus, 
   Copy, 
@@ -150,12 +151,36 @@ const DraftManager = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleRenameDraft = (draftId, newName) => {
+  const handleRenameDraft = async (draftId, newName) => {
     if (!newName.trim()) return;
     
+    const draft = state.drafts.find(d => d.id === draftId);
+    if (!draft) return;
+    
+    // Update draft in state
+    const updatedDraft = { ...draft, name: newName.trim(), updatedAt: new Date() };
     actions.updateDraft(draftId, { name: newName.trim() });
     setEditingDraft(null);
-    actions.showMessage('Success', 'Draft renamed successfully', 'success');
+    
+    // Save to Firebase immediately
+    if (state.userId && state.isAuthenticated) {
+      try {
+        const appId = getAppId();
+        await dbService.saveDraft(state.userId, appId, updatedDraft);
+        
+        // Also update metadata
+        const updatedDrafts = state.drafts.map(d => 
+          d.id === draftId ? updatedDraft : d
+        );
+        await dbService.saveDraftsMetadata(state.userId, appId, updatedDrafts);
+        
+        actions.showMessage('Success', 'Draft renamed and saved successfully', 'success');
+      } catch (error) {
+        actions.showMessage('Warning', 'Draft renamed locally, but failed to save to cloud. Please try saving manually.', 'error');
+      }
+    } else {
+      actions.showMessage('Success', 'Draft renamed successfully', 'success');
+    }
   };
 
   const handleRenameConcept = (oldConceptName, newConceptName) => {

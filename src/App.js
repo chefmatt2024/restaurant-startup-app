@@ -39,14 +39,8 @@ function AppContent() {
       // Always require authentication - show terms first, then trial signup
       if (!termsAccepted) {
         setShowTermsModal(true);
-      } else if (!state.isAuthenticated || !state.userId) {
-        // Show trial signup instead of regular sign-in
-        if (state.activeTab === 'trial-signup') {
-          setShowTrialSignup(true);
-        } else {
-          setShowTrialSignup(true);
-        }
-      } else if (state.userId) {
+      } else if (state.isAuthenticated && state.userId) {
+        // User is signed in - don't show trial popup
         // Start session tracking
         SessionManager.startSession(state.userId);
         trackUsage('APP_ACCESS', 'login', { userId: state.userId });
@@ -57,6 +51,13 @@ function AppContent() {
           loginMethod: 'email',
           timestamp: Date.now()
         });
+      } else if (!state.isAuthenticated || !state.userId) {
+        // User is not authenticated - show trial signup
+        if (state.activeTab === 'trial-signup') {
+          setShowTrialSignup(true);
+        } else {
+          setShowTrialSignup(true);
+        }
       }
     }
   }, [state.isLoading, state.isAuthenticated, state.userId, state.activeTab, hasCheckedAuth]);
@@ -70,10 +71,11 @@ function AppContent() {
     // Track terms acceptance
     trackUsage('TERMS', 'accepted', { userId: state.userId || 'anonymous' });
     
-    // Show trial signup if not authenticated or if trial-signup tab is active
-    if ((!state.isAuthenticated && !state.userId) || state.activeTab === 'trial-signup') {
+    // Show trial signup only if user is NOT authenticated
+    if (!state.isAuthenticated && !state.userId) {
       setShowTrialSignup(true);
     }
+    // If user is already authenticated, don't show trial signup
   };
 
   const handleTermsDecline = () => {
@@ -127,25 +129,29 @@ function AppContent() {
       <LoadingSpinner />
       <MessageModal />
       
-      {/* Trial Signup Modal */}
-      <TrialSignup 
-        isOpen={showTrialSignup}
-        onClose={() => setShowTrialSignup(false)}
-        onSuccess={() => {
-          setShowTrialSignup(false);
-          setShowTrialOnboarding(true);
-        }}
-      />
+      {/* Trial Signup Modal - Only show if user is not authenticated */}
+      {!state.isAuthenticated && (
+        <TrialSignup 
+          isOpen={showTrialSignup}
+          onClose={() => setShowTrialSignup(false)}
+          onSuccess={() => {
+            setShowTrialSignup(false);
+            setShowTrialOnboarding(true);
+          }}
+        />
+      )}
       
-      {/* Trial Onboarding Modal */}
-      <TrialOnboarding 
-        isOpen={showTrialOnboarding}
-        onComplete={() => {
-          setShowTrialOnboarding(false);
-          // Navigate to dashboard or first step
-          actions.setActiveTab('idea-formation');
-        }}
-      />
+      {/* Trial Onboarding Modal - Only show if user is not authenticated */}
+      {!state.isAuthenticated && (
+        <TrialOnboarding 
+          isOpen={showTrialOnboarding}
+          onComplete={() => {
+            setShowTrialOnboarding(false);
+            // Navigate to dashboard or first step
+            actions.setActiveTab('idea-formation');
+          }}
+        />
+      )}
       
       {/* Sign-in Modal Overlay */}
       <SignInModal 
