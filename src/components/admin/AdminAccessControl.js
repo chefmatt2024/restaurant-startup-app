@@ -16,6 +16,22 @@ const AdminAccessControl = ({ children }) => {
     admin: { name: 'Admin', color: 'text-purple-600', icon: Shield }
   };
 
+  // Define checkUserAdminStatus first to avoid hoisting issues
+  const checkUserAdminStatus = async (email) => {
+    // Define authorized admin emails
+    const adminEmails = [
+      'matt@iterumfoods.com',
+      'hello@iterumfoods.xyz',
+      'admin@iterumfoods.xyz'
+    ];
+
+    // For demo purposes, also allow any @iterumfoods.com email
+    const isIterumEmail = email && email.endsWith('@iterumfoods.com');
+    const isAuthorizedEmail = adminEmails.includes(email.toLowerCase());
+    
+    return isAuthorizedEmail || isIterumEmail;
+  };
+
   const checkAdminAccess = async () => {
     setIsLoading(true);
     
@@ -52,21 +68,6 @@ const AdminAccessControl = ({ children }) => {
     checkAdminAccess();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.user]);
-
-  const checkUserAdminStatus = async (email) => {
-    // Define authorized admin emails
-    const adminEmails = [
-      'matt@iterumfoods.com',
-      'hello@iterumfoods.xyz',
-      'admin@iterumfoods.xyz'
-    ];
-
-    // For demo purposes, also allow any @iterumfoods.com email
-    const isIterumEmail = email && email.endsWith('@iterumfoods.com');
-    const isAuthorizedEmail = adminEmails.includes(email.toLowerCase());
-    
-    return isAuthorizedEmail || isIterumEmail;
-  };
 
   if (isLoading) {
     return (
