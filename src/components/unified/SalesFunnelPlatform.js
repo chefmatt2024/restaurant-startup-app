@@ -42,7 +42,26 @@ const SalesFunnelPlatform = () => {
   }, []);
 
   const handleLaunchRestaurantPlanner = () => {
-    actions.setActiveTab('idea-formation');
+    // Track conversion event
+    if (window.gtag) {
+      window.gtag('event', 'click', {
+        event_category: 'CTA',
+        event_label: 'Start Free Trial',
+        value: 1
+      });
+    }
+    
+    // Always redirect to root URL - ProtectedRoute will show signup flow automatically
+    // If on external landing page, use full URL
+    // If already in app, navigate to root route
+    if (window.location.hostname.includes('restaurant-startup-app.web.app') || 
+        window.location.hostname.includes('localhost')) {
+      // Already in app - navigate to root route (ProtectedRoute will show signup)
+      window.location.href = '/';
+    } else {
+      // External landing page - redirect to app root
+      window.location.href = 'https://restaurant-startup-app.web.app/';
+    }
   };
 
   const handleJoinWaitlist = (appName) => {
@@ -91,7 +110,7 @@ const SalesFunnelPlatform = () => {
     { number: "500+", label: "Restaurants Planned", icon: <BarChart3 className="w-6 h-6" /> },
     { number: "$2M+", label: "Funding Raised", icon: <DollarSign className="w-6 h-6" /> },
     { number: "95%", label: "Success Rate", icon: <TrendingUp className="w-6 h-6" /> },
-    { number: "14", label: "Days Free Trial", icon: <Clock className="w-6 h-6" /> }
+    { number: "5", label: "Days Free Trial", icon: <Clock className="w-6 h-6" /> }
   ];
 
   const features = [
@@ -121,7 +140,7 @@ const SalesFunnelPlatform = () => {
     {
       name: "Free Trial",
       price: "$0",
-      period: "14 days",
+      period: "5 days",
       description: "Full access to test the platform",
       features: [
         "Complete Restaurant Business Planner",
@@ -228,7 +247,7 @@ const SalesFunnelPlatform = () => {
                 className="bg-white text-green-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center shadow-xl"
               >
                 <Zap className="w-5 h-5 mr-2" />
-                Start Your Free 14-Day Trial
+                Start Your Free 5-Day Trial
               </button>
               <button
                 onClick={() => setShowVideoModal(true)}
@@ -479,7 +498,7 @@ const SalesFunnelPlatform = () => {
           <div className="text-center mt-8">
             <p className="text-gray-600">
               <Shield className="w-4 h-4 inline mr-2 text-green-500" />
-              Secure payment processing • Cancel anytime • 14-day free trial
+              Secure payment processing • Cancel anytime • 5-day free trial
             </p>
           </div>
         </div>
@@ -532,7 +551,7 @@ const SalesFunnelPlatform = () => {
             </button>
           </div>
           <p className="text-gray-400 mt-6 text-sm">
-            No credit card required • 14-day free trial • Cancel anytime
+            No credit card required • 5-day free trial • Cancel anytime
           </p>
         </div>
       </div>

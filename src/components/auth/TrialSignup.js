@@ -72,7 +72,7 @@ const TrialSignup = ({ isOpen, onClose, onSuccess }) => {
       const trialData = {
         ...formData,
         trialStartDate: new Date().toISOString(),
-        trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        trialEndDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
         trialStatus: 'active',
         planType: 'free_trial'
       };
@@ -106,7 +106,7 @@ const TrialSignup = ({ isOpen, onClose, onSuccess }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Start Your Free Trial</h2>
-              <p className="text-gray-600">Get 14 days of full access to plan your restaurant</p>
+              <p className="text-gray-600">Get 5 days of full access to plan your restaurant</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -342,7 +342,7 @@ const TrialSignup = ({ isOpen, onClose, onSuccess }) => {
               <div className="flex items-center">
                 <Star className="w-5 h-5 text-green-600 mr-2" />
                 <div>
-                  <h3 className="font-semibold text-green-900">14-Day Free Trial</h3>
+                  <h3 className="font-semibold text-green-900">5-Day Free Trial</h3>
                   <p className="text-sm text-green-700">
                     Full access to all features • No credit card required • Cancel anytime
                   </p>

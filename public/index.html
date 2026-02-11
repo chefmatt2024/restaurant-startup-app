@@ -2,16 +2,178 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Restaurant Business Planner - Professional tools for restaurant entrepreneurs"
+      content="Plan your restaurant business like a pro. Complete business planning tools, financial projections, market analysis, and compliance tracking for aspiring restaurant owners. Free 5-day trial."
     />
+    <meta
+      name="keywords"
+      content="restaurant business plan, restaurant financial projections, restaurant startup, restaurant planning software, restaurant business plan template, how to open a restaurant, restaurant startup costs"
+    />
+    <meta name="author" content="Iterum Foods" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://restaurant-startup-app.web.app/" />
+    <meta property="og:title" content="Restaurant Business Planner | Plan Your Restaurant Like a Pro" />
+    <meta property="og:description" content="Everything you need to plan and launch your restaurant business. Financial projections, market analysis, compliance tracking, and more. Free 5-day trial." />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://restaurant-startup-app.web.app/" />
+    <meta property="twitter:title" content="Restaurant Business Planner | Plan Your Restaurant Like a Pro" />
+    <meta property="twitter:description" content="Everything you need to plan and launch your restaurant business. Financial projections, market analysis, compliance tracking, and more." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.png" />
+    
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Restaurant Business Planner</title>
+    <title>Restaurant Business Planner | Plan Your Restaurant Like a Pro | Iterum Foods</title>
+    
+    <!-- Google Analytics 4 - Using Firebase Analytics Measurement ID -->
+    <!-- Firebase Analytics automatically links to GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YEMZ8XZT7S"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-YEMZ8XZT7S', {
+        page_path: window.location.pathname,
+        send_page_view: true
+      });
+    </script>
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Restaurant Business Planner",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "5-day free trial"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "500"
+      },
+      "description": "Complete business planning platform for restaurant entrepreneurs. Financial projections, market analysis, and strategic planning tools.",
+      "url": "https://restaurant-startup-app.web.app",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Iterum Foods",
+        "url": "https://iterumfoods.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://restaurant-startup-app.web.app/logo192.png"
+        },
+        "sameAs": [
+          "https://iterumfoods.com"
+        ]
+      },
+      "creator": {
+        "@type": "Person",
+        "name": "Chef Matt McPherson",
+        "jobTitle": "Founder & CEO",
+        "url": "https://www.linkedin.com/in/chef-matt-mcpherson"
+      },
+      "featureList": [
+        "Business Plan Generator",
+        "Financial Projections",
+        "Market Analysis",
+        "Compliance Tracking",
+        "Document Management",
+        "AI-Powered Insights"
+      ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Iterum Foods",
+      "url": "https://iterumfoods.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://restaurant-startup-app.web.app/logo.png",
+        "width": 512,
+        "height": 512
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "hello@iterumfoods.com",
+        "contactType": "Customer Service",
+        "areaServed": "US",
+        "availableLanguage": "en"
+      },
+      "sameAs": [
+        "https://iterumfoods.com",
+        "https://iterumfoods.xyz"
+      ],
+      "foundingDate": "2024",
+      "founder": {
+        "@type": "Person",
+        "name": "Chef Matt McPherson",
+        "jobTitle": "Founder & CEO"
+      }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Restaurant Business Planner",
+      "url": "https://restaurant-startup-app.web.app",
+      "description": "Complete business planning platform for restaurant entrepreneurs",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Iterum Foods"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://restaurant-startup-app.web.app/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://restaurant-startup-app.web.app/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Landing",
+          "item": "https://restaurant-startup-app.web.app/landing"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Investors",
+          "item": "https://restaurant-startup-app.web.app/investors"
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

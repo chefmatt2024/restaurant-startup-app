@@ -72,6 +72,35 @@ service cloud.firestore {
       }
     }
     
+    // Sharing collection - allows users to share drafts with others
+    match /artifacts/{appId}/shares/{shareId} {
+      // Users can read shares where they are the owner or the person being shared with
+      // Note: emails are stored in lowercase by sharingService, and Firebase Auth emails are typically lowercase
+      allow read: if request.auth != null && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous' &&
+        (resource.data.ownerId == request.auth.uid || 
+         (request.auth.token.email != null && 
+          resource.data.sharedWithEmail == request.auth.token.email));
+      
+      // Users can create shares if they are authenticated and not anonymous
+      allow create: if request.auth != null && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous' &&
+        request.resource.data.ownerId == request.auth.uid;
+      
+      // Users can update shares if they are the owner or the person being shared with
+      // (for accepting/declining invitations)
+      allow update: if request.auth != null && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous' &&
+        (resource.data.ownerId == request.auth.uid || 
+         (request.auth.token.email != null && 
+          resource.data.sharedWithEmail == request.auth.token.email));
+      
+      // Only owners can delete shares
+      allow delete: if request.auth != null && 
+        request.auth.token.firebase.sign_in_provider != 'anonymous' &&
+        resource.data.ownerId == request.auth.uid;
+    }
+    
     // Public read-only data (like equipment templates, vendor directories) - no anonymous access
     match /public/{document=**} {
       allow read: if request.auth != null && 

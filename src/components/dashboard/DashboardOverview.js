@@ -1,6 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { 
+import GettingStartedChecklist from '../onboarding/GettingStartedChecklist';
+import QuickStartTemplates from '../onboarding/QuickStartTemplates';
+import {
   CheckCircle, 
   Clock, 
   AlertCircle, 
@@ -22,11 +24,14 @@ import {
   Palette,
   ArrowRight,
   Star,
-  Zap
+  Zap,
+  Rocket,
+  Sparkles
 } from 'lucide-react';
 
 const DashboardOverview = ({ onSwitchToDetailed }) => {
   const { state, actions } = useApp();
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Calculate completion status for each section
   const sectionStatus = useMemo(() => {
@@ -267,6 +272,37 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         </div>
       </div>
 
+      {/* Quick Start Templates - Show for new users */}
+      {progress.percentage < 20 && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">New to Restaurant Planning?</h3>
+                <p className="text-sm text-gray-600">
+                  Start with a pre-filled template for your restaurant type
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowTemplates(true)}
+              className="bg-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center space-x-2"
+            >
+              <span>Browse Templates</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Getting Started Checklist - Show for new users or low progress */}
+      {progress.percentage < 50 && (
+        <GettingStartedChecklist />
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="modern-card p-6 hover-lift">
@@ -489,6 +525,49 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
           </div>
         </div>
       </div>
+
+      {/* Open Your Restaurant CTA */}
+      <div className="modern-card bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="p-8">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-3">
+                <Rocket className="w-8 h-8" />
+                <h2 className="text-2xl font-bold">Ready to Open Your Restaurant?</h2>
+              </div>
+              <p className="text-blue-100 text-lg mb-4">
+                Track all your documents, manage licenses at city, state, and federal levels, and never miss a renewal deadline.
+              </p>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => {
+                    actions.setActiveTab('open-restaurant');
+                    if (onSwitchToDetailed) onSwitchToDetailed();
+                  }}
+                  className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 flex items-center space-x-2 shadow-lg"
+                >
+                  <Rocket className="w-5 h-5" />
+                  <span>Open Restaurant Manager</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+                <span className="text-blue-100 text-sm">
+                  Track documents • Manage licenses • Renewal reminders
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Start Templates Modal */}
+      <QuickStartTemplates
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelect={(templateKey) => {
+          setShowTemplates(false);
+          actions.showMessage('Success', 'Template applied successfully!', 'success');
+        }}
+      />
     </div>
   );
 };

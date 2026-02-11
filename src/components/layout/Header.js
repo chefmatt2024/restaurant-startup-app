@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell } from 'lucide-react';
+import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import DraftManager from './DraftManager';
 import DraftComparison from './DraftComparison';
-import AuthModal from '../auth/AuthModal';
+import AuthModal from '../auth/EnhancedAuthModal';
 import UserProfile from '../auth/UserProfile';
 import TrialStatus from '../auth/TrialStatus';
 import InvitationManager from '../sharing/InvitationManager';
@@ -16,6 +16,7 @@ const Header = () => {
   const [showDraftComparison, setShowDraftComparison] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [userProfileSection, setUserProfileSection] = useState('profile');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
@@ -70,13 +71,17 @@ const Header = () => {
   return (
     <>
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
           {/* Main Header Row */}
           <div className="flex justify-between items-center py-4">
             {/* Logo and Title - Mobile Responsive */}
             <div className="flex items-center space-x-3 lg:space-x-6">
               <div className="flex items-center space-x-2 lg:space-x-3">
-                <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600 flex-shrink-0" />
+                <img 
+                  src="/logo.png" 
+                  alt="Restauranteur System Logo" 
+                  className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0 object-contain"
+                />
                 <div className="min-w-0">
                   <h1 className="text-lg lg:text-2xl font-bold text-gray-900 truncate">
                     <span className="hidden sm:inline">Restaurant Business Planning</span>
@@ -156,19 +161,13 @@ const Header = () => {
             <div className="hidden lg:flex items-center space-x-4">
               {/* Trial Status */}
               {state.user?.trialData && (
-                <TrialStatus onUpgrade={() => actions.setActiveTab('pricing')} />
+                <TrialStatus onUpgrade={() => {
+                  setUserProfileSection('pricing');
+                  setShowUserProfile(true);
+                  setShowUserDropdown(false);
+                }} />
               )}
               
-              {/* User Info */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <User className="w-4 h-4" />
-                <span>
-                  {state.user?.displayName || 
-                   (state.user?.email ? state.user.email.split('@')[0] : 
-                    state.isAuthenticated ? `User: ${state.userId?.slice(-8)}` : 'Anonymous User')}
-                </span>
-              </div>
-
               {/* Draft Count Badge */}
               {state.drafts.length > 1 && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -271,14 +270,39 @@ const Header = () => {
                 </button>
               )}
               
-              <button
-                onClick={handleSave}
-                disabled={state.isLoading || !state.currentDraftId}
-                className="btn-primary flex items-center space-x-2 disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save Draft</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                {/* Save Status Indicator */}
+                {state.saveStatus === 'saving' && (
+                  <div className="flex items-center space-x-1 text-blue-600 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="hidden sm:inline">Saving...</span>
+                  </div>
+                )}
+                {state.saveStatus === 'saved' && (
+                  <div className="flex items-center space-x-1 text-green-600 text-sm">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="hidden sm:inline">Saved</span>
+                  </div>
+                )}
+                {state.saveStatus === 'error' && (
+                  <div className="flex items-center space-x-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="hidden sm:inline">Error</span>
+                  </div>
+                )}
+                
+                {/* Save Button */}
+                <button
+                  onClick={handleSave}
+                  disabled={state.isLoading || !state.currentDraftId || state.saveStatus === 'saving'}
+                  className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+                  title={state.saveStatus === 'saved' ? 'All changes saved automatically' : 'Save manually'}
+                >
+                  <Save className="w-4 h-4" />
+                  <span className="hidden sm:inline">Save Draft</span>
+                  <span className="sm:hidden">Save</span>
+                </button>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -342,17 +366,40 @@ const Header = () => {
 
                 {/* Mobile Actions */}
                 <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      handleSave();
-                      setShowMobileMenu(false);
-                    }}
-                    disabled={state.isLoading || !state.currentDraftId}
-                    className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-50"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>Save Draft</span>
-                  </button>
+                  <div className="w-full space-y-2">
+                    {/* Save Status - Mobile */}
+                    {state.saveStatus === 'saving' && (
+                      <div className="flex items-center justify-center space-x-1 text-blue-600 text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving...</span>
+                      </div>
+                    )}
+                    {state.saveStatus === 'saved' && (
+                      <div className="flex items-center justify-center space-x-1 text-green-600 text-sm">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Saved</span>
+                      </div>
+                    )}
+                    {state.saveStatus === 'error' && (
+                      <div className="flex items-center justify-center space-x-1 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Error saving</span>
+                      </div>
+                    )}
+                    
+                    {/* Save Button - Mobile */}
+                    <button
+                      onClick={() => {
+                        handleSave();
+                        setShowMobileMenu(false);
+                      }}
+                      disabled={state.isLoading || !state.currentDraftId || state.saveStatus === 'saving'}
+                      className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-50"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Draft</span>
+                    </button>
+                  </div>
 
                   {state.isAuthenticated ? (
                     <div className="space-y-2">
@@ -418,7 +465,11 @@ const Header = () => {
       {showUserProfile && (
         <UserProfile 
           isOpen={showUserProfile} 
-          onClose={() => setShowUserProfile(false)} 
+          onClose={() => {
+            setShowUserProfile(false);
+            setUserProfileSection('profile'); // Reset to profile on close
+          }}
+          initialSection={userProfileSection}
         />
       )}
     </>

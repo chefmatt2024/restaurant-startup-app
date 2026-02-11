@@ -9,7 +9,10 @@ import ManagementCostProjector from './ManagementCostProjector';
 import DocumentGenerator from '../documents/DocumentGenerator';
 import AIAssistant from '../ai/AIAssistant';
 import PLImporter from './PLImporter';
-import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles } from 'lucide-react';
+import ExcelFinancialImporter from './ExcelFinancialImporter';
+import ScenarioManager from './ScenarioManager';
+import MonthlyStatement from './MonthlyStatement';
+import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles, FileText } from 'lucide-react';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
@@ -33,7 +36,10 @@ const FinancialProjections = () => {
     
     // Determine the value type
     let processedValue;
-    if (isBooleanField) {
+    if (typeof value === 'object' && value !== null) {
+      // If value is an object, use it directly (for updating entire day object)
+      processedValue = value;
+    } else if (isBooleanField) {
       processedValue = value; // Boolean value
     } else if (isTimeField) {
       processedValue = value; // String value for time (e.g., "11:00")
@@ -50,17 +56,57 @@ const FinancialProjections = () => {
       // Deep clone to avoid mutation
       const updatedData = JSON.parse(JSON.stringify(currentData));
       
-      // Navigate to nested property and set value
-      let current = updatedData;
-      for (let i = 0; i < parts.length - 1; i++) {
-        if (!current[parts[i]]) {
-          current[parts[i]] = {};
+      // Special handling for hoursOfOperation when updating entire day object
+      if (field.startsWith('hoursOfOperation.') && typeof processedValue === 'object') {
+        // Extract day from field path (e.g., "hoursOfOperation.monday" -> "monday")
+        const dayIndex = parts.findIndex(p => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(p));
+        if (dayIndex >= 0) {
+          const day = parts[dayIndex];
+          // Ensure hoursOfOperation exists
+          if (!updatedData.hoursOfOperation) {
+            updatedData.hoursOfOperation = {};
+          }
+          // Update the entire day object
+          updatedData.hoursOfOperation[day] = processedValue;
+        } else {
+          // Fallback to standard nested update
+          let current = updatedData;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) {
+              current[parts[i]] = {};
+            }
+            current = current[parts[i]];
+          }
+          current[parts[parts.length - 1]] = processedValue;
         }
-        current = current[parts[i]];
+      } else {
+        // Navigate to nested property and set value
+        let current = updatedData;
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (!current[parts[i]]) {
+            current[parts[i]] = {};
+          }
+          current = current[parts[i]];
+        }
+        
+        // Special handling for hoursOfOperation to preserve all day properties
+        if (parts[0] === 'hoursOfOperation' && parts.length === 3) {
+          const day = parts[1];
+          const property = parts[2];
+          // Ensure the day object exists with all properties
+          if (!updatedData.hoursOfOperation) {
+            updatedData.hoursOfOperation = {};
+          }
+          if (!updatedData.hoursOfOperation[day]) {
+            updatedData.hoursOfOperation[day] = { closed: false, open: '11:00', close: '22:00' };
+          }
+          // Update the specific property while preserving others
+          updatedData.hoursOfOperation[day][property] = processedValue;
+        } else {
+          // Set the final value
+          current[parts[parts.length - 1]] = processedValue;
+        }
       }
-      
-      // Set the final value
-      current[parts[parts.length - 1]] = processedValue;
       
       // Update the entire section
       actions.updateFinancialData(section, updatedData);
@@ -85,41 +131,88 @@ const FinancialProjections = () => {
 
   // Calculate daily sales projections
   const dailySalesProjections = useMemo(() => {
+    // Default hours of operation (all days open by default)
+    const defaultHours = {
+      monday: { open: '11:00', close: '22:00', closed: false },
+      tuesday: { open: '11:00', close: '22:00', closed: false },
+      wednesday: { open: '11:00', close: '22:00', closed: false },
+      thursday: { open: '11:00', close: '22:00', closed: false },
+      friday: { open: '11:00', close: '23:00', closed: false },
+      saturday: { open: '10:00', close: '23:00', closed: false },
+      sunday: { open: '10:00', close: '21:00', closed: false }
+    };
+    
     const ops = data.restaurantOperations || {
       seats: 50,
-      hoursOfOperation: {},
+      hoursOfOperation: defaultHours,
       averageCheck: { lunch: 18, dinner: 32, brunch: 24, beverages: 8 },
       tableTurnover: { lunch: 1.5, dinner: 2.0, brunch: 2.5, average: 2.0 },
-      occupancyRate: { lunch: 0.7, dinner: 0.9, brunch: 0.8, average: 0.8 }
+      occupancyRate: { lunch: 0.7, dinner: 0.9, brunch: 0.8, average: 0.8 },
+      serviceTypes: { lunch: true, dinner: true, brunch: false }
     };
+    
+    // Get enabled service types (default to lunch and dinner enabled, brunch disabled)
+    const serviceTypes = ops.serviceTypes || { lunch: true, dinner: true, brunch: false };
+    const lunchEnabled = serviceTypes.lunch !== false;
+    const dinnerEnabled = serviceTypes.dinner !== false;
+    const brunchEnabled = serviceTypes.brunch === true;
+    
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     
     const dailyProjections = days.map(day => {
-      const hours = ops.hoursOfOperation?.[day] || { closed: true, open: '11:00', close: '22:00' };
-      if (hours.closed) return { day, totalRevenue: 0, covers: 0, foodSales: 0, beverageSales: 0 };
+      const hours = ops.hoursOfOperation?.[day] || defaultHours[day] || { closed: false, open: '11:00', close: '22:00' };
+      if (hours.closed) return { day, totalRevenue: 0, covers: 0, foodSales: 0, beverageSales: 0, lunchCovers: 0, dinnerCovers: 0, brunchCovers: 0, lunchRevenue: 0, dinnerRevenue: 0, brunchRevenue: 0, beverageRevenue: 0 };
       
       // Parse hours
       const openTime = new Date(`2000-01-01 ${hours.open}`);
       const closeTime = new Date(`2000-01-01 ${hours.close}`);
-      const totalHours = (closeTime - openTime) / (1000 * 60 * 60);
+      let totalHours = (closeTime - openTime) / (1000 * 60 * 60);
       
-      // Determine meal periods
-      const lunchHours = Math.min(totalHours, 4); // 11-3pm typically
-      const dinnerHours = Math.max(0, totalHours - 4); // 3pm onwards
-      const brunchHours = day === 'saturday' || day === 'sunday' ? 2 : 0; // Weekend brunch
+      // Handle negative hours (e.g., if close time is earlier than open time)
+      if (totalHours < 0) totalHours = 0;
       
-      // Calculate covers per meal period
-      const lunchCovers = Math.floor((ops.seats * ops.occupancyRate.lunch * ops.tableTurnover.lunch * lunchHours) / 2);
-      const dinnerCovers = Math.floor((ops.seats * ops.occupancyRate.dinner * ops.tableTurnover.dinner * dinnerHours) / 2);
-      const brunchCovers = Math.floor((ops.seats * ops.occupancyRate.brunch * ops.tableTurnover.brunch * brunchHours) / 2);
+      // Determine meal periods based on enabled services
+      let lunchHours = 0;
+      let dinnerHours = 0;
+      let brunchHours = 0;
+      
+      if (brunchEnabled && (day === 'saturday' || day === 'sunday')) {
+        brunchHours = Math.min(totalHours, 3); // Brunch takes up to 3 hours (10am-1pm typically)
+        const remainingHours = Math.max(0, totalHours - brunchHours);
+        if (lunchEnabled && dinnerEnabled) {
+          // Split remaining hours between lunch and dinner
+          lunchHours = Math.min(remainingHours, 4);
+          dinnerHours = Math.max(0, remainingHours - lunchHours);
+        } else if (lunchEnabled) {
+          lunchHours = remainingHours;
+        } else if (dinnerEnabled) {
+          dinnerHours = remainingHours;
+        }
+      } else {
+        // No brunch - split between lunch and dinner
+        if (lunchEnabled && dinnerEnabled) {
+          lunchHours = Math.min(totalHours, 4); // Lunch gets first 4 hours
+          dinnerHours = Math.max(0, totalHours - lunchHours);
+        } else if (lunchEnabled) {
+          lunchHours = totalHours;
+        } else if (dinnerEnabled) {
+          dinnerHours = totalHours;
+        }
+      }
+      
+      // Calculate covers per meal period (only for enabled services)
+      // Formula: Seats × Occupancy Rate × Table Turnover (per hour) × Hours = Total Covers
+      const lunchCovers = lunchEnabled ? Math.floor(ops.seats * ops.occupancyRate.lunch * ops.tableTurnover.lunch * lunchHours) : 0;
+      const dinnerCovers = dinnerEnabled ? Math.floor(ops.seats * ops.occupancyRate.dinner * ops.tableTurnover.dinner * dinnerHours) : 0;
+      const brunchCovers = brunchEnabled ? Math.floor(ops.seats * ops.occupancyRate.brunch * ops.tableTurnover.brunch * brunchHours) : 0;
       
       const totalCovers = lunchCovers + dinnerCovers + brunchCovers;
       
-      // Calculate revenue by meal period
-      const lunchRevenue = lunchCovers * ops.averageCheck.lunch;
-      const dinnerRevenue = dinnerCovers * ops.averageCheck.dinner;
-      const brunchRevenue = brunchCovers * ops.averageCheck.brunch;
-      const beverageRevenue = totalCovers * ops.averageCheck.beverages * 0.7; // 70% order beverages
+      // Calculate revenue by meal period (only for enabled services)
+      const lunchRevenue = lunchEnabled ? lunchCovers * (ops.averageCheck.lunch || 0) : 0;
+      const dinnerRevenue = dinnerEnabled ? dinnerCovers * (ops.averageCheck.dinner || 0) : 0;
+      const brunchRevenue = brunchEnabled ? brunchCovers * (ops.averageCheck.brunch || 0) : 0;
+      const beverageRevenue = totalCovers * (ops.averageCheck.beverages || 0) * 0.7; // 70% order beverages
       
       const totalRevenue = lunchRevenue + dinnerRevenue + brunchRevenue + beverageRevenue;
       const foodSales = lunchRevenue + dinnerRevenue + brunchRevenue;
@@ -456,8 +549,21 @@ const FinancialProjections = () => {
     const totalMonthlyDebtService = Object.values(debtService).reduce((sum, payment) => sum + payment, 0);
     const totalAnnualDebtService = totalMonthlyDebtService * 12;
     
-    // Calculate funding gap
-    const totalStartupCosts = Object.values(data.startupCosts).reduce((sum, cost) => sum + cost, 0);
+    // Calculate funding gap (use same logic as calculations useMemo for consistency)
+    const startupCosts = data.startupCosts || {};
+    const restaurantType = data.restaurantType || {};
+    const totalStartupCosts = 
+      (restaurantType.type === 'new' ? (startupCosts.totalBuildCost || 0) : 0) +
+      (restaurantType.type === 'existing' ? (startupCosts.purchasePrice || 0) : 0) +
+      (restaurantType.type === 'existing' && restaurantType.needsRenovations ? (startupCosts.renovationCosts || 0) : 0) +
+      (startupCosts.leaseholdImprovements || 0) +
+      (startupCosts.kitchenEquipment || 0) +
+      (startupCosts.furnitureFixtures || 0) +
+      (startupCosts.initialInventory || 0) +
+      (startupCosts.preOpeningSalaries || 0) +
+      (startupCosts.depositsLicenses || 0) +
+      (startupCosts.initialMarketing || 0) +
+      (startupCosts.contingency || 0);
     const fundingGap = totalStartupCosts - totalFunding;
     
     return {
@@ -475,7 +581,7 @@ const FinancialProjections = () => {
       },
       debtService
     };
-  }, [data.fundingSources, data.startupCosts]);
+  }, [data.fundingSources, data.startupCosts, data.restaurantType]);
 
   // Calculate key metrics
   const calculations = useMemo(() => {
@@ -495,7 +601,7 @@ const FinancialProjections = () => {
     // Calculate COGS - use percentages from data.cogs
     const cogs = data.cogs || {};
     const foodCogs = totalFoodSales * (cogs.foodCogsPercent || 0.28);
-    const beverageCogs = totalBeverageSales * (cogs.beverageCogsPercent || 0.20);
+    const beverageCogs = totalBeverageSales * (cogs.beverageCogsPercent || 0.22);
     const otherCogs = otherRevenue * (cogs.otherCogsPercent || 0.10);
     const totalCogs = foodCogs + beverageCogs + otherCogs;
 
@@ -562,6 +668,20 @@ const FinancialProjections = () => {
       (opEx.businessTaxes || 0) +
       (opEx.depreciation || 0) +
       (opEx.amortization || 0) +
+      (opEx.interestExpense || 0) +
+      (opEx.loanFees || 0) +
+      (opEx.vehicleExpenses || 0) +
+      (opEx.menuPrinting || 0) +
+      (opEx.websiteMaintenance || 0) +
+      (opEx.emailMarketing || 0) +
+      (opEx.socialMediaManagement || 0) +
+      (opEx.photography || 0) +
+      (opEx.reservationSystem || 0) +
+      (opEx.giftCardFees || 0) +
+      (opEx.thirdPartyDeliveryFees || 0) +
+      (opEx.employeeMeals || 0) +
+      (opEx.smallwares || 0) +
+      (opEx.eventHosting || 0) +
       (opEx.salaryOwners || 0);
 
     const totalPayroll = laborProjections.annual.totalCost || 0;
@@ -698,6 +818,9 @@ const FinancialProjections = () => {
   return (
     <FeatureGate feature="financial_projections">
       <div className="space-y-8">
+        {/* Scenario Manager - Create and Compare Multiple Scenarios */}
+        <ScenarioManager />
+        
         {/* Restaurant Type & Initial Costs Section */}
         <SectionCard title="Restaurant Type & Initial Costs" color="blue">
           <div className="space-y-6">
@@ -960,43 +1083,104 @@ const FinancialProjections = () => {
                   {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
                     // Get hours or initialize with default (open by default)
                     const existingHours = data.restaurantOperations?.hoursOfOperation?.[day];
+                    // Ensure we have a complete hours object with all properties
                     const hours = existingHours || { closed: false, open: '11:00', close: '22:00' };
-                    const isClosed = hours.closed === true; // Explicitly check for true
+                    // Format time to ensure HH:MM format for HTML time input
+                    const formatTimeForInput = (time) => {
+                      if (!time) return '11:00';
+                      if (typeof time === 'string') {
+                        // If already in HH:MM format, return as is
+                        if (/^\d{2}:\d{2}$/.test(time)) {
+                          return time;
+                        }
+                        // If in H:MM format, pad with zero
+                        if (/^\d{1}:\d{2}$/.test(time)) {
+                          return '0' + time;
+                        }
+                      }
+                      return time || '11:00';
+                    };
+                    
+                    // Ensure all properties exist even if they're undefined
+                    const completeHours = {
+                      closed: hours.closed === true,
+                      open: formatTimeForInput(hours.open),
+                      close: formatTimeForInput(hours.close)
+                    };
+                    const isClosed = completeHours.closed; // Explicitly check for true
                     
                     return (
-                      <div key={day} className="flex items-center space-x-2">
-                        <div className="w-20 text-sm font-medium capitalize">{day}:</div>
-                        <div className="flex items-center space-x-1">
-                          <input
-                            type="checkbox"
-                            checked={!isClosed}
-                            onChange={(e) => {
-                              const newClosedValue = !e.target.checked; // true if unchecked (closed), false if checked (open)
-                              handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.closed`, newClosedValue);
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-xs text-gray-500">Open</span>
+                      <div key={day} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                        <div className="w-24 text-sm font-medium capitalize">{day}:</div>
+                        <div className="flex items-center space-x-2">
+                          <label className="flex items-center space-x-1 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!isClosed}
+                              onChange={(e) => {
+                                const newClosedValue = !e.target.checked; // true if unchecked (closed), false if checked (open)
+                                // When toggling closed, preserve existing open/close times
+                                const currentHours = data.restaurantOperations?.hoursOfOperation?.[day] || { 
+                                  closed: false, 
+                                  open: '11:00', 
+                                  close: '22:00' 
+                                };
+                                handleFieldChange('restaurantOperations', `hoursOfOperation.${day}`, {
+                                  closed: newClosedValue,
+                                  open: currentHours.open || completeHours.open,
+                                  close: currentHours.close || completeHours.close
+                                });
+                              }}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs text-gray-600 font-medium">Open</span>
+                          </label>
                         </div>
                         {!isClosed && (
-                          <>
+                          <div className="flex items-center space-x-2 flex-1">
                             <input
                               type="time"
-                              value={hours.open || '11:00'}
-                              onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.open`, e.target.value)}
-                              className="text-sm border border-gray-300 rounded px-2 py-1"
+                              value={completeHours.open || '11:00'}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Get current hours, preserving all existing properties
+                                const currentHours = data.restaurantOperations?.hoursOfOperation?.[day] || { 
+                                  closed: false, 
+                                  open: '11:00', 
+                                  close: completeHours.close || '22:00' 
+                                };
+                                handleFieldChange('restaurantOperations', `hoursOfOperation.${day}`, {
+                                  ...currentHours,
+                                  open: newValue,
+                                  closed: false
+                                });
+                              }}
+                              className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-24"
                             />
-                            <span className="text-gray-500">to</span>
+                            <span className="text-gray-500 text-sm">to</span>
                             <input
                               type="time"
-                              value={hours.close || '22:00'}
-                              onChange={(e) => handleFieldChange('restaurantOperations', `hoursOfOperation.${day}.close`, e.target.value)}
-                              className="text-sm border border-gray-300 rounded px-2 py-1"
+                              value={completeHours.close || '22:00'}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Get current hours, preserving all existing properties
+                                const currentHours = data.restaurantOperations?.hoursOfOperation?.[day] || { 
+                                  closed: false, 
+                                  open: completeHours.open || '11:00', 
+                                  close: '22:00' 
+                                };
+                                handleFieldChange('restaurantOperations', `hoursOfOperation.${day}`, {
+                                  ...currentHours,
+                                  close: newValue,
+                                  closed: false
+                                });
+                              }}
+                              className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-24"
                             />
-                          </>
+                          </div>
                         )}
                         {isClosed && (
-                          <span className="text-sm text-gray-500 italic">Closed</span>
+                          <span className="text-sm text-gray-500 italic font-medium">Closed</span>
                         )}
                       </div>
                     );
@@ -1011,34 +1195,108 @@ const FinancialProjections = () => {
             <h3 className="text-lg font-semibold mb-4">Pricing & Performance</h3>
             <div className="space-y-4">
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={data.restaurantOperations?.serviceTypes?.lunch !== false}
+                      onChange={(e) => {
+                        const currentServiceTypes = data.restaurantOperations?.serviceTypes || { lunch: true, dinner: true, brunch: false };
+                        handleFieldChange('restaurantOperations', 'serviceTypes', {
+                          ...currentServiceTypes,
+                          lunch: e.target.checked
+                        });
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-700">Lunch</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={data.restaurantOperations?.serviceTypes?.dinner !== false}
+                      onChange={(e) => {
+                        const currentServiceTypes = data.restaurantOperations?.serviceTypes || { lunch: true, dinner: true, brunch: false };
+                        handleFieldChange('restaurantOperations', 'serviceTypes', {
+                          ...currentServiceTypes,
+                          dinner: e.target.checked
+                        });
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-700">Dinner</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={data.restaurantOperations?.serviceTypes?.brunch === true}
+                      onChange={(e) => {
+                        const currentServiceTypes = data.restaurantOperations?.serviceTypes || { lunch: true, dinner: true, brunch: false };
+                        handleFieldChange('restaurantOperations', 'serviceTypes', {
+                          ...currentServiceTypes,
+                          brunch: e.target.checked
+                        });
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-700">Brunch</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Average Check by Meal Period</label>
                 <div className="grid grid-cols-2 gap-2">
                   <FormField
                     label="Lunch"
                     type="number"
                     value={data.restaurantOperations?.averageCheck?.lunch || 18}
-                    onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.lunch', parseFloat(value))}
+                    onChange={(value) => {
+                      const numValue = value === '' ? 0 : parseFloat(value);
+                      if (!isNaN(numValue)) {
+                        handleFieldChange('restaurantOperations', 'averageCheck.lunch', numValue);
+                      }
+                    }}
                     placeholder="18"
+                    disabled={data.restaurantOperations?.serviceTypes?.lunch === false}
                   />
                   <FormField
                     label="Dinner"
                     type="number"
                     value={data.restaurantOperations?.averageCheck?.dinner || 32}
-                    onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.dinner', parseFloat(value))}
+                    onChange={(value) => {
+                      const numValue = value === '' ? 0 : parseFloat(value);
+                      if (!isNaN(numValue)) {
+                        handleFieldChange('restaurantOperations', 'averageCheck.dinner', numValue);
+                      }
+                    }}
                     placeholder="32"
+                    disabled={data.restaurantOperations?.serviceTypes?.dinner === false}
                   />
                   <FormField
                     label="Brunch"
                     type="number"
                     value={data.restaurantOperations?.averageCheck?.brunch || 24}
-                    onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.brunch', parseFloat(value))}
+                    onChange={(value) => {
+                      const numValue = value === '' ? 0 : parseFloat(value);
+                      if (!isNaN(numValue)) {
+                        handleFieldChange('restaurantOperations', 'averageCheck.brunch', numValue);
+                      }
+                    }}
                     placeholder="24"
+                    disabled={data.restaurantOperations?.serviceTypes?.brunch !== true}
                   />
                   <FormField
                     label="Beverages"
                     type="number"
                     value={data.restaurantOperations?.averageCheck?.beverages || 8}
-                    onChange={(value) => handleFieldChange('restaurantOperations', 'averageCheck.beverages', parseFloat(value))}
+                    onChange={(value) => {
+                      const numValue = value === '' ? 0 : parseFloat(value);
+                      if (!isNaN(numValue)) {
+                        handleFieldChange('restaurantOperations', 'averageCheck.beverages', numValue);
+                      }
+                    }}
                     placeholder="8"
                   />
                 </div>
@@ -2396,6 +2654,29 @@ const FinancialProjections = () => {
             </div>
           </div>
         </div>
+        
+        {/* AI Assistant for COGS */}
+        <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <Sparkles className="w-5 h-5 text-orange-600" />
+            <h4 className="font-semibold text-gray-900">AI COGS Optimizer</h4>
+          </div>
+          <AIAssistant
+            context={{
+              cogs: data.cogs,
+              totalCogs: calculations.totalCogs,
+              grossProfit: calculations.grossProfit,
+              grossMargin: calculations.grossMargin,
+              foodCostPercent: calculations.foodCostPercent,
+              beverageCostPercent: calculations.beverageCostPercent,
+              revenue: data.revenue,
+              bostonBenchmarks: bostonBenchmarks
+            }}
+            section="cogs"
+            placeholder="Ask: 'Are my food costs too high?', 'How can I reduce my COGS?', 'What are industry-standard COGS percentages?'..."
+            showQuickActions={false}
+          />
+        </div>
       </SectionCard>
 
       {/* Operating Expenses */}
@@ -2812,6 +3093,148 @@ const FinancialProjections = () => {
           </div>
         </div>
 
+        {/* Financial & Accounting */}
+        <div className="mb-6">
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Financial & Accounting</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField
+              label="Depreciation"
+              type="number"
+              value={data.operatingExpenses.depreciation}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'depreciation', value)}
+              placeholder="15000"
+              helpText="Annual depreciation of equipment and assets"
+            />
+            <FormField
+              label="Amortization"
+              type="number"
+              value={data.operatingExpenses.amortization}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'amortization', value)}
+              placeholder="5000"
+              helpText="Annual amortization of intangible assets"
+            />
+            <FormField
+              label="Interest Expense"
+              type="number"
+              value={data.operatingExpenses.interestExpense || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'interestExpense', value)}
+              placeholder="8000"
+              helpText="Interest on loans and credit lines"
+            />
+            <FormField
+              label="Loan Fees"
+              type="number"
+              value={data.operatingExpenses.loanFees || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'loanFees', value)}
+              placeholder="2000"
+              helpText="Annual loan origination and servicing fees"
+            />
+          </div>
+        </div>
+
+        {/* Additional Operating Costs */}
+        <div className="mb-6">
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Additional Operating Costs</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField
+              label="Vehicle Expenses"
+              type="number"
+              value={data.operatingExpenses.vehicleExpenses || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'vehicleExpenses', value)}
+              placeholder="6000"
+              helpText="Delivery vehicles, fuel, maintenance"
+            />
+            <FormField
+              label="Menu Printing & Design"
+              type="number"
+              value={data.operatingExpenses.menuPrinting || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'menuPrinting', value)}
+              placeholder="2400"
+              helpText="Menu updates, printing, design costs"
+            />
+            <FormField
+              label="Website Maintenance"
+              type="number"
+              value={data.operatingExpenses.websiteMaintenance || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'websiteMaintenance', value)}
+              placeholder="1800"
+              helpText="Website hosting, updates, maintenance"
+            />
+            <FormField
+              label="Email Marketing Services"
+              type="number"
+              value={data.operatingExpenses.emailMarketing || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'emailMarketing', value)}
+              placeholder="1200"
+              helpText="Email marketing platform subscriptions"
+            />
+            <FormField
+              label="Social Media Management"
+              type="number"
+              value={data.operatingExpenses.socialMediaManagement || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'socialMediaManagement', value)}
+              placeholder="3600"
+              helpText="Social media tools and services"
+            />
+            <FormField
+              label="Photography & Videography"
+              type="number"
+              value={data.operatingExpenses.photography || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'photography', value)}
+              placeholder="3000"
+              helpText="Food photography, menu photos, marketing videos"
+            />
+            <FormField
+              label="Reservation System Fees"
+              type="number"
+              value={data.operatingExpenses.reservationSystem || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'reservationSystem', value)}
+              placeholder="2400"
+              helpText="Reservation booking platform fees"
+            />
+            <FormField
+              label="Gift Card Processing Fees"
+              type="number"
+              value={data.operatingExpenses.giftCardFees || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'giftCardFees', value)}
+              placeholder="1800"
+              helpText="Gift card platform and processing fees"
+            />
+            <FormField
+              label="Third-Party Delivery Platform Fees"
+              type="number"
+              value={data.operatingExpenses.thirdPartyDeliveryFees || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'thirdPartyDeliveryFees', value)}
+              placeholder="20000"
+              helpText="DoorDash, Uber Eats, Grubhub commissions (separate from delivery service fees)"
+            />
+            <FormField
+              label="Employee Meals"
+              type="number"
+              value={data.operatingExpenses.employeeMeals || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'employeeMeals', value)}
+              placeholder="6000"
+              helpText="Cost of employee meals during shifts"
+            />
+            <FormField
+              label="Smallwares & Kitchen Tools"
+              type="number"
+              value={data.operatingExpenses.smallwares || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'smallwares', value)}
+              placeholder="3000"
+              helpText="Utensils, small equipment, kitchen tools replacement"
+            />
+            <FormField
+              label="Event Hosting Costs"
+              type="number"
+              value={data.operatingExpenses.eventHosting || 0}
+              onChange={(value) => handleFieldChange('operatingExpenses', 'eventHosting', value)}
+              placeholder="5000"
+              helpText="Private events, catering setup costs"
+            />
+          </div>
+        </div>
+
         <h3 className="text-lg font-semibold mt-8 mb-4">Boston Payroll (MA min wage: $15/hr)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -2895,6 +3318,28 @@ const FinancialProjections = () => {
             </div>
           </div>
         </div>
+        
+        {/* AI Assistant for Operating Expenses */}
+        <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <Sparkles className="w-5 h-5 text-red-600" />
+            <h4 className="font-semibold text-gray-900">AI Expense Optimizer</h4>
+          </div>
+          <AIAssistant
+            context={{
+              operatingExpenses: data.operatingExpenses,
+              totalOpEx: calculations.totalOpEx,
+              rentAsPercentOfRevenue: calculations.rentAsPercentOfRevenue,
+              laborAsPercentOfRevenue: calculations.laborAsPercentOfRevenue,
+              totalRevenue: calculations.totalRevenue,
+              bostonBenchmarks: bostonBenchmarks,
+              restaurantOperations: data.restaurantOperations
+            }}
+            section="operatingExpenses"
+            placeholder="Ask: 'Are my operating expenses too high?', 'How can I reduce my rent costs?', 'What are typical operating expenses for Boston restaurants?'..."
+            showQuickActions={false}
+          />
+        </div>
       </SectionCard>
 
       {/* Boston Startup Costs */}
@@ -2962,6 +3407,28 @@ const FinancialProjections = () => {
             </span>
           </div>
         </div>
+        
+        {/* AI Assistant for Startup Costs */}
+        <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            <h4 className="font-semibold text-gray-900">AI Startup Cost Advisor</h4>
+          </div>
+          <AIAssistant
+            context={{
+              startupCosts: data.startupCosts,
+              totalStartupCosts: calculations.totalStartupCosts,
+              restaurantType: restaurantType,
+              workingCapitalNeeded: calculations.workingCapitalNeeded,
+              totalCapitalNeeded: calculations.totalCapitalNeeded,
+              capitalGap: calculations.capitalGap,
+              bostonBenchmarks: bostonBenchmarks
+            }}
+            section="startupCosts"
+            placeholder="Ask: 'Are my startup costs realistic?', 'What startup costs am I missing?', 'How much should I budget for Boston permits?'..."
+            showQuickActions={false}
+          />
+        </div>
       </SectionCard>
 
       {/* Financial Health Dashboard */}
@@ -3007,30 +3474,69 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
-      {/* AI Financial Advisor */}
-      <SectionCard title="AI Financial Advisor" color="indigo">
-        <div className="space-y-4">
-          <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-            <div className="flex items-center space-x-2 mb-2">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
-              <h4 className="font-semibold text-gray-900">Get AI-Powered Financial Insights</h4>
+      {/* AI Financial Advisor - Enhanced */}
+      <SectionCard title="AI Financial Advisor" color="indigo" icon={Sparkles}>
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-200">
+            <div className="flex items-center space-x-2 mb-3">
+              <Sparkles className="w-6 h-6 text-indigo-600" />
+              <h4 className="text-lg font-semibold text-gray-900">AI-Powered Financial Analysis</h4>
             </div>
-            <p className="text-sm text-gray-600">
-              Ask questions about your financial projections, get recommendations, or have AI analyze your numbers for risks and opportunities.
+            <p className="text-sm text-gray-700 mb-4">
+              Get intelligent insights, recommendations, and analysis of your financial projections. AI can help identify risks, 
+              optimize costs, suggest improvements, and provide industry benchmarks.
             </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center space-x-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Risk analysis & mitigation</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Cost optimization suggestions</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Revenue growth strategies</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Industry benchmark comparisons</span>
+              </div>
+            </div>
           </div>
+          
           <AIAssistant
             context={{
               financialData: data,
               projections: dailySalesProjections,
-              calculations: calculations
+              calculations: calculations,
+              restaurantOperations: data.restaurantOperations,
+              operatingExpenses: data.operatingExpenses,
+              startupCosts: data.startupCosts,
+              fundingSources: data.fundingSources,
+              bostonBenchmarks: bostonBenchmarks,
+              restaurantType: restaurantType,
+              totalRevenue: calculations.totalRevenue,
+              grossMargin: calculations.grossMargin,
+              netMargin: calculations.netMargin,
+              breakEvenRevenue: calculations.breakEvenRevenue,
+              monthlyBurnRate: calculations.monthlyBurnRate,
+              runwayMonths: calculations.runwayMonths,
+              capitalGap: calculations.capitalGap
             }}
             section="financialProjections"
-            placeholder="Ask: 'What are the biggest risks in my financial plan?' or 'How can I improve my profit margins?'..."
+            placeholder="Ask: 'What are the biggest risks in my financial plan?', 'How can I improve my profit margins?', 'Analyze my cash flow projections', or 'Compare my costs to industry benchmarks'..."
             onGenerate={(recommendations) => {
-              // Show recommendations in a modal or update a recommendations section
-              console.log('AI Recommendations:', recommendations);
+              if (recommendations && typeof recommendations === 'string') {
+                actions.showMessage(
+                  'AI Recommendations',
+                  recommendations.substring(0, 500) + (recommendations.length > 500 ? '...' : ''),
+                  'info'
+                );
+              }
             }}
+            showQuickActions={true}
           />
         </div>
       </SectionCard>
@@ -3038,6 +3544,7 @@ const FinancialProjections = () => {
       {/* P&L Statement Importer */}
       <SectionCard title="Import P&L Statement" color="green">
         <PLImporter />
+        <ExcelFinancialImporter />
       </SectionCard>
 
       <SectionCard title="Generate Investor Documents" color="purple">
@@ -3314,6 +3821,35 @@ ${calculations.fundingGap > 0 ? `• Secure additional funding of ${formatCurren
           </div>
         </div>
       </SectionCard>
+
+      {/* Monthly Statement - For Open Restaurants */}
+      <SectionCard title="Monthly Financial Statement" icon={FileText} color="purple">
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            <strong>Track Actual vs. Forecasted Expenses:</strong> Set your restaurant open date and enter actual monthly expenses to compare against your financial projections. 
+            Click on any "Actual" value to edit it.
+          </p>
+        </div>
+        <MonthlyStatement />
+      </SectionCard>
+
+      {/* AI Assistant */}
+      <AIAssistant
+        context={{
+          financialData: data,
+          calculations: calculations,
+          dailySalesProjections: dailySalesProjections,
+          laborProjections: laborProjections,
+          fundingAnalysis: fundingAnalysis,
+          financialAnalysis: financialAnalysis,
+          breakEvenRevenue: calculations.breakEvenRevenue,
+          monthlyBurnRate: calculations.monthlyBurnRate,
+          runwayMonths: calculations.runwayMonths,
+          capitalGap: calculations.capitalGap
+        }}
+        section="financialProjections"
+        placeholder="Ask: 'What are the biggest risks in my financial plan?', 'How can I improve my profit margins?', 'Analyze my cash flow projections', or 'Compare my costs to industry benchmarks'..."
+      />
     </div>
     </FeatureGate>
   );

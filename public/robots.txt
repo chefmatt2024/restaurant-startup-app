@@ -1,0 +1,14 @@
+# robots.txt for Restaurant Business Planner
+# https://restaurant-startup-app.web.app
+# https://iterumfoods.xyz/restauranteur-app
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/private/
+
+# Sitemaps
+Sitemap: https://restaurant-startup-app.web.app/sitemap.xml
+Sitemap: https://iterumfoods.xyz/sitemap.xml
+

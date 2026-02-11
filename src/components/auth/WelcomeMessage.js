@@ -41,6 +41,13 @@ const WelcomeMessage = ({ isOpen, onClose }) => {
     onClose();
     // Optionally redirect to a specific tab
     actions.setActiveTab('idea-formation');
+    // Trigger welcome tour after a short delay
+    setTimeout(() => {
+      const tourCompleted = localStorage.getItem('welcomeTourCompleted');
+      if (!tourCompleted) {
+        // Tour will be triggered by Dashboard component
+      }
+    }, 1000);
   };
 
   if (!isOpen) return null;

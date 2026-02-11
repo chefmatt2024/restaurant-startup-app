@@ -18,11 +18,15 @@ import {
   Lightbulb,
   Heart,
   Sparkles,
-  Camera
+  Camera,
+  Type,
+  Upload,
+  Settings
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
+import branding from '../../config/branding';
 
 const BrandingPlanner = () => {
   const { state, actions } = useApp();
@@ -149,11 +153,15 @@ const BrandingPlanner = () => {
     { value: 'handwriting', label: 'Handwriting', preview: 'Dancing Script' }
   ];
 
+  const [brandingConfig, setBrandingConfig] = useState(branding);
+  const [previewMode, setPreviewMode] = useState(false);
+
   const tabs = [
     { id: 'brand-identity', label: 'Brand Identity', icon: Target, color: 'blue' },
     { id: 'visual-identity', label: 'Visual Identity', icon: Palette, color: 'purple' },
     { id: 'printed-materials', label: 'Printed Materials', icon: Printer, color: 'green' },
-    { id: 'digital-presence', label: 'Digital Presence', icon: Globe, color: 'orange' }
+    { id: 'digital-presence', label: 'Digital Presence', icon: Globe, color: 'orange' },
+    { id: 'app-config', label: 'App Configuration', icon: Settings, color: 'indigo' }
   ];
 
   const handleFieldChange = (section, field, value) => {
@@ -314,8 +322,119 @@ const BrandingPlanner = () => {
     </div>
   );
 
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      actions.showMessage('Error', 'Please upload an image file (JPG, PNG, etc.)', 'error');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      actions.showMessage('Error', 'Image file is too large. Maximum size is 5MB.', 'error');
+      return;
+    }
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const logoData = {
+        file: file,
+        name: file.name,
+        url: reader.result,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      handleFieldChange('visualIdentity', 'logo', logoData);
+      actions.showMessage('Success', 'Logo uploaded successfully!', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoRemove = () => {
+    handleFieldChange('visualIdentity', 'logo', null);
+    actions.showMessage('Success', 'Logo removed', 'success');
+  };
+
   const renderVisualIdentity = () => (
     <div className="space-y-6">
+      {/* Logo Upload */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Image className="h-5 w-5 mr-2 text-blue-500" />
+          Logo Upload
+        </h4>
+        <div className="space-y-4">
+          {brandingData.visualIdentity.logo ? (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <img
+                    src={brandingData.visualIdentity.logo.url}
+                    alt="Logo preview"
+                    className="max-w-xs max-h-48 object-contain border-2 border-gray-200 rounded-lg p-4 bg-gray-50"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 mb-1">
+                    {brandingData.visualIdentity.logo.name}
+                  </p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Uploaded {new Date(brandingData.visualIdentity.logo.uploadedAt).toLocaleDateString()}
+                  </p>
+                  <button
+                    onClick={handleLogoRemove}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    Remove Logo
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Replace Logo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+              <div className="space-y-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Image className="w-8 h-8 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-gray-900 mb-1">Upload Your Logo</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Upload your restaurant logo (JPG, PNG, SVG). Max size: 5MB
+                  </p>
+                </div>
+                <label className="inline-block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <span className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer font-medium">
+                    <Image className="w-5 h-5 mr-2" />
+                    Choose Logo File
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Color Palette Visualizer */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -622,6 +741,56 @@ const BrandingPlanner = () => {
     </div>
   );
 
+  const handleConfigColorChange = (key, value) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      colors: {
+        ...prev.colors,
+        [key]: value
+      }
+    }));
+  };
+
+  const handleConfigFontChange = (key, value) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      fonts: {
+        ...prev.fonts,
+        [key]: value
+      }
+    }));
+  };
+
+  const handleConfigLogoChange = (key, value) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      logo: {
+        ...prev.logo,
+        [key]: value
+      }
+    }));
+  };
+
+  const generateConfigCode = () => {
+    return `export const branding = ${JSON.stringify(brandingConfig, null, 2)};`;
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generateConfigCode());
+    actions.showMessage('Success', 'Configuration copied to clipboard!', 'success');
+  };
+
+  const downloadConfig = () => {
+    const blob = new Blob([generateConfigCode()], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'branding-config.js';
+    a.click();
+    URL.revokeObjectURL(url);
+    actions.showMessage('Success', 'Configuration file downloaded!', 'success');
+  };
+
   const renderDigitalPresence = () => (
     <div className="space-y-6">
       {/* Digital Overview */}
@@ -762,6 +931,250 @@ const BrandingPlanner = () => {
     </div>
   );
 
+  const renderAppConfig = () => (
+    <div className="space-y-6">
+      {/* App Configuration Overview */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-100 border border-indigo-200 rounded-lg p-6">
+        <div className="flex items-center mb-4">
+          <div className="bg-indigo-100 p-3 rounded-full mr-4">
+            <Settings className="h-6 w-6 text-indigo-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-indigo-900">App Branding Configuration</h3>
+            <p className="text-indigo-700">Update the application's visual branding (colors, fonts, logo)</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Configuration Panel */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Colors Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Palette className="h-5 w-5 mr-2 text-blue-600" />
+              Colors
+            </h4>
+            <div className="space-y-4">
+              {Object.entries(brandingConfig.colors).map(([key, value]) => (
+                <div key={key} className="flex items-center space-x-3">
+                  <label className="text-sm font-medium text-gray-700 w-32 capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                  </label>
+                  <input
+                    type="color"
+                    value={value}
+                    onChange={(e) => handleConfigColorChange(key, e.target.value)}
+                    className="w-12 h-8 border border-gray-300 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleConfigColorChange(key, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                    placeholder="#000000"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Fonts Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Type className="h-5 w-5 mr-2 text-blue-600" />
+              Typography
+            </h4>
+            <div className="space-y-4">
+              {Object.entries(brandingConfig.fonts).map(([key, value]) => (
+                <div key={key} className="flex items-center space-x-3">
+                  <label className="text-sm font-medium text-gray-700 w-32 capitalize">
+                    {key}:
+                  </label>
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleConfigFontChange(key, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    placeholder="Inter, sans-serif"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Logo Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Image className="h-5 w-5 mr-2 text-blue-600" />
+              Logo & Branding
+            </h4>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium text-gray-700 w-32">Brand Name:</label>
+                <input
+                  type="text"
+                  value={brandingConfig.logo.text}
+                  onChange={(e) => handleConfigLogoChange('text', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium text-gray-700 w-32">Tagline:</label>
+                <input
+                  type="text"
+                  value={brandingConfig.logo.subtext}
+                  onChange={(e) => handleConfigLogoChange('subtext', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">Export Configuration</h4>
+                <p className="text-sm text-gray-600">
+                  Copy or download the configuration code to update <code className="text-xs bg-gray-100 px-2 py-1 rounded">src/config/branding.js</code>
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Copy Config</span>
+                </button>
+                <button
+                  onClick={downloadConfig}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center space-x-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Download</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview Panel */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 sticky top-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-gray-900">Live Preview</h4>
+              <button
+                onClick={() => setPreviewMode(!previewMode)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center space-x-1 ${
+                  previewMode 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <Eye className="w-3 h-3" />
+                <span>{previewMode ? 'Hide' : 'Show'}</span>
+              </button>
+            </div>
+            
+            {previewMode && (
+              <div className="space-y-6">
+                {/* Color Palette Preview */}
+                <div>
+                  <h5 className="text-sm font-medium text-gray-700 mb-3">Color Palette</h5>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['primary', 'secondary', 'accent', 'backgroundAlt'].map((colorKey) => (
+                      <div key={colorKey} className="text-center">
+                        <div 
+                          className="w-full h-12 rounded mb-1 border border-gray-200"
+                          style={{ backgroundColor: brandingConfig.colors[colorKey] }}
+                        ></div>
+                        <p className="text-xs text-gray-600 capitalize">{colorKey}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Typography Preview */}
+                <div>
+                  <h5 className="text-sm font-medium text-gray-700 mb-3">Typography</h5>
+                  <div className="space-y-2">
+                    <h1 
+                      className="text-xl font-bold"
+                      style={{ 
+                        color: brandingConfig.colors.text,
+                        fontFamily: brandingConfig.fonts.heading
+                      }}
+                    >
+                      Heading Font
+                    </h1>
+                    <p 
+                      className="text-sm"
+                      style={{ 
+                        color: brandingConfig.colors.textLight,
+                        fontFamily: brandingConfig.fonts.body
+                      }}
+                    >
+                      Body font preview text
+                    </p>
+                  </div>
+                </div>
+
+                {/* Button Preview */}
+                <div>
+                  <h5 className="text-sm font-medium text-gray-700 mb-3">Buttons</h5>
+                  <div className="space-y-2">
+                    <button
+                      className="w-full px-4 py-2 rounded-lg text-sm font-medium text-white"
+                      style={{ backgroundColor: brandingConfig.colors.primary }}
+                    >
+                      Primary Button
+                    </button>
+                    <button
+                      className="w-full px-4 py-2 rounded-lg text-sm font-medium border"
+                      style={{ 
+                        borderColor: brandingConfig.colors.primary,
+                        color: brandingConfig.colors.primary
+                      }}
+                    >
+                      Secondary Button
+                    </button>
+                  </div>
+                </div>
+
+                {/* Brand Preview */}
+                <div>
+                  <h5 className="text-sm font-medium text-gray-700 mb-3">Brand</h5>
+                  <div className="text-center p-4 rounded-lg border-2 border-dashed border-gray-300">
+                    <h2 
+                      className="text-lg font-bold"
+                      style={{ 
+                        color: brandingConfig.colors.primary,
+                        fontFamily: brandingConfig.fonts.heading
+                      }}
+                    >
+                      {brandingConfig.logo.text}
+                    </h2>
+                    <p 
+                      className="text-xs mt-1"
+                      style={{ 
+                        color: brandingConfig.colors.textLight,
+                        fontFamily: brandingConfig.fonts.body
+                      }}
+                    >
+                      {brandingConfig.logo.subtext}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="animate-fade-in space-y-6">
       {/* Header */}
@@ -822,6 +1235,7 @@ const BrandingPlanner = () => {
           {activeTab === 'visual-identity' && renderVisualIdentity()}
           {activeTab === 'printed-materials' && renderPrintedMaterials()}
           {activeTab === 'digital-presence' && renderDigitalPresence()}
+          {activeTab === 'app-config' && renderAppConfig()}
         </div>
       </div>
     </div>

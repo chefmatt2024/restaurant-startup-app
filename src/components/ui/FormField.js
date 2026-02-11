@@ -11,6 +11,8 @@ const FormField = ({
   rows = 3,
   className = '',
   helpText,
+  multiline = false,
+  inputMode, // For mobile keyboard optimization
   ...props
 }) => {
   const baseInputClasses = `
@@ -19,7 +21,10 @@ const FormField = ({
   `;
 
   const renderInput = () => {
-    switch (type) {
+    // Handle multiline prop - convert to textarea type
+    const inputType = multiline ? 'textarea' : type;
+    
+    switch (inputType) {
       case 'textarea':
         return (
           <textarea
@@ -58,12 +63,26 @@ const FormField = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             required={required}
+            inputMode={inputMode || 'numeric'}
             className={baseInputClasses}
+            disabled={props.disabled}
             {...props}
           />
         );
         
       default:
+        // Auto-detect inputMode based on type for better mobile keyboards
+        const getInputMode = () => {
+          if (inputMode) return inputMode;
+          if (type === 'email') return 'email';
+          if (type === 'tel' || type === 'phone') return 'tel';
+          if (type === 'url') return 'url';
+          if (type === 'number' || label?.toLowerCase().includes('phone') || label?.toLowerCase().includes('mobile')) return 'tel';
+          if (label?.toLowerCase().includes('price') || label?.toLowerCase().includes('cost') || label?.toLowerCase().includes('amount') || label?.toLowerCase().includes('revenue')) return 'decimal';
+          if (label?.toLowerCase().includes('zip') || label?.toLowerCase().includes('postal')) return 'numeric';
+          return undefined;
+        };
+
         return (
           <input
             type={type}
@@ -71,7 +90,9 @@ const FormField = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             required={required}
+            inputMode={getInputMode()}
             className={baseInputClasses}
+            disabled={props.disabled}
             {...props}
           />
         );

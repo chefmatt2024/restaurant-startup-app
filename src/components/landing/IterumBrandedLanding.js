@@ -7,7 +7,26 @@ const IterumBrandedLanding = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLaunchApp = () => {
-    actions.setActiveTab('idea-formation');
+    // Track conversion event
+    if (window.gtag) {
+      window.gtag('event', 'click', {
+        event_category: 'CTA',
+        event_label: 'Start Free Trial',
+        value: 1
+      });
+    }
+    
+    // Always redirect to root URL - ProtectedRoute will show signup flow automatically
+    // If on external landing page, use full URL
+    // If already in app, navigate to root route
+    if (window.location.hostname.includes('restaurant-startup-app.web.app') || 
+        window.location.hostname.includes('localhost')) {
+      // Already in app - navigate to root route (ProtectedRoute will show signup)
+      window.location.href = '/';
+    } else {
+      // External landing page - redirect to app root
+      window.location.href = 'https://restaurant-startup-app.web.app/';
+    }
   };
 
   const handleBackToMainSite = () => {
@@ -134,22 +153,29 @@ const IterumBrandedLanding = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <h1 
-                  className="text-2xl font-bold"
-                  style={{ 
-                    color: branding.colors.primary,
-                    fontFamily: branding.fonts.heading
-                  }}
-                >
-                  {branding.logo.text}
-                </h1>
-                <p 
-                  className="text-sm"
-                  style={{ color: branding.colors.textLight }}
-                >
-                  {branding.logo.subtext}
-                </p>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/logo.png" 
+                  alt="Restauranteur System Logo" 
+                  className="h-10 w-auto object-contain"
+                />
+                <div className="flex-shrink-0">
+                  <h1 
+                    className="text-2xl font-bold"
+                    style={{ 
+                      color: branding.colors.primary,
+                      fontFamily: branding.fonts.heading
+                    }}
+                  >
+                    {branding.logo.text}
+                  </h1>
+                  <p 
+                    className="text-sm"
+                    style={{ color: branding.colors.textLight }}
+                  >
+                    {branding.logo.subtext}
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -356,7 +382,7 @@ const IterumBrandedLanding = () => {
               className="text-xl max-w-3xl mx-auto"
               style={{ color: branding.colors.textLight }}
             >
-              Choose the plan that fits your needs. All plans include a 14-day free trial.
+              Choose the plan that fits your needs. All plans include a 5-day free trial.
             </p>
           </div>
 

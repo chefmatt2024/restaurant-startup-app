@@ -1,4 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getApp } from 'firebase/app';
 
 // Initialize Stripe with your publishable key (only if key exists)
 const stripePublishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
@@ -28,7 +30,8 @@ export const SUBSCRIPTION_PLANS = {
     }
   },
   professional: {
-    id: 'price_professional',
+    // ✅ Price ID configured - Stripe Price ID for Professional Plan ($29/month)
+    id: 'price_1SlP8QAIIysA2GUVhIo473BKw', // Stripe Price ID
     name: 'Professional',
     price: 2900, // $29.00 in cents
     interval: 'month',
@@ -51,7 +54,8 @@ export const SUBSCRIPTION_PLANS = {
     }
   },
   business: {
-    id: 'price_business',
+    // ✅ Price ID configured - Stripe Price ID for Business Plan ($99/month)
+    id: 'price_1SlP8tAIIysA2GUVcLTteVlF', // Stripe Price ID
     name: 'Business',
     price: 9900, // $99.00 in cents
     interval: 'month',
@@ -74,7 +78,8 @@ export const SUBSCRIPTION_PLANS = {
     }
   },
   enterprise: {
-    id: 'price_enterprise',
+    // ✅ Price ID configured - Stripe Price ID for Enterprise Plan ($299/month)
+    id: 'price_1SlP9SAIIysA2GUVDoMrA8cC', // Stripe Price ID
     name: 'Enterprise',
     price: 29900, // $299.00 in cents
     interval: 'month',
@@ -142,48 +147,58 @@ export const canAccessFeature = (userPlan, feature, currentUsage = 0) => {
   return false;
 };
 
-// Stripe checkout functions
+// Stripe checkout functions using Firebase Functions
 export const createCheckoutSession = async (priceId, userId, userEmail) => {
   try {
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        priceId,
-        userId,
-        userEmail,
-        successUrl: `${window.location.origin}/dashboard?subscription=success`,
-        cancelUrl: `${window.location.origin}/pricing?subscription=cancelled`
-      })
+    const app = getApp();
+    const functions = getFunctions(app);
+    const createCheckoutSessionFn = httpsCallable(functions, 'createCheckoutSession');
+
+    const result = await createCheckoutSessionFn({
+      priceId,
+      userId,
+      userEmail,
+      successUrl: `${window.location.origin}/dashboard?subscription=success`,
+      cancelUrl: `${window.location.origin}/pricing?subscription=cancelled`
     });
 
-    const { sessionId } = await response.json();
-    return sessionId;
+    return result.data.sessionId;
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    
+    // Handle case when functions aren't deployed
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable' || error.message?.includes('CORS') || error.message?.includes('ERR_FAILED')) {
+      const friendlyError = new Error('Payment processing is currently unavailable. Please upgrade to a paid plan later, or contact support if you need immediate access.');
+      friendlyError.code = 'FUNCTIONS_NOT_DEPLOYED';
+      throw friendlyError;
+    }
+    
     throw error;
   }
 };
 
 export const createCustomerPortalSession = async (userId) => {
   try {
-    const response = await fetch('/api/create-customer-portal-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        returnUrl: `${window.location.origin}/dashboard`
-      })
+    const app = getApp();
+    const functions = getFunctions(app);
+    const createCustomerPortalSessionFn = httpsCallable(functions, 'createCustomerPortalSession');
+
+    const result = await createCustomerPortalSessionFn({
+      userId,
+      returnUrl: `${window.location.origin}/dashboard`
     });
 
-    const { url } = await response.json();
-    return url;
+    return result.data.url;
   } catch (error) {
     console.error('Error creating customer portal session:', error);
+    
+    // Handle case when functions aren't deployed
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable' || error.message?.includes('CORS') || error.message?.includes('ERR_FAILED')) {
+      const friendlyError = new Error('Billing portal is currently unavailable. Please contact support for subscription management.');
+      friendlyError.code = 'FUNCTIONS_NOT_DEPLOYED';
+      throw friendlyError;
+    }
+    
     throw error;
   }
 };

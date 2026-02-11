@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAnalytics, logEvent, setUserProperties, setUserId } from 'firebase/analytics';
 import { 
   getAuth, 
   signInWithCustomToken, 
@@ -28,6 +29,7 @@ import {
   orderBy,
   getDocs
 } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 
 // Firebase configuration
 const firebaseConfig = typeof window !== 'undefined' && window.__firebase_config 
@@ -44,7 +46,7 @@ const firebaseConfig = typeof window !== 'undefined' && window.__firebase_config
     };
 
 // Initialize Firebase
-let app, auth, db;
+let app, auth, db, analytics, crashlytics;
 let isFirebaseEnabled = false;
 
 try {
@@ -54,6 +56,23 @@ try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    
+    // Initialize Firebase Analytics and Crashlytics (only in browser)
+    if (typeof window !== 'undefined') {
+      try {
+        analytics = getAnalytics(app);
+      } catch (analyticsError) {
+        // Analytics might fail in some environments, continue without it
+      }
+      // Crashlytics not currently enabled - can be added later if needed
+      // try {
+      //   crashlytics = getCrashlytics(app);
+      // } catch (crashlyticsError) {
+      //   crashlytics = null;
+      // }
+      crashlytics = null;
+    }
+    
     isFirebaseEnabled = true;
     // console.log('✅ Firebase initialized successfully');
   } else {
@@ -461,18 +480,14 @@ export const dbService = {
 
   // Draft operations
   saveDraft: async (userId, appId, draftData) => {
-    console.log('saveDraft called:', { userId, appId, draftId: draftData.id, isFirebaseEnabled, hasDb: !!db });
     if (isFirebaseEnabled && db && userId) {
       try {
         const draftRef = doc(db, `artifacts/${appId}/users/${userId}/drafts`, draftData.id);
         await setDoc(draftRef, { ...draftData, updatedAt: new Date() });
-        console.log('Firebase draft saved successfully');
       } catch (error) {
-        console.error('Firebase save error:', error);
         throw error;
       }
     } else {
-      console.log('Using offline storage mode');
       // Offline mode
       const key = `drafts_${appId}_${userId}`;
       const drafts = offlineStorage.get(key) || [];
@@ -481,16 +496,13 @@ export const dbService = {
       
       if (index !== -1) {
         drafts[index] = updatedDraft;
-        console.log('Updated existing draft in offline storage');
       } else {
         drafts.push(updatedDraft);
-        console.log('Added new draft to offline storage');
       }
       
       // Sort by updatedAt desc
       drafts.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       offlineStorage.save(key, drafts);
-      console.log('Offline draft saved successfully');
     }
   },
 
@@ -686,4 +698,14 @@ export const deleteUserAccount = async (userId) => {
   }
 };
 
-export { auth, db }; 
+// Initialize Functions (if Firebase is enabled)
+let functions = null;
+if (isFirebaseEnabled && app) {
+  try {
+    functions = getFunctions(app);
+  } catch (error) {
+    // Functions may not be available in all environments
+  }
+}
+
+export { auth, db, analytics, crashlytics, functions }; 

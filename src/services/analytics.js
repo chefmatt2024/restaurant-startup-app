@@ -1,5 +1,7 @@
 // Analytics and Data Collection Service
-import { authService } from './firebase';
+import { authService, analytics } from './firebase';
+import { logEvent, setUserProperties, setUserId } from 'firebase/analytics';
+import { getTrackingParams } from '../utils/utmTracking';
 
 // Analytics configuration
 const ANALYTICS_CONFIG = {
@@ -84,11 +86,16 @@ class AnalyticsService {
     if (!ANALYTICS_CONFIG.ENABLED) return;
 
     const user = authService.getCurrentUser();
+    
+    // Get UTM tracking parameters
+    const trackingParams = getTrackingParams();
+    
     const event = {
       id: this.generateEventId(),
       eventType,
       properties: {
         ...properties,
+        ...trackingParams, // Include UTM params and referrer info
         timestamp: Date.now(),
         userId: user?.uid || 'anonymous',
         userEmail: user?.email || null,
@@ -104,6 +111,28 @@ class AnalyticsService {
     };
 
     eventQueue.push(event);
+    
+    // Send to Firebase Analytics if available
+    if (analytics && typeof window !== 'undefined') {
+      try {
+        // Map custom event types to Firebase Analytics events
+        const firebaseEventName = this.mapToFirebaseEvent(eventType);
+        logEvent(analytics, firebaseEventName, {
+          ...properties,
+          ...trackingParams, // Include UTM params
+          event_category: eventType,
+          event_label: properties.label || eventType
+        });
+      } catch (error) {
+        // Firebase Analytics might not be available, continue with custom tracking
+      }
+    }
+    
+    // Send to Google Analytics 4 (gtag) if available
+    this.sendToGA4(eventType, {
+      ...properties,
+      ...trackingParams // Include UTM params
+    });
     
     if (ANALYTICS_CONFIG.DEBUG) {
       console.log('Analytics Event:', event);
@@ -299,6 +328,56 @@ class AnalyticsService {
     a.download = `analytics_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // Map custom event types to Firebase Analytics standard events
+  mapToFirebaseEvent(eventType) {
+    const eventMap = {
+      [EVENT_TYPES.USER_SIGNUP]: 'sign_up',
+      [EVENT_TYPES.USER_LOGIN]: 'login',
+      [EVENT_TYPES.USER_LOGOUT]: 'logout',
+      [EVENT_TYPES.PAGE_VIEW]: 'page_view',
+      [EVENT_TYPES.BUSINESS_PLAN_EXPORT]: 'generate_lead',
+      [EVENT_TYPES.ERROR_OCCURRED]: 'exception',
+      [EVENT_TYPES.FEEDBACK_SUBMIT]: 'feedback',
+      [EVENT_TYPES.DOCUMENT_UPLOAD]: 'file_upload',
+      [EVENT_TYPES.VENDOR_ADD]: 'add_to_cart', // Using as conversion event
+      [EVENT_TYPES.EQUIPMENT_ADD]: 'add_to_cart',
+    };
+    
+    // Return mapped event or use original event type
+    return eventMap[eventType] || eventType;
+  }
+
+  // Send event to Google Analytics 4 (gtag)
+  sendToGA4(eventType, properties = {}) {
+    if (typeof window === 'undefined' || !window.gtag) {
+      return;
+    }
+
+    try {
+      // Map to GA4 event name
+      const ga4EventName = this.mapToFirebaseEvent(eventType);
+      
+      // Get tracking params for this event
+      const trackingParams = getTrackingParams();
+      
+      // Send to Google Analytics with UTM params
+      window.gtag('event', ga4EventName, {
+        event_category: eventType,
+        ...trackingParams,
+        ...properties
+      });
+    } catch (error) {
+      if (ANALYTICS_CONFIG.DEBUG) {
+        console.error('Failed to send event to GA4:', error);
+      }
+    }
+  }
+
+  // Get current user (helper method)
+  getCurrentUser() {
+    return authService.getCurrentUser();
   }
 }
 

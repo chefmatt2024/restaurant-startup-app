@@ -31,7 +31,7 @@ const UnifiedPlatform = () => {
       icon: <BarChart3 className="w-8 h-8" />,
       status: 'active',
       pricing: '$10/month',
-      trial: '14-day free trial',
+      trial: '5-day free trial',
       features: [
         'Business plan templates',
         'Financial projections',
@@ -393,7 +393,7 @@ const UnifiedPlatform = () => {
             </button>
           </div>
           <p className="text-green-200 mt-6 text-sm">
-            No credit card required • 14-day free trial • Cancel anytime
+            No credit card required • 5-day free trial • Cancel anytime
           </p>
         </div>
       </div>

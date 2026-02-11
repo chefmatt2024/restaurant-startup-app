@@ -16,9 +16,8 @@ import {
   Compass,
   Utensils,
   Palette,
-  CreditCard,
-  Star,
-  Settings
+  Rocket,
+  Award
 } from 'lucide-react';
 
 const TabNavigation = () => {
@@ -39,11 +38,6 @@ const TabNavigation = () => {
     { id: 'management', label: 'Management', icon: Users, color: 'indigo' },
     { id: 'financials', label: 'Financial Projections', icon: DollarSign, color: 'green' },
     { id: 'business-analytics', label: 'Business Analytics', icon: BarChart3, color: 'blue' },
-    { id: 'pricing', label: 'Pricing', icon: DollarSign, color: 'green' },
-    { id: 'subscription', label: 'Subscription', icon: CreditCard, color: 'purple' },
-    { id: 'subscription-demo', label: 'Subscription Demo', icon: Star, color: 'blue' },
-    { id: 'branding-updater', label: 'Branding Tool', icon: Palette, color: 'purple' },
-    { id: 'admin', label: 'Admin Dashboard', icon: Settings, color: 'gray', description: 'User & lead management' },
     { id: 'timeline', label: 'Project Timeline', icon: Calendar, color: 'indigo' },
     { id: 'vendors', label: 'Vendor Management', icon: Truck, color: 'orange' },
     { id: 'equipment-planning', label: 'Equipment Planning', icon: Wrench, color: 'purple' },
@@ -56,6 +50,20 @@ const TabNavigation = () => {
       icon: Shield,
       color: 'red',
       description: 'Permits & licenses'
+    },
+    {
+      id: 'open-restaurant',
+      label: 'Open Restaurant',
+      icon: Rocket,
+      color: 'purple',
+      description: 'Document & license manager'
+    },
+    {
+      id: 'certifications',
+      label: 'Certifications',
+      icon: Award,
+      color: 'green',
+      description: 'Staff certifications & training'
     }
   ];
 

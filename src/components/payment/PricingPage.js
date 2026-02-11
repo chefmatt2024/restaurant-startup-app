@@ -37,7 +37,17 @@ const PricingPage = () => {
       }
     } catch (error) {
       console.error('Subscription error:', error);
-      actions.showMessage('Error', 'Failed to process subscription', 'error');
+      
+      // Show friendly message if functions aren't deployed
+      if (error.code === 'FUNCTIONS_NOT_DEPLOYED' || error.message?.includes('unavailable')) {
+        actions.showMessage(
+          'Payment Processing Unavailable',
+          'Payment processing is currently being set up. Please use the free trial for now, or contact support if you need immediate access to paid features.',
+          'info'
+        );
+      } else {
+        actions.showMessage('Error', error.message || 'Failed to process subscription', 'error');
+      }
     } finally {
       setLoading(null);
     }
@@ -218,7 +228,7 @@ const PricingPage = () => {
                 Is there a free trial?
               </h3>
               <p className="text-gray-600">
-                Yes! All paid plans come with a 14-day free trial. You can cancel anytime during the trial without being charged.
+                Yes! All paid plans come with a 5-day free trial. You can cancel anytime during the trial without being charged.
               </p>
             </div>
 

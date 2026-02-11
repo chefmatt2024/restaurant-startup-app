@@ -4,7 +4,7 @@ A comprehensive business planning application specifically designed for restaura
 
 ## 🚀 Live Demo
 
-[Deployed App](https://restaurant-startup-app.web.app) - Coming Soon!
+[Deployed App](https://restaurant-startup-app.web.app)
 
 ## ✨ Features
 
@@ -37,7 +37,7 @@ A comprehensive business planning application specifically designed for restaura
 
 ### 🔐 User Management
 - **Multi-User Support**: Create and manage multiple business plans
-- **Authentication**: Email/password, Google sign-in, and anonymous access
+- **Authentication**: Email/password and Google sign-in (required to use the app)
 - **Data Persistence**: Cloud storage with offline support
 - **Draft Management**: Save, compare, and manage multiple plan versions
 
@@ -61,7 +61,7 @@ A comprehensive business planning application specifically designed for restaura
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/restaurant-startup-app.git
+   git clone https://github.com/chefmatt2024/restaurant-startup-app.git
    cd restaurant-startup-app
    ```
 

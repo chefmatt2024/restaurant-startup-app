@@ -1,104 +1,79 @@
 // AI Service for Restaurant Business Planning
-// Supports OpenAI and Anthropic Claude APIs
+// Routes through Firebase Cloud Functions to avoid CORS and protect API keys
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
+import { getApp } from 'firebase/app';
 
 class AIService {
   constructor() {
-    this.apiKey = process.env.REACT_APP_OPENAI_API_KEY || process.env.REACT_APP_ANTHROPIC_API_KEY;
-    this.provider = process.env.REACT_APP_AI_PROVIDER || 'openai'; // 'openai' or 'anthropic'
-    this.baseUrl = this.provider === 'openai' 
-      ? 'https://api.openai.com/v1'
-      : 'https://api.anthropic.com/v1';
+    this.provider = 'openai'; // 'openai' or 'anthropic'
+    this.functions = null;
+    this.generateAICompletion = null;
+    
+    // Initialize Firebase Functions
+    this.initializeFunctions();
+  }
+
+  initializeFunctions() {
+    try {
+      const app = getApp();
+      this.functions = getFunctions(app);
+      
+      // Connect to emulator in development if needed
+      if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_FUNCTIONS_EMULATOR === 'true') {
+        connectFunctionsEmulator(this.functions, 'localhost', 5001);
+      }
+      
+      this.generateAICompletion = httpsCallable(this.functions, 'generateAICompletion');
+    } catch (error) {
+      console.warn('Firebase Functions not initialized. AI features will be unavailable.', error);
+    }
   }
 
   async makeRequest(endpoint, data) {
-    if (!this.apiKey) {
-      throw new Error('AI API key not configured. Please add REACT_APP_OPENAI_API_KEY or REACT_APP_ANTHROPIC_API_KEY to your .env.local file');
-    }
-
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-
-    if (this.provider === 'openai') {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
-    } else {
-      headers['x-api-key'] = this.apiKey;
-      headers['anthropic-version'] = '2023-06-01';
-    }
-
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        const errorMessage = error.error?.message || `API request failed: ${response.statusText}`;
-        
-        // Check for quota/billing errors
-        if (errorMessage.toLowerCase().includes('quota') || 
-            errorMessage.toLowerCase().includes('billing') ||
-            errorMessage.toLowerCase().includes('exceeded') ||
-            error.code === 'insufficient_quota') {
-          throw new Error(`API Quota Exceeded: ${errorMessage}. Please check your OpenAI account billing and usage limits at https://platform.openai.com/usage. You may need to upgrade your plan or wait for your quota to reset.`);
-        }
-        
-        // Check for rate limit errors
-        if (errorMessage.toLowerCase().includes('rate limit') || error.code === 'rate_limit_exceeded') {
-          throw new Error(`Rate Limit Exceeded: ${errorMessage}. Please wait a moment and try again.`);
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('AI Service Error:', error);
-      throw error;
-    }
+    // This method is deprecated - use Firebase Functions instead
+    // Keeping for backward compatibility but will route through Firebase Functions
+    throw new Error('Direct API calls are not supported. Please use generateCompletion which routes through Firebase Functions.');
   }
 
   async generateCompletion(prompt, options = {}) {
+    if (!this.generateAICompletion) {
+      throw new Error('Firebase Functions not initialized. AI features are unavailable. Please ensure Firebase is properly configured.');
+    }
+
     const {
       maxTokens = 2000,
       temperature = 0.7,
       systemPrompt = null,
+      provider = this.provider
     } = options;
 
-    if (this.provider === 'openai') {
-      const messages = [];
-      if (systemPrompt) {
-        messages.push({ role: 'system', content: systemPrompt });
-      }
-      messages.push({ role: 'user', content: prompt });
-
-      const response = await this.makeRequest('/chat/completions', {
-        model: 'gpt-4o', // Updated to latest model
-        messages,
-        max_tokens: maxTokens,
-        temperature,
+    try {
+      const result = await this.generateAICompletion({
+        prompt,
+        options: {
+          maxTokens,
+          temperature,
+          systemPrompt,
+          provider
+        }
       });
 
-      return response.choices[0].message.content;
-    } else {
-      // Anthropic Claude
-      const messages = [{ role: 'user', content: prompt }];
+      return result.data.content;
+    } catch (error) {
+      // Handle Firebase Functions errors
+      let errorMessage = 'Failed to generate AI completion.';
       
-      const requestBody = {
-        model: 'claude-3-opus-20240229',
-        max_tokens: maxTokens,
-        temperature,
-        messages,
-      };
-
-      if (systemPrompt) {
-        requestBody.system = systemPrompt;
+      if (error.code === 'functions/unauthenticated') {
+        errorMessage = 'You must be signed in to use AI features.';
+      } else if (error.code === 'functions/failed-precondition') {
+        errorMessage = error.message || 'AI API key not configured on the server. Please contact support.';
+      } else if (error.code === 'functions/resource-exhausted') {
+        errorMessage = error.message || 'AI service quota exceeded. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-
-      const response = await this.makeRequest('/messages', requestBody);
-      return response.content[0].text;
+      
+      throw new Error(errorMessage);
     }
   }
 

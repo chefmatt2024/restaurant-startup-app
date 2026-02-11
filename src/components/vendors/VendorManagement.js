@@ -1,9 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
+import { aiService } from '../../services/aiService';
 
-import { Plus, Phone, Mail, Globe, MapPin, Building, Search, Filter, XCircle, Star, CheckCircle, Award, Download, BarChart3, PieChart, Network, Truck, Warehouse, Store } from 'lucide-react';
+import { Plus, Phone, Mail, Globe, MapPin, Building, Search, Filter, XCircle, Star, CheckCircle, Award, Download, BarChart3, PieChart, Network, Truck, Warehouse, Store, FileText, Upload, Loader2, Sparkles, X, Eye } from 'lucide-react';
+
+// PDF parsing library (loaded dynamically)
+let pdfjsLib = null;
+
+const loadPDFLibrary = async () => {
+  if (typeof window !== 'undefined' && !pdfjsLib) {
+    try {
+      pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    } catch (e) {
+      console.warn('PDF.js library not available:', e);
+    }
+  }
+  return pdfjsLib;
+};
 
 const VendorManagement = () => {
   const { state, actions } = useApp();
@@ -12,6 +28,10 @@ const VendorManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid', 'chart', 'supply-chain'
+  const [selectedVendorForContracts, setSelectedVendorForContracts] = useState(null);
+  const [isProcessingContract, setIsProcessingContract] = useState(false);
+  const [contractProcessingProgress, setContractProcessingProgress] = useState('');
+  const [viewingVendor, setViewingVendor] = useState(null);
 
   // Complete Boston restaurant vendor directory (45+ real contacts)
   const initialVendors = [
@@ -141,6 +161,15 @@ const VendorManagement = () => {
       description: "Specialty coffee and cafe products", priority: "low" }
   ];
 
+  // Initialize vendors in state if empty (only once)
+  useEffect(() => {
+    if (state.vendors.length === 0 && initialVendors.length > 0) {
+      actions.setVendors(initialVendors);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount to initialize vendors
+
+  // Always use state.vendors (which will include initialVendors after initialization)
   const vendors = state.vendors.length > 0 ? state.vendors : initialVendors;
 
   const categories = [
@@ -190,7 +219,8 @@ const VendorManagement = () => {
       specialties: [],
       notes: '',
       lastContact: new Date().toISOString().slice(0, 10),
-      nextFollowUp: ''
+      nextFollowUp: '',
+      contracts: [] // Array to store contract documents and summaries
     };
     actions.addVendor(newVendor);
     setShowAddForm(false);
@@ -543,6 +573,135 @@ const VendorManagement = () => {
     );
   };
 
+  // Contract Upload and Processing Functions
+  const handleContractUpload = async (vendorId, file) => {
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      actions.showMessage('Error', 'File size must be less than 10MB', 'error');
+      return;
+    }
+
+    setSelectedVendorForContracts(vendorId);
+    setIsProcessingContract(true);
+    setContractProcessingProgress('Extracting text from document...');
+
+    try {
+      let text = '';
+      
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        const pdfLib = await loadPDFLibrary();
+        if (!pdfLib) {
+          throw new Error('PDF parsing library not available');
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          setContractProcessingProgress(`Extracting text from page ${i} of ${pdf.numPages}...`);
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(' ');
+          text += pageText + '\n';
+        }
+      } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+        text = await file.text();
+      } else {
+        throw new Error('Unsupported file type. Please upload PDF or text files.');
+      }
+
+      setContractProcessingProgress('Analyzing contract with AI...');
+      const summary = await summarizeContractWithAI(text, vendorId);
+
+      // Create contract document object
+      const contractDoc = {
+        id: Date.now().toString(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString(),
+        url: URL.createObjectURL(file),
+        summary: summary,
+        fullText: text.substring(0, 1000) + '...' // Store first 1000 chars for preview
+      };
+
+      // Update vendor with new contract
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (vendor) {
+        const updatedVendor = {
+          ...vendor,
+          contracts: [...(vendor.contracts || []), contractDoc]
+        };
+        actions.updateVendor(updatedVendor);
+        actions.showMessage('Success', 'Contract uploaded and summarized successfully!', 'success');
+      }
+
+      setIsProcessingContract(false);
+      setContractProcessingProgress('');
+      setSelectedVendorForContracts(null);
+    } catch (error) {
+      console.error('Contract processing error:', error);
+      actions.showMessage('Error', error.message || 'Failed to process contract', 'error');
+      setIsProcessingContract(false);
+      setContractProcessingProgress('');
+      setSelectedVendorForContracts(null);
+    }
+  };
+
+  const summarizeContractWithAI = async (text, vendorId) => {
+    try {
+      const vendor = vendors.find(v => v.id === vendorId);
+      const vendorName = vendor?.company || 'Vendor';
+
+      const systemPrompt = `You are a contract analysis expert. Analyze vendor contracts and terms of service documents. Extract and summarize the key information in a clear, structured format.`;
+
+      const prompt = `Analyze this vendor contract/terms of service document for ${vendorName} and provide a comprehensive summary. Include:
+
+1. Contract Type (e.g., Service Agreement, Terms of Service, Supply Contract)
+2. Key Terms & Conditions (payment terms, delivery terms, minimum orders, etc.)
+3. Pricing Information (if mentioned)
+4. Duration/Term Length
+5. Termination Conditions
+6. Important Obligations (for both parties)
+7. Key Dates (start date, renewal dates, expiration)
+8. Special Conditions or Clauses
+9. Contact Information (if different from vendor profile)
+
+Contract Text:
+${text.substring(0, 15000)} ${text.length > 15000 ? '... (truncated)' : ''}
+
+Return a well-structured summary in markdown format.`;
+
+      const response = await aiService.generateCompletion(prompt, {
+        systemPrompt,
+        maxTokens: 2000,
+        temperature: 0.3
+      });
+
+      return response.trim();
+    } catch (error) {
+      console.error('AI summarization error:', error);
+      // Fallback summary
+      return `**Contract Summary**\n\nDocument uploaded: ${new Date().toLocaleDateString()}\n\n*AI summarization unavailable. Please review the document manually.*`;
+    }
+  };
+
+  const removeContract = (vendorId, contractId) => {
+    if (window.confirm('Are you sure you want to remove this contract?')) {
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (vendor) {
+        const updatedVendor = {
+          ...vendor,
+          contracts: (vendor.contracts || []).filter(c => c.id !== contractId)
+        };
+        actions.updateVendor(updatedVendor);
+        actions.showMessage('Success', 'Contract removed', 'success');
+      }
+    }
+  };
+
   // Vendor Details Modal
   const VendorDetailsModal = ({ vendor, onClose }) => {
     if (!vendor) return null;
@@ -627,6 +786,104 @@ const VendorManagement = () => {
               <p className="text-gray-600">{vendor.notes}</p>
             </div>
           )}
+
+          {/* Contracts & Terms Section */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-medium text-gray-900 flex items-center">
+                <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                Contracts & Terms of Service
+              </h4>
+              <label className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer flex items-center">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Contract
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleContractUpload(vendor.id, file);
+                    }
+                    e.target.value = ''; // Reset input
+                  }}
+                  className="hidden"
+                  disabled={isProcessingContract}
+                />
+              </label>
+            </div>
+
+            {isProcessingContract && selectedVendorForContracts === vendor.id && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center space-x-3">
+                  <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900">Processing Contract...</p>
+                    <p className="text-xs text-blue-700">{contractProcessingProgress || 'Please wait...'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {vendor.contracts && vendor.contracts.length > 0 ? (
+              <div className="space-y-4">
+                {vendor.contracts.map((contract) => (
+                  <div key={contract.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <h5 className="font-medium text-gray-900">{contract.name}</h5>
+                          <span className="text-xs text-gray-500">
+                            ({new Date(contract.uploadedAt).toLocaleDateString()})
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-3">
+                          {(contract.size / 1024).toFixed(1)} KB • {contract.type || 'Document'}
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <a
+                          href={contract.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                          title="View Document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </a>
+                        <button
+                          onClick={() => removeContract(vendor.id, contract.id)}
+                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                          title="Remove Contract"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {contract.summary && (
+                      <div className="bg-white border border-gray-200 rounded-lg p-4 mt-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Sparkles className="h-4 w-4 text-purple-600" />
+                          <h6 className="font-medium text-gray-900 text-sm">AI Summary</h6>
+                        </div>
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {contract.summary}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-600 mb-2">No contracts or terms uploaded</p>
+                <p className="text-xs text-gray-500">Upload PDF, Word, or text files to get AI-powered summaries</p>
+              </div>
+            )}
+          </div>
 
           <div className="mt-6 pt-4 border-t border-gray-200">
             <div className="flex justify-between items-center">
@@ -1010,7 +1267,12 @@ const VendorManagement = () => {
             <div key={vendor.id} className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-lg text-gray-900">{vendor.company}</h3>
+                  <button
+                    onClick={() => setViewingVendor(vendor)}
+                    className="text-left flex-1"
+                  >
+                    <h3 className="font-bold text-lg text-gray-900 hover:text-blue-600 transition-colors">{vendor.company}</h3>
+                  </button>
                   <div className="flex items-center space-x-2">
                     <span className={`text-xs px-3 py-1 rounded-full font-medium ${getPriorityColor(vendor.priority)}`}>
                       {vendor.priority}
@@ -1078,6 +1340,33 @@ const VendorManagement = () => {
                       <span className="text-gray-600">{vendor.address}</span>
                     </div>
                   )}
+
+                  {/* Contract indicator */}
+                  {vendor.contracts && vendor.contracts.length > 0 && (
+                    <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
+                      <FileText className="w-4 h-4 text-purple-500" />
+                      <span className="text-xs text-purple-600 font-medium">
+                        {vendor.contracts.length} contract{vendor.contracts.length !== 1 ? 's' : ''} uploaded
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 pt-4 border-t border-gray-100 flex space-x-2">
+                  <button
+                    onClick={() => setViewingVendor(vendor)}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => setEditingVendor(vendor)}
+                    className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
             </div>
@@ -1114,7 +1403,16 @@ const VendorManagement = () => {
       )}
 
       {/* Vendor Details Modal */}
-      {editingVendor && <VendorDetailsModal vendor={editingVendor} onClose={() => setEditingVendor(null)} />}
+      {(editingVendor || viewingVendor) && (
+        <VendorDetailsModal 
+          vendor={editingVendor || viewingVendor} 
+          onClose={() => {
+            setEditingVendor(null);
+            setViewingVendor(null);
+            setSelectedVendorForContracts(null);
+          }} 
+        />
+      )}
     </div>
   );
 };

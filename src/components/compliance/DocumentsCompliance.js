@@ -3,7 +3,10 @@ import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
 import DocumentUploader from './DocumentUploader';
 import MonthlyHealthChecklist from './MonthlyHealthChecklist';
+import YearlyLicenseChecklist from './YearlyLicenseChecklist';
+import DocumentVault from './DocumentVault';
 import HealthInspectionTracker from './HealthInspectionTracker';
+import PermittingWizard from './PermittingWizard';
 import { 
   FileText, 
   Calendar, 
@@ -41,7 +44,7 @@ const DocumentsCompliance = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDocument, setShowAddDocument] = useState(false);
-  const [viewMode, setViewMode] = useState('detailed'); // detailed, checklist, timeline, health-checklist, inspection-tracker
+  const [viewMode, setViewMode] = useState('wizard'); // wizard, detailed, checklist, timeline, health-checklist, inspection-tracker, yearly-checklist, document-vault
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState({});
 
@@ -569,6 +572,7 @@ const DocumentsCompliance = () => {
         email: 'ehpermits@bphc.org'
       },
       templates: [
+        { name: 'Food Establishment Permit Application (Form 4/14)', type: 'PDF', url: '#', description: 'Official Boston Food Establishment permit application form', localPath: 'C:\\Users\\chefm\\Downloads\\Food Establishment permit app 4 14.pdf' },
         { name: 'Food Service Permit Application', type: 'PDF', url: 'https://www.boston.gov/departments/inspectional-services/how-get-food-service-permit' },
         { name: 'Food Plan Review Worksheet', type: 'PDF', url: '#' },
         { name: 'ServSafe Study Guide', type: 'PDF', url: '#' },
@@ -1264,6 +1268,14 @@ const DocumentsCompliance = () => {
           <div className="flex items-center space-x-2">
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
+                onClick={() => setViewMode('wizard')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'wizard' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                Step-by-Step
+              </button>
+              <button
                 onClick={() => setViewMode('detailed')}
                 className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                   viewMode === 'detailed' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
@@ -1295,6 +1307,22 @@ const DocumentsCompliance = () => {
               >
                 Inspections
               </button>
+              <button
+                onClick={() => setViewMode('yearly-checklist')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'yearly-checklist' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                Yearly Renewals
+              </button>
+              <button
+                onClick={() => setViewMode('document-vault')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'document-vault' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                Document Vault
+              </button>
             </div>
             
             <button
@@ -1308,11 +1336,14 @@ const DocumentsCompliance = () => {
         </div>
 
         {/* Requirements List */}
-        {viewMode === 'detailed' ? renderDetailedView() : 
+        {viewMode === 'wizard' ? <PermittingWizard /> :
+         viewMode === 'detailed' ? renderDetailedView() : 
          viewMode === 'checklist' ? renderChecklistView() : 
          viewMode === 'health-checklist' ? <MonthlyHealthChecklist /> : 
          viewMode === 'inspection-tracker' ? <HealthInspectionTracker /> : 
-         renderDetailedView()}
+         viewMode === 'yearly-checklist' ? <YearlyLicenseChecklist /> : 
+         viewMode === 'document-vault' ? <DocumentVault /> : 
+         <PermittingWizard />}
 
         {filteredRequirements.length === 0 && viewMode === 'detailed' && (
           <div className="text-center py-12">

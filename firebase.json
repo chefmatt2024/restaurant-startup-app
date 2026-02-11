@@ -25,10 +25,60 @@
           ]
         }
       ]
+    },
+    {
+      "target": "landing",
+      "public": "C:/Iterum Innovation/landing-pages/main-landing",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**",
+        "archive-old-pages/**",
+        "README.md"
+      ],
+      "rewrites": [
+        {
+          "source": "/investors",
+          "destination": "/investor-pitch.html"
+        },
+        {
+          "source": "/restaurant-startup-app",
+          "destination": "/investor-pitch.html"
+        },
+        {
+          "source": "/business-planner",
+          "destination": "/business-planner.html"
+        },
+        {
+          "source": "/",
+          "destination": "/business-planner.html"
+        },
+        {
+          "source": "**",
+          "destination": "/business-planner.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        }
+      ]
     }
   ],
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint"
+    ]
   }
 }

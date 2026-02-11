@@ -28,9 +28,28 @@ import {
   Leaf,
   Fish,
   Beef,
-  Carrot
+  Carrot,
+  FileText,
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
+import { aiService } from '../../services/aiService';
+
+// PDF parsing library (loaded dynamically)
+let pdfjsLib = null;
+
+const loadPDFLibrary = async () => {
+  if (typeof window !== 'undefined' && !pdfjsLib) {
+    try {
+      pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    } catch (e) {
+      console.warn('PDF.js library not available:', e);
+    }
+  }
+  return pdfjsLib;
+};
 
 const MenuBuilder = () => {
   const { actions } = useApp();
@@ -47,6 +66,13 @@ const MenuBuilder = () => {
     allergens: [],
     dietary: []
   });
+  
+  // PDF Upload State
+  const [isUploadingPDF, setIsUploadingPDF] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+  const [uploadError, setUploadError] = useState(null);
+  const [parsedItems, setParsedItems] = useState([]);
+  const [showParsedItems, setShowParsedItems] = useState(false);
 
   const categories = useMemo(() => [
     { name: 'Appetizers', icon: Utensils, color: 'bg-orange-100 text-orange-800' },
@@ -315,6 +341,213 @@ const MenuBuilder = () => {
     return price.toFixed(2);
   };
 
+  // PDF Upload and Parsing Functions
+  const handlePDFUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+      setUploadError('Please upload a PDF file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File size must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingPDF(true);
+    setUploadError(null);
+    setUploadProgress('Loading PDF parser...');
+
+    try {
+      await extractMenuFromPDF(file);
+    } catch (error) {
+      setUploadError(error.message || 'Failed to process PDF');
+      setIsUploadingPDF(false);
+    }
+  };
+
+  const extractMenuFromPDF = async (file) => {
+    setUploadProgress('Extracting text from PDF...');
+    const pdfLib = await loadPDFLibrary();
+    
+    if (!pdfLib) {
+      throw new Error('PDF parsing library not available. Please try converting your PDF to a text file or Word document.');
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      let fullText = '';
+      
+      // Extract text from all pages
+      for (let i = 1; i <= pdf.numPages; i++) {
+        setUploadProgress(`Extracting text from page ${i} of ${pdf.numPages}...`);
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      
+      setUploadProgress('Analyzing menu with AI...');
+      await parseMenuWithAI(fullText.trim());
+    } catch (pdfError) {
+      console.error('PDF parsing error:', pdfError);
+      throw new Error('Failed to parse PDF. Please ensure the PDF contains selectable text (not scanned images).');
+    }
+  };
+
+  const parseMenuWithAI = async (text) => {
+    try {
+      const systemPrompt = `You are a menu parsing expert. Extract menu items from the provided text and return a JSON array. Each item should have:
+- name: The dish/item name
+- description: The description (if available)
+- price: The price as a number (extract from formats like $12.99, 12.99, $12, etc.)
+- category: Infer the category (Appetizers, Soups & Salads, Main Courses, Pasta & Risotto, Seafood, Meat & Poultry, Vegetarian, Desserts, Beverages, Wine & Cocktails)
+
+Return ONLY valid JSON in this format:
+[
+  {
+    "name": "Item Name",
+    "description": "Description text",
+    "price": 12.99,
+    "category": "Main Courses"
+  }
+]
+
+If price is not found, set it to 0. If description is not available, use an empty string.`;
+
+      const prompt = `Extract all menu items from this menu text:\n\n${text}\n\nReturn the JSON array of menu items.`;
+
+      const response = await aiService.generateCompletion(prompt, {
+        systemPrompt,
+        maxTokens: 4000,
+        temperature: 0.3
+      });
+
+      // Try to extract JSON from the response
+      let jsonText = response.trim();
+      
+      // Remove markdown code blocks if present
+      if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/^```(?:json)?\n/, '').replace(/\n```$/, '');
+      }
+
+      const parsedItems = JSON.parse(jsonText);
+      
+      if (!Array.isArray(parsedItems)) {
+        throw new Error('Invalid response format from AI');
+      }
+
+      // Format items for the menu
+      const formattedItems = parsedItems.map((item, index) => ({
+        id: `pdf-${Date.now()}-${index}`,
+        name: item.name || 'Unnamed Item',
+        description: item.description || '',
+        price: parseFloat(item.price) || 0,
+        cost: '', // User will need to fill this in
+        category: item.category || 'Main Courses',
+        preparationTime: '',
+        allergens: [],
+        dietary: [],
+        profit: 0,
+        margin: '0.0'
+      }));
+
+      setParsedItems(formattedItems);
+      setShowParsedItems(true);
+      setUploadProgress('Menu extracted successfully!');
+      setIsUploadingPDF(false);
+      actions.showMessage('Success', `Extracted ${formattedItems.length} menu items from PDF`, 'success');
+    } catch (error) {
+      console.error('AI parsing error:', error);
+      // Fallback to pattern-based parsing
+      setUploadProgress('Trying alternative parsing method...');
+      const fallbackItems = parseMenuPattern(text);
+      if (fallbackItems.length > 0) {
+        setParsedItems(fallbackItems);
+        setShowParsedItems(true);
+        setIsUploadingPDF(false);
+        actions.showMessage('Success', `Extracted ${fallbackItems.length} menu items using pattern matching`, 'success');
+      } else {
+        throw new Error('Could not extract menu items. Please ensure your PDF contains clear menu items with prices.');
+      }
+    }
+  };
+
+  const parseMenuPattern = (text) => {
+    const items = [];
+    const lines = text.split('\n').filter(line => line.trim());
+    
+    // Pattern: Look for lines with prices (format: $XX.XX or XX.XX)
+    const pricePattern = /\$?(\d+\.?\d*)/;
+    
+    let currentCategory = 'Main Courses';
+    let currentItem = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Check if line is a category header
+      const categoryMatch = categories.find(cat => 
+        line.toLowerCase().includes(cat.name.toLowerCase())
+      );
+      if (categoryMatch) {
+        currentCategory = categoryMatch.name;
+        continue;
+      }
+
+      // Check if line contains a price
+      const priceMatch = line.match(pricePattern);
+      if (priceMatch) {
+        const price = parseFloat(priceMatch[1]);
+        
+        // Try to extract item name (usually before the price)
+        const parts = line.split(priceMatch[0]);
+        const namePart = parts[0].trim();
+        
+        if (namePart && price > 0 && price < 1000) {
+          // Check if previous line might be description
+          const prevLine = i > 0 ? lines[i - 1].trim() : '';
+          const description = prevLine && !prevLine.match(pricePattern) ? prevLine : '';
+          
+          items.push({
+            id: `pattern-${Date.now()}-${i}`,
+            name: namePart,
+            description: description,
+            price: price,
+            cost: '',
+            category: currentCategory,
+            preparationTime: '',
+            allergens: [],
+            dietary: [],
+            profit: 0,
+            margin: '0.0'
+          });
+        }
+      }
+    }
+
+    return items;
+  };
+
+  const addParsedItemsToMenu = () => {
+    setMenuItems([...menuItems, ...parsedItems]);
+    setParsedItems([]);
+    setShowParsedItems(false);
+    actions.showMessage('Success', `Added ${parsedItems.length} items to menu`, 'success');
+  };
+
+  const addSingleParsedItem = (item) => {
+    setMenuItems([...menuItems, item]);
+    setParsedItems(parsedItems.filter(i => i.id !== item.id));
+    if (parsedItems.length === 1) {
+      setShowParsedItems(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -345,8 +578,119 @@ const MenuBuilder = () => {
             <TrendingUp className="w-4 h-4 mr-2" />
             Pricing Strategy
           </button>
+          <label className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Menu PDF
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handlePDFUpload}
+              className="hidden"
+              disabled={isUploadingPDF}
+            />
+          </label>
         </div>
       </div>
+
+      {/* PDF Upload Progress */}
+      {isUploadingPDF && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900">Processing PDF...</p>
+              <p className="text-xs text-blue-700">{uploadProgress}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Error */}
+      {uploadError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900">Upload Error</p>
+              <p className="text-xs text-red-700">{uploadError}</p>
+            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-red-600 hover:text-red-800"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Parsed Items Preview */}
+      {showParsedItems && parsedItems.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">
+                  Found {parsedItems.length} Menu Items
+                </h3>
+                <p className="text-sm text-green-700">
+                  Review and add items to your menu. You'll need to add cost information for each item.
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={addParsedItemsToMenu}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add All Items
+              </button>
+              <button
+                onClick={() => {
+                  setShowParsedItems(false);
+                  setParsedItems([]);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {parsedItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white border border-green-200 rounded-lg p-4 flex items-center justify-between"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <h4 className="font-medium text-gray-900">{item.name}</h4>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                      {item.category}
+                    </span>
+                    <span className="text-green-600 font-semibold">
+                      ${item.price.toFixed(2)}
+                    </span>
+                  </div>
+                  {item.description && (
+                    <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => addSingleParsedItem(item)}
+                  className="ml-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm flex items-center"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -335,4 +335,90 @@
   .mobile-center {
     text-align: center;
   }
+}
+
+/* Mobile-specific improvements */
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Ensure all containers respect viewport */
+.container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+/* Ensure images don't overflow on mobile */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent text overflow */
+h1, h2, h3, h4, h5, h6, p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Mobile-friendly modals */
+@media (max-width: 640px) {
+  .modal, [role="dialog"] {
+    max-height: 90vh;
+    margin: 1rem;
+    padding: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 640px) {
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Ensure form inputs are touch-friendly */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+  }
+}
+
+/* Prevent text from being too small on mobile */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  
+  /* Ensure buttons are properly sized on mobile */
+  button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Ensure proper spacing on mobile */
+  .space-x-6 > * + * {
+    margin-left: 0.75rem;
+  }
+  
+  /* Ensure grid gaps are smaller on mobile */
+  .gap-12 {
+    gap: 1.5rem;
+  }
+  
+  .gap-8 {
+    gap: 1rem;
+  }
 } 

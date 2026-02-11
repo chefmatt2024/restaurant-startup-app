@@ -25,7 +25,17 @@ const SubscriptionManager = () => {
       window.location.href = url;
     } catch (error) {
       console.error('Error opening customer portal:', error);
-      actions.showMessage('Error', 'Failed to open billing portal', 'error');
+      
+      // Show friendly message if functions aren't deployed
+      if (error.code === 'FUNCTIONS_NOT_DEPLOYED' || error.message?.includes('unavailable')) {
+        actions.showMessage(
+          'Billing Portal Unavailable',
+          'The billing portal is currently being set up. Please contact support for subscription management.',
+          'info'
+        );
+      } else {
+        actions.showMessage('Error', error.message || 'Failed to open billing portal', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -193,7 +203,10 @@ const SubscriptionManager = () => {
                 Upgrade to Professional to access unlimited restaurant plans, advanced analytics, and premium support.
               </p>
               <button
-                onClick={() => actions.setActiveTab('pricing')}
+                onClick={() => {
+                  // Trigger custom event to open profile with pricing section
+                  window.dispatchEvent(new CustomEvent('openProfileWithSection', { detail: 'pricing' }));
+                }}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
               >
                 View Plans & Pricing

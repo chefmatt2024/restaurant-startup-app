@@ -4,10 +4,14 @@ import { MessageSquare } from 'lucide-react';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Dashboard from './pages/Dashboard';
 import RestaurantBusinessPlannerLanding from './components/unified/RestaurantBusinessPlannerLanding';
+import InvestorLanding from './components/landing/InvestorLanding';
 import SignInModal from './components/auth/SignInModal';
-import TrialSignup from './components/auth/TrialSignup';
-import TrialOnboarding from './components/auth/TrialOnboarding';
-import TermsAndPrivacy from './components/auth/TermsAndPrivacy';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TechPage from './pages/TechPage';
+import SitemapPage from './pages/SitemapPage';
+import FAQPage from './pages/FAQPage';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import MessageModal from './components/ui/MessageModal';
 import { SessionManager, trackUsage } from './utils/accessControl';
@@ -16,13 +20,9 @@ import FeedbackCollector from './components/feedback/FeedbackCollector';
 import './App.css';
 
 function AppContent() {
-  const { state, actions } = useApp();
+  const { state } = useApp();
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [showTrialSignup, setShowTrialSignup] = useState(false);
-  const [showTrialOnboarding, setShowTrialOnboarding] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  const [, setHasAcceptedTerms] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   
   // Check authentication status on mount
@@ -30,18 +30,8 @@ function AppContent() {
     if (!state.isLoading && !hasCheckedAuth) {
       setHasCheckedAuth(true);
       
-      // Check if user has accepted terms
-      const termsAccepted = localStorage.getItem('termsAccepted');
-      if (termsAccepted === 'true') {
-        setHasAcceptedTerms(true);
-      }
-      
-      // Always require authentication - show terms first, then trial signup
-      if (!termsAccepted) {
-        setShowTermsModal(true);
-      } else if (state.isAuthenticated && state.userId) {
-        // User is signed in - don't show trial popup
-        // Start session tracking
+      if (state.isAuthenticated && state.userId) {
+        // User is signed in - start session tracking
         SessionManager.startSession(state.userId);
         trackUsage('APP_ACCESS', 'login', { userId: state.userId });
         
@@ -51,38 +41,9 @@ function AppContent() {
           loginMethod: 'email',
           timestamp: Date.now()
         });
-      } else if (!state.isAuthenticated || !state.userId) {
-        // User is not authenticated - show trial signup
-        if (state.activeTab === 'trial-signup') {
-          setShowTrialSignup(true);
-        } else {
-          setShowTrialSignup(true);
-        }
       }
     }
-  }, [state.isLoading, state.isAuthenticated, state.userId, state.activeTab, hasCheckedAuth]);
-
-  // Handle terms acceptance
-  const handleTermsAccept = () => {
-    localStorage.setItem('termsAccepted', 'true');
-    setHasAcceptedTerms(true);
-    setShowTermsModal(false);
-    
-    // Track terms acceptance
-    trackUsage('TERMS', 'accepted', { userId: state.userId || 'anonymous' });
-    
-    // Show trial signup only if user is NOT authenticated
-    if (!state.isAuthenticated && !state.userId) {
-      setShowTrialSignup(true);
-    }
-    // If user is already authenticated, don't show trial signup
-  };
-
-  const handleTermsDecline = () => {
-    // Redirect to external page or show message
-    alert('You must accept the terms to use this application.');
-    window.location.href = 'https://www.google.com';
-  };
+  }, [state.isLoading, state.isAuthenticated, state.userId, hasCheckedAuth]);
   
   // Show loading spinner while initializing
   if (state.isLoading && !hasCheckedAuth) {
@@ -95,23 +56,21 @@ function AppContent() {
       </div>
     );
   }
-
-  // Show terms modal if not accepted
-  if (showTermsModal) {
-    return (
-      <TermsAndPrivacy 
-        onAccept={handleTermsAccept}
-        onDecline={handleTermsDecline}
-      />
-    );
-  }
   
-  // Show dashboard - accessible to all users
+  // Show dashboard - protected route (requires authentication)
   return (
     <div className="App min-h-screen bg-gray-50">
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         <Route path="/landing" element={
           <div className="App min-h-screen bg-white">
             <RestaurantBusinessPlannerLanding />
@@ -124,36 +83,27 @@ function AppContent() {
             )}
           </div>
         } />
+        <Route path="/investors" element={
+          <div className="App min-h-screen bg-white">
+            <InvestorLanding />
+          </div>
+        } />
+        <Route path="/restaurant-startup-app" element={
+          <div className="App min-h-screen bg-white">
+            <InvestorLanding />
+          </div>
+        } />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/tech" element={<TechPage />} />
+        <Route path="/sitemap" element={<SitemapPage />} />
+        <Route path="/faq" element={<FAQPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <LoadingSpinner />
       <MessageModal />
       
-      {/* Trial Signup Modal - Only show if user is not authenticated */}
-      {!state.isAuthenticated && (
-        <TrialSignup 
-          isOpen={showTrialSignup}
-          onClose={() => setShowTrialSignup(false)}
-          onSuccess={() => {
-            setShowTrialSignup(false);
-            setShowTrialOnboarding(true);
-          }}
-        />
-      )}
-      
-      {/* Trial Onboarding Modal - Only show if user is not authenticated */}
-      {!state.isAuthenticated && (
-        <TrialOnboarding 
-          isOpen={showTrialOnboarding}
-          onComplete={() => {
-            setShowTrialOnboarding(false);
-            // Navigate to dashboard or first step
-            actions.setActiveTab('idea-formation');
-          }}
-        />
-      )}
-      
-      {/* Sign-in Modal Overlay */}
+      {/* Sign-in Modal Overlay (for manual sign-in from header) */}
       <SignInModal 
         isOpen={showSignInModal}
         onClose={() => setShowSignInModal(false)}

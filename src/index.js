@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App';
+import { initializeTracking } from './utils/utmTracking';
+
+// Initialize UTM parameter tracking on app load
+initializeTracking();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

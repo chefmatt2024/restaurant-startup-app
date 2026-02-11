@@ -113,7 +113,26 @@ const LandingPage = () => {
   ];
 
   const handleGetStarted = () => {
-    actions.setActiveTab('pricing');
+    // Track conversion event
+    if (window.gtag) {
+      window.gtag('event', 'click', {
+        event_category: 'CTA',
+        event_label: 'Start Free Trial',
+        value: 1
+      });
+    }
+    
+    // Always redirect to root URL - ProtectedRoute will show signup flow automatically
+    // If on external landing page, use full URL
+    // If already in app, navigate to root route
+    if (window.location.hostname.includes('restaurant-startup-app.web.app') || 
+        window.location.hostname.includes('localhost')) {
+      // Already in app - navigate to root route (ProtectedRoute will show signup)
+      window.location.href = '/';
+    } else {
+      // External landing page - redirect to app root
+      window.location.href = 'https://restaurant-startup-app.web.app/';
+    }
   };
 
   const handleSignIn = () => {
@@ -266,7 +285,7 @@ const LandingPage = () => {
               Simple, Transparent Pricing
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the plan that fits your needs. All plans include a 14-day free trial.
+              Choose the plan that fits your needs. All plans include a 5-day free trial.
             </p>
           </div>
 

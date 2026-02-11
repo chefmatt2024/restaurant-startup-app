@@ -8,7 +8,7 @@ const TrialOnboarding = ({ isOpen, onComplete }) => {
     {
       icon: <Star className="w-8 h-8 text-green-600" />,
       title: "Welcome to Your Free Trial!",
-      description: "You now have 14 days of full access to plan your restaurant like a pro.",
+      description: "You now have 5 days of full access to plan your restaurant like a pro.",
       features: [
         "Complete restaurant business planning tools",
         "Financial projections and modeling",
@@ -106,7 +106,7 @@ const TrialOnboarding = ({ isOpen, onComplete }) => {
               <div className="flex items-center justify-center">
                 <Clock className="w-5 h-5 text-green-600 mr-2" />
                 <span className="text-sm font-medium text-green-900">
-                  14 days remaining in your free trial
+                  5 days remaining in your free trial
                 </span>
               </div>
             </div>

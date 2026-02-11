@@ -10,13 +10,21 @@ const FeatureGate = ({
   showUpgradePrompt = true,
   className = ''
 }) => {
-  const { state, actions } = useApp();
-  const { hasPlanFeature, canUseFeature, getCurrentPlan, getUsageStats } = useSubscription();
+  const { actions } = useApp();
+  const { hasPlanFeature, canUseFeature, getCurrentPlan, getUsageStats, loading } = useSubscription();
+
+  // Special case: financial_projections should always be available (it's in all plans)
+  const isFinancialProjections = feature === 'financial_projections';
+  
+  // During loading, allow financial_projections to render (it's available to all)
+  if (loading && isFinancialProjections) {
+    return <div className={className}>{children}</div>;
+  }
 
   // Check if user has access to the feature
-  const hasAccess = hasPlanFeature(feature);
+  const hasAccess = isFinancialProjections ? true : hasPlanFeature(feature);
   const usage = getUsageStats();
-  const canUse = canUseFeature(feature, usage[feature] || 0);
+  const canUse = isFinancialProjections ? true : canUseFeature(feature, usage[feature] || 0);
 
   // If user has access and can use the feature, render children
   if (hasAccess && canUse) {
@@ -46,7 +54,9 @@ const FeatureGate = ({
             </div>
             
             <button
-              onClick={() => actions.setActiveTab('pricing')}
+              onClick={() => {
+                actions.setActiveTab('pricing');
+              }}
               className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center mx-auto"
             >
               <Zap className="w-4 h-4 mr-2" />
@@ -113,7 +123,9 @@ export const UsageLimit = ({ feature, current, max, children }) => {
           </div>
           
           <button
-            onClick={() => actions.setActiveTab('pricing')}
+            onClick={() => {
+              actions.setActiveTab('pricing');
+            }}
             className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-200 flex items-center mx-auto"
           >
             <Star className="w-4 h-4 mr-2" />

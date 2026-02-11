@@ -33,11 +33,13 @@ jobs:
           REACT_APP_ANTHROPIC_API_KEY: ${{ secrets.REACT_APP_ANTHROPIC_API_KEY }}
           REACT_APP_AI_PROVIDER: ${{ secrets.REACT_APP_AI_PROVIDER || 'openai' }}
       
-      - name: Deploy to Firebase
+      # Deploy only hosting:app (landing target uses a local path and is not in this repo)
+      - name: Deploy to Firebase (app only)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
           projectId: restaurant-startup-app
+          target: app
 

@@ -131,3 +131,7 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Local reference docs and large binaries (root only)
+/*.pdf
+Research Docs/

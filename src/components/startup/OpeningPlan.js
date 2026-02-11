@@ -347,6 +347,48 @@ const OpeningPlan = () => {
           ]
         },
         {
+          id: 'food-establishment-permit',
+          title: 'Food Establishment Permit Application',
+          description: 'Complete and submit Food Establishment Permit Application (Form 4/14) to Boston Public Health Commission',
+          timeEstimate: '3-4 weeks',
+          priority: 'High',
+          category: 'compliance',
+          bostonTip: 'Download the official Food Establishment Permit Application (Form 4/14) from the Documents & Compliance section. This form must be completed with all required documentation.',
+          actions: [
+            'Download Food Establishment Permit Application (Form 4/14)',
+            'Obtain Certified Food Manager certification (ServSafe)',
+            'Prepare four sets of site plans',
+            'Gather equipment specifications from manufacturer',
+            'Complete Food Plan Review Worksheet',
+            'Prepare menu with consumer advisories if applicable',
+            'Submit application with all required documents',
+            'Schedule pre-opening inspection',
+            'Pass health inspection'
+          ],
+          documents: [
+            { name: 'Food Establishment Permit Application (Form 4/14)', type: 'PDF', localPath: 'C:\\Users\\chefm\\Downloads\\Food Establishment permit app 4 14.pdf' }
+          ]
+        },
+        {
+          id: 'certificate-of-occupancy',
+          title: 'Certificate of Occupancy',
+          description: 'Obtain Certificate of Occupancy before opening to the public',
+          timeEstimate: '1-2 weeks',
+          priority: 'High',
+          category: 'compliance',
+          bostonTip: 'Review the "When to Apply for CO" guide before starting the application process. You cannot open without this certificate.',
+          actions: [
+            'Review "When to Apply for Certificate of Occupancy" guide',
+            'Complete all construction',
+            'Pass final building inspection',
+            'Submit occupancy application',
+            'Receive Certificate of Occupancy'
+          ],
+          documents: [
+            { name: 'When to Apply for Certificate of Occupancy Guide', type: 'PDF', localPath: 'C:\\Users\\chefm\\Downloads\\WHEN TO APPLY FOR A CO_tcm3-36230.pdf' }
+          ]
+        },
+        {
           id: 'inspections',
           title: 'Schedule Inspections',
           description: 'Complete all required inspections before opening',

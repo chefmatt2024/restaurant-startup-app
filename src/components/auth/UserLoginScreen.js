@@ -11,7 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import AuthModal from './AuthModal';
+import AuthModal from './EnhancedAuthModal';
 
 const UserLoginScreen = () => {
   const { actions } = useApp();

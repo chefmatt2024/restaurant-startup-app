@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { authService } from '../../services/firebase';
 import { 
@@ -10,21 +10,58 @@ import {
   X,
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  Settings,
+  CreditCard,
+  Shield,
+  DollarSign,
+  Star
 } from 'lucide-react';
+import AdminDashboard from '../admin/AdminDashboard';
+import SubscriptionManager from '../payment/SubscriptionManager';
+import PricingPage from '../payment/PricingPage';
+import SubscriptionDemo from '../payment/SubscriptionDemo';
 
-const UserProfile = ({ isOpen, onClose }) => {
-  const { state } = useApp();
+const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
+  const { state, actions } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeSection, setActiveSection] = useState(initialSection); // 'profile', 'pricing', 'subscription', 'subscription-demo', 'admin'
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profileData, setProfileData] = useState({
     displayName: state.user?.displayName || '',
     email: state.user?.email || ''
   });
 
   const currentUser = authService.getCurrentUser();
+
+  // Check admin status and set initial section
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!state.user?.email) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const adminEmails = [
+        'matt@iterumfoods.com',
+        'hello@iterumfoods.xyz',
+        'admin@iterumfoods.xyz'
+      ];
+      const userEmail = state.user.email.toLowerCase();
+      const isIterumEmail = userEmail.endsWith('@iterumfoods.com');
+      const isAuthorizedEmail = adminEmails.includes(userEmail);
+      setIsAdmin(isAuthorizedEmail || isIterumEmail);
+    };
+    
+    if (isOpen) {
+      checkAdminStatus();
+      // Set initial section when modal opens
+      setActiveSection(initialSection);
+    }
+  }, [state.user, isOpen, initialSection]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,9 +122,9 @@ const UserProfile = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-blue-600" />
@@ -105,8 +142,81 @@ const UserProfile = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Profile Content */}
-        <div className="p-6 space-y-6">
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-gray-200 flex-shrink-0">
+          <button
+            onClick={() => setActiveSection('profile')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeSection === 'profile'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <User className="w-4 h-4" />
+              <span>Profile</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveSection('pricing')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeSection === 'pricing'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <DollarSign className="w-4 h-4" />
+              <span>Pricing</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveSection('subscription')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeSection === 'subscription'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <CreditCard className="w-4 h-4" />
+              <span>Subscription</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveSection('subscription-demo')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeSection === 'subscription-demo'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Star className="w-4 h-4" />
+              <span>Demo</span>
+            </div>
+          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveSection('admin')}
+              className={`px-6 py-3 text-sm font-medium transition-colors ${
+                activeSection === 'admin'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Shield className="w-4 h-4" />
+                <span>Admin</span>
+              </div>
+            </button>
+          )}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {activeSection === 'profile' && (
+            <div className="p-6 space-y-6">
           {/* User Info */}
           <div className="space-y-4">
             {/* Display Name */}
@@ -254,30 +364,68 @@ const UserProfile = ({ isOpen, onClose }) => {
             </div>
           </div>
         </div>
+          )}
+
+          {activeSection === 'pricing' && (
+            <div className="p-6">
+              <PricingPage />
+            </div>
+          )}
+
+          {activeSection === 'subscription' && (
+            <div className="p-6">
+              <SubscriptionManager />
+            </div>
+          )}
+
+          {activeSection === 'subscription-demo' && (
+            <div className="p-6">
+              <SubscriptionDemo />
+            </div>
+          )}
+
+          {activeSection === 'admin' && isAdmin && (
+            <div className="p-6">
+              <AdminDashboard />
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSignOut}
-              disabled={isLoading}
-              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <LogOut className="w-4 h-4" />
-              )}
-              <span>Sign Out</span>
-            </button>
+        {activeSection === 'profile' && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+            <div className="flex space-x-3">
+              <button
+                onClick={handleSignOut}
+                disabled={isLoading}
+                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <LogOut className="w-4 h-4" />
+                )}
+                <span>Sign Out</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+        {activeSection !== 'profile' && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
             >
               Close
             </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

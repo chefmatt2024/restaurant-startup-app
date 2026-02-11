@@ -14,6 +14,8 @@ import VendorManagement from '../components/vendors/VendorManagement';
 import IdeaFormation from '../components/ideation/IdeaFormation';
 import ElevatorPitchBuilder from '../components/ideation/ElevatorPitchBuilder';
 import DocumentsCompliance from '../components/compliance/DocumentsCompliance';
+import OpenRestaurantManager from '../components/compliance/OpenRestaurantManager';
+import CertificationManager from '../components/compliance/CertificationManager';
 import TimelineManager from '../components/project/TimelineManager';
 import BusinessAnalytics from '../components/analytics/BusinessAnalytics';
 import EquipmentPlanning from '../components/equipment/EquipmentPlanning';
@@ -24,12 +26,10 @@ import StartupJourney from '../components/startup/StartupJourney';
 import OpeningPlan from '../components/startup/OpeningPlan';
 import PricingPage from '../components/payment/PricingPage';
 import SubscriptionManager from '../components/payment/SubscriptionManager';
-import SubscriptionDemo from '../components/payment/SubscriptionDemo';
-import BrandingUpdater from '../components/tools/BrandingUpdater';
 import AdminDashboard from '../components/admin/AdminDashboard';
-import DebugInfo from '../components/ui/DebugInfo';
-import WelcomeMessage from '../components/auth/WelcomeMessage';
 import DocumentImporter from '../components/import/DocumentImporter';
+import WelcomeTour from '../components/onboarding/WelcomeTour';
+import TrialExpirationBanner from '../components/trial/TrialExpirationBanner';
 
 const Dashboard = () => {
   const { state, actions } = useApp();
@@ -74,16 +74,16 @@ const Dashboard = () => {
           return <CompetitiveAnalysis />;
         case 'documents':
           return <DocumentsCompliance />;
+      case 'open-restaurant':
+        return <OpenRestaurantManager />;
+      case 'certifications':
+        return <CertificationManager />;
       case 'business-analytics':
         return <BusinessAnalytics />;
       case 'pricing':
         return <PricingPage />;
       case 'subscription':
         return <SubscriptionManager />;
-      case 'subscription-demo':
-        return <SubscriptionDemo />;
-      case 'branding-updater':
-        return <BrandingUpdater />;
       case 'admin':
         return <AdminDashboard />;
       case 'import':
@@ -93,10 +93,39 @@ const Dashboard = () => {
     }
   };
 
+  const [showWelcomeTour, setShowWelcomeTour] = React.useState(false);
+
+  // Check if user should see welcome tour (only once for new users)
+  React.useEffect(() => {
+    if (!state.isAuthenticated || !state.userId) return;
+    
+    const tourCompleted = localStorage.getItem('welcomeTourCompleted');
+    const isNewUser = !tourCompleted;
+    
+    if (isNewUser) {
+      // Show tour after a short delay to ensure dashboard is loaded
+      const timer = setTimeout(() => {
+        setShowWelcomeTour(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [state.isAuthenticated, state.userId]);
+
+  const handleTourComplete = () => {
+    localStorage.setItem('welcomeTourCompleted', 'true');
+    setShowWelcomeTour(false);
+  };
+
+  const handleUpgrade = () => {
+    actions.setActiveTab('pricing');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <TrialExpirationBanner onUpgrade={handleUpgrade} />
+      <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
         {/* View Toggle */}
         <div className="mb-8">
           <div className="modern-card p-1 inline-flex shadow-lg">
@@ -134,10 +163,10 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-      <DebugInfo />
-      <WelcomeMessage 
-        isOpen={state.showWelcomeMessage} 
-        onClose={() => actions.hideWelcomeMessage()} 
+      <WelcomeTour
+        isOpen={showWelcomeTour}
+        onComplete={handleTourComplete}
+        onSkip={handleTourComplete}
       />
     </div>
   );
