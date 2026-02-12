@@ -96,7 +96,7 @@ const Dashboard = () => {
       case 'import':
         return <DocumentImporter />;
       default:
-        return <StartupJourney />;
+        return <StartupAndOpeningPlan />;
     }
   };
 
