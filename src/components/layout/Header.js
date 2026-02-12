@@ -135,14 +135,16 @@ const Header = () => {
                         <button
                           key={draft.id}
                           onClick={() => handleSwitchDraft(draft.id)}
-                          className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors ${
+                          className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2 ${
                             draft.id === state.currentDraftId ? 'bg-blue-50 text-blue-900' : 'text-gray-700'
                           }`}
                         >
-                          <div className="font-medium">{draft.name}</div>
-                          <div className="text-xs text-gray-500">
-                            Updated {new Date(draft.updatedAt).toLocaleDateString()}
-                          </div>
+                          <span className="font-medium truncate min-w-0">{draft.name}</span>
+                          <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">
+                            {draft.updatedAt
+                              ? new Date(draft.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                              : '—'}
+                          </span>
                         </button>
                       ))}
                       <button

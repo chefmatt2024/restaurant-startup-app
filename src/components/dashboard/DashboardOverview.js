@@ -242,7 +242,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+      {/* Main content */}
+      <div className="flex-1 min-w-0 space-y-6">
       {/* Welcome Header */}
       <div className="bg-slate-800 rounded-lg p-8 text-white shadow-lg">
         <div className="flex items-center justify-between">
@@ -298,11 +300,6 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         </div>
       )}
 
-      {/* Getting Started Checklist - Show for new users or low progress */}
-      {progress.percentage < 50 && (
-        <GettingStartedChecklist />
-      )}
-
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="modern-card p-6 hover-lift">
@@ -351,6 +348,40 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               <div className="text-sm font-medium text-gray-600">Progress</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* What needs to be done - clear summary */}
+      <div className="modern-card bg-amber-50 border border-amber-200">
+        <div className="p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500 rounded-lg">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">What needs to be done</h2>
+              <p className="text-sm text-gray-600">
+                {progress.completed === progress.total ? (
+                  'All sections complete. Review your plan or open Detailed View to edit.'
+                ) : (
+                  <>
+                    <span className="font-semibold text-amber-800">{progress.total - progress.completed} section{progress.total - progress.completed !== 1 ? 's' : ''} remaining.</span>
+                    {' '}Start with the next priority tasks below or use the checklist on the right.
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+          {progress.completed < progress.total && onSwitchToDetailed && (
+            <button
+              type="button"
+              onClick={onSwitchToDetailed}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
+            >
+              Open Detailed View
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -568,6 +599,16 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
           actions.showMessage('Success', 'Template applied successfully!', 'success');
         }}
       />
+      </div>
+
+      {/* Right sidebar - Getting Started Checklist */}
+      {progress.percentage < 50 && (
+        <aside className="lg:w-80 flex-shrink-0 order-first lg:order-none">
+          <div className="lg:sticky lg:top-4">
+            <GettingStartedChecklist />
+          </div>
+        </aside>
+      )}
     </div>
   );
 };

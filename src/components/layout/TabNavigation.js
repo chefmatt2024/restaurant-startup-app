@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { 
   FileText, 
@@ -17,13 +17,12 @@ import {
   Utensils,
   Palette,
   Rocket,
-  Award
+  Award,
+  CheckCircle
 } from 'lucide-react';
 
-const TabNavigation = () => {
-  const { state, actions } = useApp();
-
-  const tabs = [
+// Export for breadcrumb/section title in Dashboard
+export const DETAIL_VIEW_TABS = [
     { id: 'startup-journey', label: 'Startup Journey', icon: Compass, color: 'blue', description: 'Complete process guide' },
     { id: 'opening-plan', label: 'Opening Plan', icon: Target, color: 'red', description: 'Boston restaurant roadmap' },
     { id: 'import', label: 'Import Document', icon: FileText, color: 'blue', description: 'Upload & extract data' },
@@ -65,32 +64,55 @@ const TabNavigation = () => {
       color: 'green',
       description: 'Staff certifications & training'
     }
-  ];
+];
+
+const TabNavigation = ({ sectionStatus = {} }) => {
+  const { state, actions } = useApp();
+  const tabs = DETAIL_VIEW_TABS;
+  const navRef = useRef(null);
+  const activeRef = useRef(null);
+
+  // Scroll active tab into view when it changes
+  useEffect(() => {
+    if (activeRef.current && navRef.current) {
+      activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [state.activeTab]);
 
   return (
-    <nav className="bg-gray-50 border-b border-gray-200">
+    <nav ref={navRef} className="bg-gray-50 border-b border-gray-200">
       <div className="px-6">
-        <div className="flex space-x-2 overflow-x-auto pb-2 pt-4">
-          {tabs.map((tab) => {
+        <div className="flex flex-wrap items-end gap-y-2 overflow-x-auto pb-2 pt-4">
+          {tabs.map((tab, index) => {
             const Icon = tab.icon;
             const isActive = state.activeTab === tab.id;
-            
+            const isCondensed = index < 2;
+            const isCompleted = sectionStatus[tab.id]?.completed;
             return (
               <button
                 key={tab.id}
+                ref={isActive ? activeRef : null}
                 onClick={() => actions.setActiveTab(tab.id)}
                 className={`
-                  flex-shrink-0 flex items-center space-x-2 px-4 py-3 rounded-t-lg font-medium text-sm transition-all duration-200
-                  ${isActive 
-                    ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm' 
+                  flex-shrink-0 flex items-center space-x-1.5 rounded-t-lg font-medium text-sm transition-all duration-200
+                  ${isCondensed ? 'px-3 py-2' : 'px-4 py-3 space-x-2'}
+                  ${isActive
+                    ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm ring-2 ring-blue-200 ring-inset'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                   }
                 `}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={isCondensed ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
                 <div className="text-left">
-                  <div className="font-medium">{tab.label}</div>
-                  <div className="text-xs text-gray-500">{tab.description}</div>
+                  <div className="font-medium whitespace-nowrap flex items-center gap-1.5">
+                    {tab.label}
+                    {isCompleted && (
+                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" aria-label="Completed" />
+                    )}
+                  </div>
+                  {!isCondensed && tab.description && (
+                    <div className="text-xs text-gray-500">{tab.description}</div>
+                  )}
                 </div>
               </button>
             );
