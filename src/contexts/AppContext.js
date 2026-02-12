@@ -534,7 +534,23 @@ const initialState = {
       preOpeningSalaries: 0,
       depositsLicenses: 0,
       initialMarketing: 0,
-      contingency: 0
+      contingency: 0,
+      signage: 0,
+      posHardware: 0,
+      smallwaresStartup: 0,
+      openingBeverageInventory: 0,
+      trainingPreOpen: 0,
+      securityInstall: 0,
+      hoodVentilation: 0,
+      plumbingElectrical: 0,
+      professionalFees: 0,
+      preOpeningRent: 0,
+      otherStartup: 0
+    },
+    // Vendor linkage for P&L line items (vendor id per expense key)
+    expenseVendors: {
+      operating: {},
+      startup: {}
     },
     restaurantDetails: {
       seats: 50,

@@ -596,8 +596,40 @@ const OpeningPlan = () => {
     return icons[category] || Info;
   };
 
+  // Process review: lease signing → construction → permits → opening (single view)
+  const leaseToOpeningPhases = [
+    { step: 1, name: 'Lease & pre-construction', summary: 'Sign lease, lock design, line up contractor and permits', duration: '2–4 weeks' },
+    { step: 2, name: 'Permits (apply early)', summary: 'Business cert, building permits, food permit, alcohol (if applicable)', duration: '2–4 months (parallel with buildout)' },
+    { step: 3, name: 'Construction & buildout', summary: 'Buildout, equipment install, inspections as required', duration: '2–4 months' },
+    { step: 4, name: 'Final permits & inspections', summary: 'CO, health inspection, fire, Food Establishment Permit', duration: '2–4 weeks before opening' },
+    { step: 5, name: 'Pre-opening & opening', summary: 'Staffing, training, soft open, then open to the public', duration: '2–4 weeks' }
+  ];
+
   return (
     <div className="animate-fade-in space-y-6">
+      {/* Process review: lease → construction → permits → opening */}
+      <SectionCard
+        title="Process review: Lease signing → Construction → Permits → Opening"
+        description="End-to-end path once the lease is signed. Use the phases below to track where you are; detailed tasks are in the opening plan underneath."
+        color="slate"
+      >
+        <div className="space-y-3">
+          {leaseToOpeningPhases.map(({ step, name, summary, duration }) => (
+            <div key={step} className="flex flex-wrap items-start gap-3 p-3 rounded-lg bg-white border border-gray-200">
+              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-600 text-white flex items-center justify-center font-bold text-sm">{step}</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-900">{name}</div>
+                <div className="text-sm text-gray-600">{summary}</div>
+                <div className="text-xs text-gray-500 mt-1">{duration}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-gray-500 mt-4">
+          Typical total: 4–8 months from lease signing to opening in Boston. Permits often run in parallel with construction.
+        </p>
+      </SectionCard>
+
       {/* Header */}
       <SectionCard
         title="🎯 Your Boston Restaurant Opening Plan"

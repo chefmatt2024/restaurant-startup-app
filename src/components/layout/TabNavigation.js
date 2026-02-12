@@ -23,8 +23,7 @@ import {
 
 // Export for breadcrumb/section title in Dashboard
 export const DETAIL_VIEW_TABS = [
-    { id: 'startup-journey', label: 'Startup Journey', icon: Compass, color: 'blue', description: 'Complete process guide' },
-    { id: 'opening-plan', label: 'Opening Plan', icon: Target, color: 'red', description: 'Boston restaurant roadmap' },
+    { id: 'startup-and-opening', label: 'Startup & Opening Plan', icon: Compass, color: 'blue', description: 'Journey & Boston roadmap' },
     { id: 'import', label: 'Import Document', icon: FileText, color: 'blue', description: 'Upload & extract data' },
     { id: 'idea-formation', label: 'Idea Formation', icon: Lightbulb, color: 'yellow' },
     { id: 'elevator-pitch', label: 'Elevator Pitch', icon: Mic, color: 'green' },
@@ -82,11 +81,11 @@ const TabNavigation = ({ sectionStatus = {} }) => {
   return (
     <nav ref={navRef} className="bg-gray-50 border-b border-gray-200">
       <div className="px-6">
-        <div className="flex flex-wrap items-end gap-y-2 overflow-x-auto pb-2 pt-4">
+        <div className="flex flex-wrap items-end justify-end gap-y-2 overflow-x-auto pb-2 pt-4">
           {tabs.map((tab, index) => {
             const Icon = tab.icon;
             const isActive = state.activeTab === tab.id;
-            const isCondensed = index < 2;
+            const isCondensed = index < 1;
             const isCompleted = sectionStatus[tab.id]?.completed;
             return (
               <button

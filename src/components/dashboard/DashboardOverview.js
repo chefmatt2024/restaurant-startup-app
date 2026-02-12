@@ -500,7 +500,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <button
               onClick={() => {
-                actions.setActiveTab('startup-journey');
+                actions.setActiveTab('startup-and-opening');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
               className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 text-center group hover-lift"
@@ -514,7 +514,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
             <button
               onClick={() => {
-                actions.setActiveTab('opening-plan');
+                actions.setActiveTab('startup-and-opening');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
               className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 text-center group hover-lift"

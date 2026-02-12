@@ -24,8 +24,7 @@ import EquipmentPlanning from '../components/equipment/EquipmentPlanning';
 import MenuBuilder from '../components/menu/MenuBuilder';
 import BrandingPlanner from '../components/branding/BrandingPlanner';
 import CompetitiveAnalysis from '../components/business-plan/CompetitiveAnalysis';
-import StartupJourney from '../components/startup/StartupJourney';
-import OpeningPlan from '../components/startup/OpeningPlan';
+import StartupAndOpeningPlan from '../components/startup/StartupAndOpeningPlan';
 import PricingPage from '../components/payment/PricingPage';
 import SubscriptionManager from '../components/payment/SubscriptionManager';
 import AdminDashboard from '../components/admin/AdminDashboard';
@@ -47,10 +46,8 @@ const Dashboard = () => {
 
   const renderActiveTab = () => {
     switch (state.activeTab) {
-      case 'startup-journey':
-        return <StartupJourney />;
-      case 'opening-plan':
-        return <OpeningPlan />;
+      case 'startup-and-opening':
+        return <StartupAndOpeningPlan />;
       case 'idea-formation':
         
         return <IdeaFormation />;

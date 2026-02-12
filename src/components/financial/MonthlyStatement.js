@@ -3,6 +3,7 @@ import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
 import { Calendar, DollarSign, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, FileText, Plus, Edit2 } from 'lucide-react';
+import { OPERATING_EXPENSE_KEYS, OPERATING_EXPENSE_LABELS, sumOperatingExpenses } from '../../config/pnlLineItems';
 
 const MonthlyStatement = () => {
   const { state, actions } = useApp();
@@ -46,38 +47,9 @@ const MonthlyStatement = () => {
     { value: 11, label: 'November' },
     { value: 12, label: 'December' }
   ];
-  
-  // Get forecasted monthly expenses from projections
-  const getForecastedExpenses = useMemo(() => {
-    // Calculate monthly breakdown from annual projections
-    const calculations = calculateMonthlyForecast();
-    
-    return {
-      revenue: calculations.monthlyRevenue,
-      foodSales: calculations.monthlyFoodSales,
-      beverageSales: calculations.monthlyBeverageSales,
-      foodCogs: calculations.monthlyFoodCogs,
-      beverageCogs: calculations.monthlyBeverageCogs,
-      totalCogs: calculations.monthlyCogs,
-      grossProfit: calculations.monthlyGrossProfit,
-      rent: (data.operatingExpenses?.rent || 0) / 12,
-      utilities: (data.operatingExpenses?.utilities || 0) / 12,
-      insurance: (data.operatingExpenses?.insurance || 0) / 12,
-      marketing: (data.operatingExpenses?.marketing || 0) / 12,
-      legalAccounting: (data.operatingExpenses?.legalAccounting || 0) / 12,
-      repairsMaintenance: (data.operatingExpenses?.repairsMaintenance || 0) / 12,
-      supplies: (data.operatingExpenses?.supplies || 0) / 12,
-      adminOffice: (data.operatingExpenses?.adminOffice || 0) / 12,
-      payroll: (data.operatingExpenses?.labor?.totalAnnualCost || 0) / 12,
-      totalOperatingExpenses: calculations.monthlyOpEx,
-      totalExpenses: calculations.monthlyTotalExpenses,
-      netIncome: calculations.monthlyNetIncome
-    };
-  }, [data]);
-  
-  // Calculate monthly forecast from annual projections
+
+  // Calculate monthly forecast from annual projections (must be defined before getForecastedExpenses)
   const calculateMonthlyForecast = () => {
-    // Get annual revenue from daily sales projections
     const ops = data.restaurantOperations || {};
     const seats = ops.seats || 50;
     const avgCheckLunch = ops.averageCheck?.lunch || 18;
@@ -85,45 +57,28 @@ const MonthlyStatement = () => {
     const avgCheck = (avgCheckLunch + avgCheckDinner) / 2;
     const occupancy = ops.occupancyRate?.average || 0.8;
     const turnover = ops.tableTurnover?.average || 2.0;
-    
-    // Calculate daily revenue
+
     const dailyRevenue = seats * occupancy * turnover * avgCheck;
     const weeklyRevenue = dailyRevenue * 7;
     const annualRevenue = weeklyRevenue * 52;
     const monthlyRevenue = annualRevenue / 12;
-    
-    // Split revenue (70% food, 25% beverage, 5% other)
+
     const monthlyFoodSales = monthlyRevenue * 0.70;
     const monthlyBeverageSales = monthlyRevenue * 0.25;
-    
-    // Calculate COGS
+
     const foodCogsPercent = data.cogs?.foodCogsPercent || 0.28;
     const beverageCogsPercent = data.cogs?.beverageCogsPercent || 0.22;
     const monthlyFoodCogs = monthlyFoodSales * foodCogsPercent;
     const monthlyBeverageCogs = monthlyBeverageSales * beverageCogsPercent;
     const monthlyCogs = monthlyFoodCogs + monthlyBeverageCogs;
-    
-    // Calculate gross profit
     const monthlyGrossProfit = monthlyRevenue - monthlyCogs;
-    
-    // Calculate operating expenses (monthly)
+
     const opEx = data.operatingExpenses || {};
-    const monthlyOpEx = (
-      (opEx.rent || 0) +
-      (opEx.utilities || 0) +
-      (opEx.insurance || 0) +
-      (opEx.marketing || 0) +
-      (opEx.legalAccounting || 0) +
-      (opEx.repairsMaintenance || 0) +
-      (opEx.supplies || 0) +
-      (opEx.adminOffice || 0) +
-      (opEx.otherOperatingExpenses || 0)
-    ) / 12;
-    
+    const monthlyOpEx = sumOperatingExpenses(opEx) / 12;
     const monthlyPayroll = (opEx.labor?.totalAnnualCost || 0) / 12;
     const monthlyTotalExpenses = monthlyOpEx + monthlyPayroll + monthlyCogs;
     const monthlyNetIncome = monthlyGrossProfit - (monthlyOpEx + monthlyPayroll);
-    
+
     return {
       monthlyRevenue,
       monthlyFoodSales,
@@ -138,43 +93,49 @@ const MonthlyStatement = () => {
       monthlyNetIncome
     };
   };
-  
+
+  // Get forecasted monthly expenses from projections (full P&L list, parsed monthly)
+  const getForecastedExpenses = useMemo(() => {
+    const calculations = calculateMonthlyForecast();
+    const opEx = data.operatingExpenses || {};
+    const monthlyByKey = {};
+    OPERATING_EXPENSE_KEYS.forEach(key => {
+      monthlyByKey[key] = (Number(opEx[key]) || 0) / 12;
+    });
+    return {
+      revenue: calculations.monthlyRevenue,
+      foodSales: calculations.monthlyFoodSales,
+      beverageSales: calculations.monthlyBeverageSales,
+      foodCogs: calculations.monthlyFoodCogs,
+      beverageCogs: calculations.monthlyBeverageCogs,
+      totalCogs: calculations.monthlyCogs,
+      grossProfit: calculations.monthlyGrossProfit,
+      ...monthlyByKey,
+      payroll: (opEx.labor?.totalAnnualCost || 0) / 12,
+      totalOperatingExpenses: calculations.monthlyOpEx,
+      totalExpenses: calculations.monthlyTotalExpenses,
+      netIncome: calculations.monthlyNetIncome
+    };
+  }, [data]);
+
   // Get actual expenses for selected month
   const monthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
   const actualExpenses = monthlyActuals[monthKey] || {};
   
-  // Calculate variances
+  // Calculate variances (all P&L keys)
   const variances = useMemo(() => {
     const forecasted = getForecastedExpenses;
     const actual = actualExpenses;
-    
-    const calculateVariance = (forecast, actual) => {
-      const variance = (actual || 0) - (forecast || 0);
+    const calculateVariance = (forecast, actualVal) => {
+      const variance = (actualVal || 0) - (forecast || 0);
       const variancePercent = forecast > 0 ? (variance / forecast) * 100 : 0;
       return { variance, variancePercent, isFavorable: variance <= 0 };
     };
-    
-    return {
-      revenue: calculateVariance(forecasted.revenue, actual.revenue),
-      foodSales: calculateVariance(forecasted.foodSales, actual.foodSales),
-      beverageSales: calculateVariance(forecasted.beverageSales, actual.beverageSales),
-      foodCogs: calculateVariance(forecasted.foodCogs, actual.foodCogs),
-      beverageCogs: calculateVariance(forecasted.beverageCogs, actual.beverageCogs),
-      totalCogs: calculateVariance(forecasted.totalCogs, actual.totalCogs),
-      grossProfit: calculateVariance(forecasted.grossProfit, actual.grossProfit),
-      rent: calculateVariance(forecasted.rent, actual.rent),
-      utilities: calculateVariance(forecasted.utilities, actual.utilities),
-      insurance: calculateVariance(forecasted.insurance, actual.insurance),
-      marketing: calculateVariance(forecasted.marketing, actual.marketing),
-      legalAccounting: calculateVariance(forecasted.legalAccounting, actual.legalAccounting),
-      repairsMaintenance: calculateVariance(forecasted.repairsMaintenance, actual.repairsMaintenance),
-      supplies: calculateVariance(forecasted.supplies, actual.supplies),
-      adminOffice: calculateVariance(forecasted.adminOffice, actual.adminOffice),
-      payroll: calculateVariance(forecasted.payroll, actual.payroll),
-      totalOperatingExpenses: calculateVariance(forecasted.totalOperatingExpenses, actual.totalOperatingExpenses),
-      totalExpenses: calculateVariance(forecasted.totalExpenses, actual.totalExpenses),
-      netIncome: calculateVariance(forecasted.netIncome, actual.netIncome)
-    };
+    const result = {};
+    Object.keys(forecasted).forEach(key => {
+      result[key] = calculateVariance(forecasted[key], actual[key]);
+    });
+    return result;
   }, [getForecastedExpenses, actualExpenses]);
   
   // Update actual expense
@@ -209,28 +170,39 @@ const MonthlyStatement = () => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
   };
   
-  // Expense categories for input
-  const expenseCategories = [
-    { key: 'revenue', label: 'Total Revenue', section: 'revenue' },
-    { key: 'foodSales', label: 'Food Sales', section: 'revenue' },
-    { key: 'beverageSales', label: 'Beverage Sales', section: 'revenue' },
-    { key: 'foodCogs', label: 'Food COGS', section: 'cogs' },
-    { key: 'beverageCogs', label: 'Beverage COGS', section: 'cogs' },
-    { key: 'totalCogs', label: 'Total COGS', section: 'cogs' },
-    { key: 'grossProfit', label: 'Gross Profit', section: 'profit' },
-    { key: 'rent', label: 'Rent', section: 'expenses' },
-    { key: 'utilities', label: 'Utilities', section: 'expenses' },
-    { key: 'insurance', label: 'Insurance', section: 'expenses' },
-    { key: 'marketing', label: 'Marketing', section: 'expenses' },
-    { key: 'legalAccounting', label: 'Legal & Accounting', section: 'expenses' },
-    { key: 'repairsMaintenance', label: 'Repairs & Maintenance', section: 'expenses' },
-    { key: 'supplies', label: 'Supplies', section: 'expenses' },
-    { key: 'adminOffice', label: 'Admin & Office', section: 'expenses' },
-    { key: 'payroll', label: 'Payroll', section: 'expenses' },
-    { key: 'totalOperatingExpenses', label: 'Total Operating Expenses', section: 'expenses' },
-    { key: 'totalExpenses', label: 'Total Expenses', section: 'expenses' },
-    { key: 'netIncome', label: 'Net Income', section: 'profit' }
-  ];
+  // Expense categories for input (full P&L list; operating from config)
+  const expenseCategories = useMemo(() => {
+    const rev = [
+      { key: 'revenue', label: 'Total Revenue', section: 'revenue' },
+      { key: 'foodSales', label: 'Food Sales', section: 'revenue' },
+      { key: 'beverageSales', label: 'Beverage Sales', section: 'revenue' }
+    ];
+    const cogs = [
+      { key: 'foodCogs', label: 'Food COGS', section: 'cogs' },
+      { key: 'beverageCogs', label: 'Beverage COGS', section: 'cogs' },
+      { key: 'totalCogs', label: 'Total COGS', section: 'cogs' }
+    ];
+    const profitMid = [{ key: 'grossProfit', label: 'Gross Profit', section: 'profit' }];
+    const opExRows = OPERATING_EXPENSE_KEYS.map(key => ({
+      key,
+      label: OPERATING_EXPENSE_LABELS[key] || key,
+      section: 'expenses'
+    }));
+    const totals = [
+      { key: 'payroll', label: 'Payroll', section: 'expenses' },
+      { key: 'totalOperatingExpenses', label: 'Total Operating Expenses', section: 'expenses' },
+      { key: 'totalExpenses', label: 'Total Expenses', section: 'expenses' },
+      { key: 'netIncome', label: 'Net Income', section: 'profit' }
+    ];
+    return [...rev, ...cogs, ...profitMid, ...opExRows, ...totals];
+  }, []);
+
+  const expenseVendors = data.expenseVendors || { operating: {}, startup: {} };
+  const vendorsById = useMemo(() => {
+    const map = {};
+    (state.vendors || []).forEach(v => { map[String(v.id)] = v; });
+    return map;
+  }, [state.vendors]);
   
   const revenueCategories = expenseCategories.filter(c => c.section === 'revenue');
   const cogsCategories = expenseCategories.filter(c => c.section === 'cogs');
@@ -408,54 +380,58 @@ const MonthlyStatement = () => {
         </div>
       </SectionCard>
       
-      {/* Operating Expenses Section */}
-      <SectionCard title="Operating Expenses" icon={AlertTriangle}>
-        <div className="overflow-x-auto">
+      {/* Operating Expenses Section – full P&L list, parsed monthly, with vendor */}
+      <SectionCard title="Operating Expenses (monthly from annual)" icon={AlertTriangle}>
+        <p className="text-sm text-gray-500 mb-2">Forecasted = annual projection ÷ 12. Link vendors in Financial Projections → P&L line items.</p>
+        <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
           <table className="w-full">
-            <thead>
+            <thead className="bg-gray-50 sticky top-0">
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Forecasted</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Actual</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Variance</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">%</th>
+                <th className="text-left py-2 px-3 font-semibold text-gray-700">Category</th>
+                <th className="text-left py-2 px-3 font-semibold text-gray-700">Vendor</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-700">Forecasted</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-700">Actual</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-700">Variance</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-700">%</th>
               </tr>
             </thead>
             <tbody>
               {expenseCategoriesList.map(category => {
-                const forecasted = getForecastedExpenses[category.key] || 0;
-                const actual = actualExpenses[category.key] || 0;
-                const variance = variances[category.key];
-                
+                const forecasted = getForecastedExpenses[category.key] ?? 0;
+                const actual = actualExpenses[category.key] ?? 0;
+                const variance = variances[category.key] || { variance: 0, variancePercent: 0, isFavorable: true };
+                const vendorId = expenseVendors.operating[category.key];
+                const vendor = vendorId ? vendorsById[vendorId] : null;
                 return (
                   <tr key={category.key} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{category.label}</td>
-                    <td className="py-3 px-4 text-right text-gray-700">{formatCurrency(forecasted)}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-2 px-3 font-medium text-gray-900">{category.label}</td>
+                    <td className="py-2 px-3 text-sm text-gray-600">{vendor ? (vendor.company || vendor.name) : '—'}</td>
+                    <td className="py-2 px-3 text-right text-gray-700">{formatCurrency(forecasted)}</td>
+                    <td className="py-2 px-3 text-right">
                       {editingCategory === category.key ? (
                         <input
                           type="number"
                           value={actual || ''}
                           onChange={(e) => handleActualExpenseChange(category.key, e.target.value)}
                           onBlur={() => setEditingCategory(null)}
-                          className="w-32 px-2 py-1 border border-blue-500 rounded text-right"
+                          className="w-28 px-2 py-1 border border-blue-500 rounded text-right text-sm"
                           autoFocus
                         />
                       ) : (
                         <button
                           onClick={() => setEditingCategory(category.key)}
-                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                          className="text-blue-600 hover:text-blue-800 hover:underline text-sm"
                         >
                           {formatCurrency(actual)}
                         </button>
                       )}
                     </td>
-                    <td className={`py-3 px-4 text-right font-medium ${
+                    <td className={`py-2 px-3 text-right font-medium text-sm ${
                       variance.isFavorable ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {formatCurrency(variance.variance)}
                     </td>
-                    <td className={`py-3 px-4 text-right ${
+                    <td className={`py-2 px-3 text-right text-sm ${
                       variance.isFavorable ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {formatPercent(variance.variancePercent)}

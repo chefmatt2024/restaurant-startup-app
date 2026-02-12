@@ -13,6 +13,7 @@ import ExcelFinancialImporter from './ExcelFinancialImporter';
 import ScenarioManager from './ScenarioManager';
 import MonthlyStatement from './MonthlyStatement';
 import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles, FileText } from 'lucide-react';
+import { OPERATING_EXPENSE_KEYS, OPERATING_EXPENSE_LABELS, STARTUP_COST_KEYS, STARTUP_COST_LABELS } from '../../config/pnlLineItems';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
@@ -115,6 +116,15 @@ const FinancialProjections = () => {
       const currentData = data[section] || {};
       actions.updateFinancialData(section, { ...currentData, [field]: processedValue });
     }
+  };
+
+  const expenseVendors = data.expenseVendors || { operating: {}, startup: {} };
+  const setExpenseVendor = (type, key, vendorId) => {
+    const current = expenseVendors[type] || {};
+    actions.updateFinancialData('expenseVendors', {
+      ...expenseVendors,
+      [type]: { ...current, [key]: vendorId || null }
+    });
   };
 
   // Boston Restaurant Industry Benchmarks
@@ -563,7 +573,18 @@ const FinancialProjections = () => {
       (startupCosts.preOpeningSalaries || 0) +
       (startupCosts.depositsLicenses || 0) +
       (startupCosts.initialMarketing || 0) +
-      (startupCosts.contingency || 0);
+      (startupCosts.contingency || 0) +
+      (startupCosts.signage || 0) +
+      (startupCosts.posHardware || 0) +
+      (startupCosts.smallwaresStartup || 0) +
+      (startupCosts.openingBeverageInventory || 0) +
+      (startupCosts.trainingPreOpen || 0) +
+      (startupCosts.securityInstall || 0) +
+      (startupCosts.hoodVentilation || 0) +
+      (startupCosts.plumbingElectrical || 0) +
+      (startupCosts.professionalFees || 0) +
+      (startupCosts.preOpeningRent || 0) +
+      (startupCosts.otherStartup || 0);
     const fundingGap = totalStartupCosts - totalFunding;
     
     return {
@@ -709,7 +730,18 @@ const FinancialProjections = () => {
       (startupCosts.preOpeningSalaries || 0) +
       (startupCosts.depositsLicenses || 0) +
       (startupCosts.initialMarketing || 0) +
-      (startupCosts.contingency || 0);
+      (startupCosts.contingency || 0) +
+      (startupCosts.signage || 0) +
+      (startupCosts.posHardware || 0) +
+      (startupCosts.smallwaresStartup || 0) +
+      (startupCosts.openingBeverageInventory || 0) +
+      (startupCosts.trainingPreOpen || 0) +
+      (startupCosts.securityInstall || 0) +
+      (startupCosts.hoodVentilation || 0) +
+      (startupCosts.plumbingElectrical || 0) +
+      (startupCosts.professionalFees || 0) +
+      (startupCosts.preOpeningRent || 0) +
+      (startupCosts.otherStartup || 0);
 
     // Calculate total funding - include ALL funding sources
     const funding = data.fundingSources || {};
@@ -3397,6 +3429,97 @@ const FinancialProjections = () => {
             onChange={(value) => handleFieldChange('startupCosts', 'initialMarketing', value)}
             placeholder="15000"
           />
+          <FormField
+            label="Pre-Opening Salaries"
+            type="number"
+            value={data.startupCosts.preOpeningSalaries}
+            onChange={(value) => handleFieldChange('startupCosts', 'preOpeningSalaries', value)}
+            placeholder="30000"
+          />
+          <FormField
+            label="Contingency Reserve"
+            type="number"
+            value={data.startupCosts.contingency}
+            onChange={(value) => handleFieldChange('startupCosts', 'contingency', value)}
+            placeholder="25000"
+          />
+          <FormField
+            label="Signage"
+            type="number"
+            value={data.startupCosts.signage}
+            onChange={(value) => handleFieldChange('startupCosts', 'signage', value)}
+            placeholder="5000"
+          />
+          <FormField
+            label="POS Hardware & Setup"
+            type="number"
+            value={data.startupCosts.posHardware}
+            onChange={(value) => handleFieldChange('startupCosts', 'posHardware', value)}
+            placeholder="8000"
+          />
+          <FormField
+            label="Smallwares (Opening)"
+            type="number"
+            value={data.startupCosts.smallwaresStartup}
+            onChange={(value) => handleFieldChange('startupCosts', 'smallwaresStartup', value)}
+            placeholder="10000"
+          />
+          <FormField
+            label="Opening Beverage Inventory"
+            type="number"
+            value={data.startupCosts.openingBeverageInventory}
+            onChange={(value) => handleFieldChange('startupCosts', 'openingBeverageInventory', value)}
+            placeholder="8000"
+          />
+          <FormField
+            label="Pre-Opening Training"
+            type="number"
+            value={data.startupCosts.trainingPreOpen}
+            onChange={(value) => handleFieldChange('startupCosts', 'trainingPreOpen', value)}
+            placeholder="3000"
+          />
+          <FormField
+            label="Security System Install"
+            type="number"
+            value={data.startupCosts.securityInstall}
+            onChange={(value) => handleFieldChange('startupCosts', 'securityInstall', value)}
+            placeholder="4000"
+          />
+          <FormField
+            label="Hood & Ventilation"
+            type="number"
+            value={data.startupCosts.hoodVentilation}
+            onChange={(value) => handleFieldChange('startupCosts', 'hoodVentilation', value)}
+            placeholder="15000"
+          />
+          <FormField
+            label="Plumbing & Electrical"
+            type="number"
+            value={data.startupCosts.plumbingElectrical}
+            onChange={(value) => handleFieldChange('startupCosts', 'plumbingElectrical', value)}
+            placeholder="20000"
+          />
+          <FormField
+            label="Legal / Architect / Design"
+            type="number"
+            value={data.startupCosts.professionalFees}
+            onChange={(value) => handleFieldChange('startupCosts', 'professionalFees', value)}
+            placeholder="15000"
+          />
+          <FormField
+            label="Pre-Opening Rent"
+            type="number"
+            value={data.startupCosts.preOpeningRent}
+            onChange={(value) => handleFieldChange('startupCosts', 'preOpeningRent', value)}
+            placeholder="0"
+          />
+          <FormField
+            label="Other Startup"
+            type="number"
+            value={data.startupCosts.otherStartup}
+            onChange={(value) => handleFieldChange('startupCosts', 'otherStartup', value)}
+            placeholder="0"
+          />
         </div>
 
         <div className="mt-6 p-4 bg-purple-100 rounded-lg">
@@ -3428,6 +3551,87 @@ const FinancialProjections = () => {
             placeholder="Ask: 'Are my startup costs realistic?', 'What startup costs am I missing?', 'How much should I budget for Boston permits?'..."
             showQuickActions={false}
           />
+        </div>
+      </SectionCard>
+
+      {/* P&L line items & vendor links – like an actual P&L, parsed monthly in Monthly Statement */}
+      <SectionCard title="P&L line items & vendor links" color="blue">
+        <p className="text-sm text-gray-600 mb-4">
+          Link expenses to vendors. Amounts are parsed monthly in the Monthly Financial Statement. Assign a vendor to track who you pay for each line.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Operating expenses (annual → monthly)</h4>
+            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Category</th>
+                    <th className="text-right py-2 px-3 font-medium text-gray-700">Annual</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Vendor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {OPERATING_EXPENSE_KEYS.map(key => (
+                    <tr key={key} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="py-1.5 px-3 text-gray-900">{OPERATING_EXPENSE_LABELS[key] || key}</td>
+                      <td className="py-1.5 px-3 text-right text-gray-700">
+                        {formatCurrency((data.operatingExpenses || {})[key] || 0)}
+                      </td>
+                      <td className="py-1.5 px-3">
+                        <select
+                          value={expenseVendors.operating[key] || ''}
+                          onChange={(e) => setExpenseVendor('operating', key, e.target.value || null)}
+                          className="w-full max-w-[180px] text-xs border border-gray-300 rounded px-2 py-1"
+                        >
+                          <option value="">— None —</option>
+                          {(state.vendors || []).map(v => (
+                            <option key={v.id} value={String(v.id)}>{v.company || v.name || `Vendor ${v.id}`}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Startup costs (one-time, amortized in P&L)</h4>
+            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Category</th>
+                    <th className="text-right py-2 px-3 font-medium text-gray-700">Amount</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Vendor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {STARTUP_COST_KEYS.map(key => (
+                    <tr key={key} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="py-1.5 px-3 text-gray-900">{STARTUP_COST_LABELS[key] || key}</td>
+                      <td className="py-1.5 px-3 text-right text-gray-700">
+                        {formatCurrency((data.startupCosts || {})[key] || 0)}
+                      </td>
+                      <td className="py-1.5 px-3">
+                        <select
+                          value={expenseVendors.startup[key] || ''}
+                          onChange={(e) => setExpenseVendor('startup', key, e.target.value || null)}
+                          className="w-full max-w-[180px] text-xs border border-gray-300 rounded px-2 py-1"
+                        >
+                          <option value="">— None —</option>
+                          {(state.vendors || []).map(v => (
+                            <option key={v.id} value={String(v.id)}>{v.company || v.name || `Vendor ${v.id}`}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </SectionCard>
 
