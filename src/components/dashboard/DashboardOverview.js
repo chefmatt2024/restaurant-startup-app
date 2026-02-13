@@ -169,11 +169,10 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
       id,
       ...section,
       action: () => {
-        actions.setActiveTab(id);
-        if (onSwitchToDetailed) onSwitchToDetailed();
+        if (onSwitchToDetailed) onSwitchToDetailed(id);
       }
     }));
-  }, [sectionStatus, actions]);
+  }, [sectionStatus, onSwitchToDetailed]);
 
   // Get recent activity
   const recentActivity = useMemo(() => {
@@ -356,7 +355,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
             <div className="px-4 pb-4 pt-0">
               <button
                 type="button"
-                onClick={() => { actions.setActiveTab('startup-and-opening'); if (onSwitchToDetailed) onSwitchToDetailed(); }}
+                onClick={() => onSwitchToDetailed && onSwitchToDetailed('startup-and-opening')}
                 className="w-full text-left flex items-center justify-between p-3 rounded-lg bg-white border border-amber-200 hover:bg-amber-50 transition-colors"
               >
                 <span className="flex items-center gap-2 font-medium text-gray-800">
@@ -439,7 +438,12 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               {Object.entries(sectionStatus).map(([id, section]) => {
                 const IconComponent = section.icon;
                 return (
-                  <div key={id} className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200">
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => onSwitchToDetailed && onSwitchToDetailed(id)}
+                    className="w-full flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className={`p-3 rounded-lg shadow-sm ${
                         section.completed 
@@ -467,8 +471,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
                           <Clock className="w-5 h-5 text-gray-500" />
                         </div>
                       )}
+                      <ArrowRight className="w-5 h-5 text-gray-400" />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -556,10 +561,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               </p>
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => {
-                    actions.setActiveTab('compliance');
-                    if (onSwitchToDetailed) onSwitchToDetailed();
-                  }}
+                  onClick={() => onSwitchToDetailed && onSwitchToDetailed('compliance')}
                   className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 flex items-center space-x-2 shadow-lg"
                 >
                   <Rocket className="w-5 h-5" />

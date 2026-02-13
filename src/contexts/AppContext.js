@@ -1636,7 +1636,7 @@ const updateCurrentDraftData = (state) => {
       ...state,
       businessPlan: currentDraft.businessPlan,
       financialData: currentDraft.financialData,
-      vendors: currentDraft.vendors,
+      vendors: Array.isArray(currentDraft.vendors) ? currentDraft.vendors : [],
       openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] }
     };
   }
@@ -1749,7 +1749,8 @@ export const appReducer = (state, action) => {
     }
     
     case ActionTypes.ADD_VENDOR: {
-      const updatedVendors = [...state.vendors, action.payload];
+      const currentVendors = Array.isArray(state.vendors) ? state.vendors : [];
+      const updatedVendors = [...currentVendors, action.payload];
       
       // Update current draft
       const updatedDrafts = state.drafts.map(draft => 
@@ -1786,7 +1787,8 @@ export const appReducer = (state, action) => {
     }
     
     case ActionTypes.REMOVE_VENDOR: {
-      const updatedVendors = state.vendors.filter(vendor => vendor.id !== action.payload);
+      const currentVendors = Array.isArray(state.vendors) ? state.vendors : [];
+      const updatedVendors = currentVendors.filter(vendor => vendor.id !== action.payload);
       
       // Update current draft
       const updatedDrafts = state.drafts.map(draft => 
@@ -1819,9 +1821,14 @@ export const appReducer = (state, action) => {
     
     // Draft management actions
     case ActionTypes.SET_DRAFTS: {
+      const drafts = Array.isArray(action.payload) ? action.payload : [];
+      const currentDraftId = state.currentDraftId != null && drafts.some(d => d.id === state.currentDraftId)
+        ? state.currentDraftId
+        : (drafts.length > 0 ? drafts[0].id : null);
       const newState = {
         ...state,
-        drafts: action.payload
+        drafts,
+        currentDraftId
       };
       return updateCurrentDraftData(newState);
     }
@@ -2073,7 +2080,7 @@ export const AppProvider = ({ children }) => {
             name: currentDraft.name || 'Untitled Draft', // Ensure name is always included
             businessPlan: state.businessPlan,
             financialData: state.financialData,
-            vendors: state.vendors,
+            vendors: Array.isArray(state.vendors) ? state.vendors : [],
             openingPlanProgress: state.openingPlanProgress || { completedTaskIds: [] },
             updatedAt: new Date()
           };

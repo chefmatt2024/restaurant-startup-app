@@ -106,20 +106,25 @@ const Dashboard = () => {
     actions.setActiveTab('pricing');
   };
 
+  const handleSwitchToDetailed = (tabId) => {
+    setShowOverview(false);
+    if (tabId) actions.setActiveTab(tabId);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      {/* View Toggle - below header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      {/* View Toggle - sticky below header so it's always visible */}
+      <div className="sticky top-0 z-20 bg-white border-b-2 border-gray-200 shadow-md">
         <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-3">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-gray-500 hidden sm:inline">View:</span>
-            <div className="inline-flex p-1 bg-gray-100 rounded-lg">
+            <span className="text-sm font-medium text-gray-600 hidden sm:inline">Switch view:</span>
+            <div className="inline-flex p-1.5 bg-gray-100 rounded-lg border border-gray-200">
               <button
                 onClick={() => setShowOverview(true)}
                 className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                   showOverview
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -130,16 +135,16 @@ const Dashboard = () => {
                 onClick={() => setShowOverview(false)}
                 className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                   !showOverview
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <List className="w-4 h-4" />
-                Detailed View
+                Operating
               </button>
             </div>
-            <span className="text-xs text-gray-400 sm:ml-1">
-              {showOverview ? 'High-level progress & next steps' : 'All plan sections'}
+            <span className="text-xs text-gray-500 sm:ml-1">
+              {showOverview ? 'High-level progress & next steps' : 'Vendors, financials & all plan sections'}
             </span>
           </div>
         </div>
@@ -147,7 +152,7 @@ const Dashboard = () => {
       <TrialExpirationBanner onUpgrade={handleUpgrade} />
       <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
         {showOverview ? (
-          <DashboardOverview onSwitchToDetailed={() => setShowOverview(false)} />
+          <DashboardOverview onSwitchToDetailed={handleSwitchToDetailed} />
         ) : (
           <div className="modern-card overflow-hidden shadow-2xl">
             <TabNavigation sectionStatus={sectionStatus} />
@@ -162,7 +167,7 @@ const Dashboard = () => {
                   Overview
                 </button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700 font-medium">Detailed View</span>
+                <span className="text-gray-700 font-medium">Operating</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-900 font-semibold" aria-current="page">{currentSectionLabel}</span>
               </nav>

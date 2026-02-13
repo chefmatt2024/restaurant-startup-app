@@ -161,16 +161,18 @@ const VendorManagement = () => {
       description: "Specialty coffee and cafe products", priority: "low" }
   ];
 
+  const stateVendors = Array.isArray(state.vendors) ? state.vendors : [];
+
   // Initialize vendors in state if empty (only once)
   useEffect(() => {
-    if (state.vendors.length === 0 && initialVendors.length > 0) {
+    if (stateVendors.length === 0 && initialVendors.length > 0) {
       actions.setVendors(initialVendors);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount to initialize vendors
 
   // Always use state.vendors (which will include initialVendors after initialization)
-  const vendors = state.vendors.length > 0 ? state.vendors : initialVendors;
+  const vendors = stateVendors.length > 0 ? stateVendors : initialVendors;
 
   const categories = [
     'Food Supplier', 'Beverage Supplier', 'Restaurant Supplies', 'Equipment', 
@@ -1114,8 +1116,25 @@ Return a well-structured summary in markdown format.`;
     </div>
   );
 
+  const hasNoDraft = !state.currentDraftId;
+  const draftCount = Array.isArray(state.drafts) ? state.drafts.length : 0;
+
   return (
     <div className="animate-fade-in space-y-6">
+      {hasNoDraft && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-amber-800 font-medium">
+            Create a draft to save vendors. Your vendors will be stored with your plan once a draft is selected.
+          </p>
+          <button
+            type="button"
+            onClick={() => actions.createDraft(draftCount > 0 ? `Draft ${draftCount + 1}` : 'My plan')}
+            className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700"
+          >
+            Create draft
+          </button>
+        </div>
+      )}
       {/* Header Section */}
       <SectionCard 
         title="Boston Restaurant Supply Chain Management" 
