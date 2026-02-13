@@ -44,7 +44,7 @@ const WelcomeTour = ({ isOpen, onComplete, onSkip }) => {
           </ul>
           <button
             onClick={() => {
-              actions.setActiveTab('idea-formation');
+              actions.setActiveTab('concept-pitch');
               markStepComplete('idea');
             }}
             className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
@@ -102,7 +102,7 @@ const WelcomeTour = ({ isOpen, onComplete, onSkip }) => {
           </ul>
           <button
             onClick={() => {
-              actions.setActiveTab('competitive-analysis');
+              actions.setActiveTab('market-competition');
               markStepComplete('market');
             }}
             className="w-full bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"

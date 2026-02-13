@@ -34,6 +34,7 @@ export const ActionTypes = {
   DUPLICATE_DRAFT: 'DUPLICATE_DRAFT',
   SET_DRAFT_COMPARISON: 'SET_DRAFT_COMPARISON',
   UPDATE_PROJECT_TIMELINE: 'UPDATE_PROJECT_TIMELINE',
+  UPDATE_OPENING_PLAN_PROGRESS: 'UPDATE_OPENING_PLAN_PROGRESS',
   
   // Auto-save actions
   SET_SAVE_STATUS: 'SET_SAVE_STATUS',
@@ -57,7 +58,7 @@ const initialState = {
   },
   
   // UI state
-  activeTab: 'idea-formation',
+  activeTab: 'concept-pitch',
   showMessage: false,
   message: {
     type: 'info', // 'success', 'error', 'info'
@@ -564,12 +565,17 @@ const initialState = {
       purchasePrice: 0, // For existing restaurants
       renovations: 0, // Renovation costs if needed
       needsRenovations: false // Whether renovations are required
+    },
+    // Cap table: ownership / equity (managers, employees, founders, investors)
+    capTable: {
+      entries: [] // { id, name, role, type: 'common'|'preferred', ownershipPercent, shares?, source: 'manual'|'management'|'labor' }
     }
   },
   
   vendors: [],
   certifications: [],
-  projectTimeline: null
+  projectTimeline: null,
+  openingPlanProgress: { completedTaskIds: [] }
 };
 
 // Draft helper functions
@@ -583,7 +589,8 @@ const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null) => {
     isActive: false,
     businessPlan: baseDraft ? { ...baseDraft.businessPlan } : { ...initialState.businessPlan },
     financialData: baseDraft ? { ...baseDraft.financialData } : { ...initialState.financialData },
-    vendors: baseDraft ? [...baseDraft.vendors] : []
+    vendors: baseDraft ? [...baseDraft.vendors] : [],
+    openingPlanProgress: baseDraft?.openingPlanProgress ? { ...baseDraft.openingPlanProgress, completedTaskIds: [...(baseDraft.openingPlanProgress.completedTaskIds || [])] } : { completedTaskIds: [] }
   };
 };
 
@@ -1629,7 +1636,8 @@ const updateCurrentDraftData = (state) => {
       ...state,
       businessPlan: currentDraft.businessPlan,
       financialData: currentDraft.financialData,
-      vendors: currentDraft.vendors
+      vendors: currentDraft.vendors,
+      openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] }
     };
   }
   return state;
@@ -1834,7 +1842,8 @@ export const appReducer = (state, action) => {
         currentDraftId: newDraft.id,
         businessPlan: newDraft.businessPlan,
         financialData: newDraft.financialData,
-        vendors: newDraft.vendors
+        vendors: newDraft.vendors,
+        openingPlanProgress: newDraft.openingPlanProgress || { completedTaskIds: [] }
       };
     }
     
@@ -1888,6 +1897,19 @@ export const appReducer = (state, action) => {
         ...state,
         projectTimeline: action.payload
       };
+
+    case ActionTypes.UPDATE_OPENING_PLAN_PROGRESS: {
+      const completedTaskIds = Array.isArray(action.payload) ? action.payload : (action.payload?.completedTaskIds || []);
+      const openingPlanProgress = { completedTaskIds };
+      const updatedDrafts = state.drafts.map(draft =>
+        draft.id === state.currentDraftId ? { ...draft, openingPlanProgress, updatedAt: new Date() } : draft
+      );
+      return {
+        ...state,
+        openingPlanProgress,
+        drafts: updatedDrafts
+      };
+    }
     
     case ActionTypes.SET_SAVE_STATUS:
       return {
@@ -2014,6 +2036,10 @@ export const AppProvider = ({ children }) => {
     updateProjectTimeline: (timeline) => {
       dispatch({ type: ActionTypes.UPDATE_PROJECT_TIMELINE, payload: timeline });
     },
+
+    updateOpeningPlanProgress: (completedTaskIds) => {
+      dispatch({ type: ActionTypes.UPDATE_OPENING_PLAN_PROGRESS, payload: Array.isArray(completedTaskIds) ? completedTaskIds : (completedTaskIds?.completedTaskIds || []) });
+    },
     
     // Save data to Firebase (with optional silent mode for auto-save)
     saveData: async (silent = false) => {
@@ -2048,6 +2074,7 @@ export const AppProvider = ({ children }) => {
             businessPlan: state.businessPlan,
             financialData: state.financialData,
             vendors: state.vendors,
+            openingPlanProgress: state.openingPlanProgress || { completedTaskIds: [] },
             updatedAt: new Date()
           };
           

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { CheckCircle, Circle, Target, BarChart3, FileText, MapPin, Building2, Users, ArrowRight } from 'lucide-react';
+import { CheckCircle, Circle, Target, BarChart3, FileText, MapPin, Building2, Users, ArrowRight, Compass } from 'lucide-react';
 
 const GettingStartedChecklist = () => {
   const { state, actions } = useApp();
@@ -9,10 +9,21 @@ const GettingStartedChecklist = () => {
 
   const checklistItems = [
     {
+      id: 'opening-plan',
+      title: 'Start Opening Plan',
+      description: 'Track your lease → permits → buildout → opening checklist',
+      tab: 'startup-and-opening',
+      icon: <Compass className="w-5 h-5" />,
+      checkFunction: () => {
+        const completed = state.openingPlanProgress?.completedTaskIds?.length ?? 0;
+        return completed > 0;
+      }
+    },
+    {
       id: 'idea',
       title: 'Define Your Restaurant Concept',
       description: 'Start with your restaurant idea and vision',
-      tab: 'idea-formation',
+      tab: 'concept-pitch',
       icon: <Target className="w-5 h-5" />,
       checkFunction: () => {
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
@@ -34,7 +45,7 @@ const GettingStartedChecklist = () => {
       id: 'market',
       title: 'Research Your Market',
       description: 'Analyze competition and target market',
-      tab: 'competitive-analysis',
+      tab: 'market-competition',
       icon: <MapPin className="w-5 h-5" />,
       checkFunction: () => {
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
@@ -49,7 +60,7 @@ const GettingStartedChecklist = () => {
       icon: <Building2 className="w-5 h-5" />,
       checkFunction: () => {
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
-        return draft?.businessPlan?.operations?.length > 0;
+        return !!(draft?.businessPlan?.operationsPlan?.location || draft?.businessPlan?.operationsPlan?.staffingPlan || (draft?.equipmentData?.equipment?.length > 0) || (draft?.menuData?.menuItems?.length > 0));
       }
     },
     {
@@ -66,11 +77,11 @@ const GettingStartedChecklist = () => {
       id: 'team',
       title: 'Define Management Team',
       description: 'Outline your key team members',
-      tab: 'management',
+      tab: 'team-cap-table',
       icon: <Users className="w-5 h-5" />,
       checkFunction: () => {
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
-        return draft?.businessPlan?.managementTeam?.members?.length > 0;
+        return !!(draft?.businessPlan?.managementTeam?.keyPersonnel || (draft?.businessPlan?.managementTeam?.teamMembers?.length > 0));
       }
     }
   ];

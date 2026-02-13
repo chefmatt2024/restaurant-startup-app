@@ -5,26 +5,19 @@ import TabNavigation, { DETAIL_VIEW_TABS } from '../components/layout/TabNavigat
 import { getSectionStatus } from '../utils/sectionStatus';
 import { ChevronRight, LayoutDashboard, List } from 'lucide-react';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
-import ExecutiveSummary from '../components/business-plan/ExecutiveSummary';
-import MarketAnalysis from '../components/business-plan/MarketAnalysis';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
-import ManagementTeam from '../components/business-plan/ManagementTeam';
-import ServiceDescription from '../components/business-plan/ServiceDescription';
-import MarketingStrategy from '../components/business-plan/MarketingStrategy';
 import FinancialProjections from '../components/financial/FinancialProjections';
 import VendorManagement from '../components/vendors/VendorManagement';
-import IdeaFormation from '../components/ideation/IdeaFormation';
-import ElevatorPitchBuilder from '../components/ideation/ElevatorPitchBuilder';
-import DocumentsCompliance from '../components/compliance/DocumentsCompliance';
-import OpenRestaurantManager from '../components/compliance/OpenRestaurantManager';
-import CertificationManager from '../components/compliance/CertificationManager';
 import TimelineManager from '../components/project/TimelineManager';
 import BusinessAnalytics from '../components/analytics/BusinessAnalytics';
-import EquipmentPlanning from '../components/equipment/EquipmentPlanning';
-import MenuBuilder from '../components/menu/MenuBuilder';
 import BrandingPlanner from '../components/branding/BrandingPlanner';
-import CompetitiveAnalysis from '../components/business-plan/CompetitiveAnalysis';
 import StartupAndOpeningPlan from '../components/startup/StartupAndOpeningPlan';
+import ConceptAndPitch from '../components/ideation/ConceptAndPitch';
+import MarketAndCompetition from '../components/business-plan/MarketAndCompetition';
+import OfferAndMarketing from '../components/business-plan/OfferAndMarketing';
+import TeamAndCapTable from '../components/business-plan/TeamAndCapTable';
+import EquipmentAndMenu from '../components/equipment/EquipmentAndMenu';
+import ComplianceHub from '../components/compliance/ComplianceHub';
 import PricingPage from '../components/payment/PricingPage';
 import SubscriptionManager from '../components/payment/SubscriptionManager';
 import AdminDashboard from '../components/admin/AdminDashboard';
@@ -48,43 +41,28 @@ const Dashboard = () => {
     switch (state.activeTab) {
       case 'startup-and-opening':
         return <StartupAndOpeningPlan />;
-      case 'idea-formation':
-        
-        return <IdeaFormation />;
-      case 'elevator-pitch':
-        return <ElevatorPitchBuilder />;
+      case 'concept-pitch':
+        return <ConceptAndPitch />;
+      case 'market-competition':
+        return <MarketAndCompetition />;
+      case 'offer-marketing':
+        return <OfferAndMarketing />;
       case 'timeline':
         return <TimelineManager />;
-      case 'executive-summary':
-        return <ExecutiveSummary />;
-      case 'market-analysis':
-        return <MarketAnalysis />;
       case 'operations':
         return <OperationsPlan />;
-      case 'management':
-        return <ManagementTeam />;
-      case 'services':
-        return <ServiceDescription />;
-      case 'marketing':
-        return <MarketingStrategy />;
+      case 'team-cap-table':
+        return <TeamAndCapTable />;
       case 'financials':
         return <FinancialProjections />;
       case 'vendors':
         return <VendorManagement />;
-      case 'equipment-planning':
-        return <EquipmentPlanning />;
-      case 'menu-builder':
-        return <MenuBuilder />;
-              case 'branding':
-          return <BrandingPlanner />;
-        case 'competitive-analysis':
-          return <CompetitiveAnalysis />;
-        case 'documents':
-          return <DocumentsCompliance />;
-      case 'open-restaurant':
-        return <OpenRestaurantManager />;
-      case 'certifications':
-        return <CertificationManager />;
+      case 'equipment-menu':
+        return <EquipmentAndMenu />;
+      case 'branding':
+        return <BrandingPlanner />;
+      case 'compliance':
+        return <ComplianceHub />;
       case 'business-analytics':
         return <BusinessAnalytics />;
       case 'pricing':

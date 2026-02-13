@@ -58,6 +58,30 @@ const DocumentGenerator = () => {
     }).format(value || 0);
   };
 
+  // Hours of operation: use financials (single source of truth) or fall back to business plan text
+  const getHoursOfOperationText = () => {
+    const hours = financialData?.restaurantOperations?.hoursOfOperation;
+    if (hours && typeof hours === 'object') {
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const fmt = (t) => {
+        if (!t) return '11:00';
+        const [h, m] = String(t).split(':');
+        const hr = parseInt(h, 10);
+        if (hr === 0) return `12:${m || '00'} AM`;
+        if (hr < 12) return `${h}:${m || '00'} AM`;
+        if (hr === 12) return `12:${m || '00'} PM`;
+        return `${hr - 12}:${m || '00'} PM`;
+      };
+      return days.map((day) => {
+        const h = hours[day];
+        const label = day.charAt(0).toUpperCase() + day.slice(1);
+        if (!h || h.closed) return `${label}: Closed`;
+        return `${label}: ${fmt(h.open)}-${fmt(h.close)}`;
+      }).join(', ');
+    }
+    return businessPlan?.operationsPlan?.hoursOfOperation || '';
+  };
+
   // Generate Pitch Deck PDF
   const generatePitchDeck = async () => {
     setIsGenerating(true);
@@ -422,7 +446,7 @@ const DocumentGenerator = () => {
       addText(businessPlan.operationsPlan.facilityRequirements || '', 12);
       yPos += 5;
       addText('Hours of Operation:', 12, true);
-      addText(businessPlan.operationsPlan.hoursOfOperation || '', 12);
+      addText(getHoursOfOperationText(), 12);
       yPos += 5;
       addText('Staffing Plan:', 12, true);
       addText(businessPlan.operationsPlan.staffingPlan || '', 12);

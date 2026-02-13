@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist';
+import { OPENING_PLAN_TOTAL_TASKS } from '../startup/OpeningPlan';
 import QuickStartTemplates from '../onboarding/QuickStartTemplates';
 import {
   CheckCircle, 
@@ -55,90 +56,60 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
       return false;
     };
 
+    const ideaDone = !!(currentDraft.businessPlan?.ideation?.businessConcept || currentDraft.businessPlan?.ideation?.coreInspiration || currentDraft.businessPlan?.ideation?.solutionIdea);
+    const pitchDone = !!(currentDraft.businessPlan?.elevatorPitch?.finalPitch || currentDraft.businessPlan?.elevatorPitch?.hook);
+    const summaryDone = !!(currentDraft.businessPlan?.executiveSummary?.businessName || currentDraft.businessPlan?.executiveSummary?.missionStatement);
+    const marketDone = !!(currentDraft.businessPlan?.marketAnalysis?.targetMarket || currentDraft.businessPlan?.marketAnalysis?.marketSize || currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis);
+    const competitiveDone = !!(currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis);
+    const servicesDone = !!(currentDraft.businessPlan?.serviceDescription?.productsServices);
+    const marketingDone = !!(currentDraft.businessPlan?.marketingStrategy?.marketingMix || currentDraft.businessPlan?.marketingStrategy?.customerAcquisition);
+    const managementDone = !!(currentDraft.businessPlan?.managementTeam?.keyPersonnel);
+    const capTableDone = !!(currentDraft.financialData?.capTable?.entries?.length > 0);
+    const equipmentDone = !!(currentDraft.equipmentData?.equipment?.length > 0);
+    const menuDone = !!(currentDraft.menuData?.menuItems?.length > 0);
+    const documentsDone = !!(currentDraft.complianceData?.documents?.length > 0);
+
     const sections = {
-      'idea-formation': {
-        label: 'Idea Formation',
+      'concept-pitch': {
+        label: 'Concept & Pitch',
         icon: Lightbulb,
         color: 'yellow',
-        completed: !!(currentDraft.businessPlan?.ideation?.businessConcept || 
-                     currentDraft.businessPlan?.ideation?.coreInspiration ||
-                     currentDraft.businessPlan?.ideation?.solutionIdea),
+        completed: !!(ideaDone || pitchDone || summaryDone),
         priority: 'high'
       },
-      'elevator-pitch': {
-        label: 'Elevator Pitch',
-        icon: Mic,
-        color: 'green',
-        completed: !!(currentDraft.businessPlan?.elevatorPitch?.finalPitch || 
-                     currentDraft.businessPlan?.elevatorPitch?.hook),
-        priority: 'high'
-      },
-      'executive-summary': {
-        label: 'Executive Summary',
-        icon: FileText,
-        color: 'blue',
-        completed: !!(currentDraft.businessPlan?.executiveSummary?.businessName || 
-                     currentDraft.businessPlan?.executiveSummary?.missionStatement),
-        priority: 'high'
-      },
-      'market-analysis': {
-        label: 'Market Analysis',
+      'market-competition': {
+        label: 'Market & Competition',
         icon: BarChart3,
         color: 'green',
-        completed: !!(currentDraft.businessPlan?.marketAnalysis?.targetMarket || 
-                     currentDraft.businessPlan?.marketAnalysis?.marketSize ||
-                     currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis),
+        completed: !!(marketDone || competitiveDone),
         priority: 'high'
       },
-      'competitive-analysis': {
-        label: 'Competitive Analysis',
-        icon: Target,
-        color: 'blue',
-        completed: !!(currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis),
-        priority: 'medium'
-      },
-      'services': {
-        label: 'Products/Services',
+      'offer-marketing': {
+        label: 'Offer & Marketing',
         icon: Target,
         color: 'purple',
-        completed: !!(currentDraft.businessPlan?.serviceDescription?.productsServices),
+        completed: !!(servicesDone || marketingDone),
         priority: 'high'
       },
       'operations': {
         label: 'Operations Plan',
         icon: Building,
         color: 'purple',
-        completed: !!(currentDraft.businessPlan?.operationsPlan?.location || 
-                     currentDraft.businessPlan?.operationsPlan?.staffingPlan),
+        completed: !!(currentDraft.businessPlan?.operationsPlan?.location || currentDraft.businessPlan?.operationsPlan?.staffingPlan),
         priority: 'medium'
       },
-      'management': {
-        label: 'Management Team',
+      'team-cap-table': {
+        label: 'Team & Cap Table',
         icon: Users,
         color: 'indigo',
-        completed: !!(currentDraft.businessPlan?.managementTeam?.keyPersonnel),
-        priority: 'medium'
-      },
-      'marketing': {
-        label: 'Marketing Strategy',
-        icon: Target,
-        color: 'pink',
-        completed: !!(currentDraft.businessPlan?.marketingStrategy?.marketingMix || 
-                     currentDraft.businessPlan?.marketingStrategy?.customerAcquisition),
+        completed: !!(managementDone || capTableDone),
         priority: 'medium'
       },
       'financials': {
         label: 'Financial Projections',
         icon: DollarSign,
         color: 'green',
-        completed: !!(currentDraft.financialData?.revenue?.foodSales > 0 || 
-                     currentDraft.financialData?.revenue?.beverageSales > 0 ||
-                     currentDraft.financialData?.operatingExpenses?.rent > 0 ||
-                     currentDraft.financialData?.startupCosts?.totalBuildCost > 0 ||
-                     currentDraft.financialData?.startupCosts?.purchasePrice > 0 ||
-                     currentDraft.financialData?.restaurantOperations?.seats > 0 ||
-                     currentDraft.financialData?.restaurantType?.buildCosts > 0 ||
-                     currentDraft.financialData?.restaurantType?.purchasePrice > 0),
+        completed: !!(currentDraft.financialData?.revenue?.foodSales > 0 || currentDraft.financialData?.revenue?.beverageSales > 0 || currentDraft.financialData?.operatingExpenses?.rent > 0 || currentDraft.financialData?.startupCosts?.totalBuildCost > 0 || currentDraft.financialData?.startupCosts?.purchasePrice > 0 || currentDraft.financialData?.restaurantOperations?.seats > 0 || currentDraft.financialData?.restaurantType?.buildCosts > 0 || currentDraft.financialData?.restaurantType?.purchasePrice > 0),
         priority: 'high'
       },
       'vendors': {
@@ -148,18 +119,11 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         completed: !!(currentDraft.vendors && currentDraft.vendors.length > 0),
         priority: 'low'
       },
-      'equipment-planning': {
-        label: 'Equipment Planning',
-        icon: Wrench,
-        color: 'purple',
-        completed: !!(currentDraft.equipmentData?.equipment?.length > 0),
-        priority: 'medium'
-      },
-      'menu-builder': {
-        label: 'Menu Builder',
+      'equipment-menu': {
+        label: 'Equipment & Menu',
         icon: Utensils,
         color: 'orange',
-        completed: !!(currentDraft.menuData?.menuItems?.length > 0),
+        completed: !!(equipmentDone || menuDone),
         priority: 'medium'
       },
       'branding': {
@@ -169,11 +133,11 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         completed: !!(currentDraft.brandingData?.brandName),
         priority: 'low'
       },
-      'documents': {
-        label: 'Documents & Compliance',
+      'compliance': {
+        label: 'Compliance',
         icon: Shield,
         color: 'red',
-        completed: !!(currentDraft.complianceData?.documents?.length > 0),
+        completed: documentsDone,
         priority: 'high'
       }
     };
@@ -383,6 +347,27 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
             </button>
           )}
         </div>
+        {/* Opening Plan progress */}
+        {(() => {
+          const completed = state.openingPlanProgress?.completedTaskIds?.length ?? 0;
+          const total = OPENING_PLAN_TOTAL_TASKS;
+          const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+          return (
+            <div className="px-4 pb-4 pt-0">
+              <button
+                type="button"
+                onClick={() => { actions.setActiveTab('startup-and-opening'); if (onSwitchToDetailed) onSwitchToDetailed(); }}
+                className="w-full text-left flex items-center justify-between p-3 rounded-lg bg-white border border-amber-200 hover:bg-amber-50 transition-colors"
+              >
+                <span className="flex items-center gap-2 font-medium text-gray-800">
+                  <Compass className="h-4 w-4 text-amber-600" />
+                  Opening Plan: {completed}/{total} tasks ({pct}%)
+                </span>
+                <ArrowRight className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -542,7 +527,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
             <button
               onClick={() => {
-                actions.setActiveTab('documents');
+                actions.setActiveTab('compliance');
                 if (onSwitchToDetailed) onSwitchToDetailed();
               }}
               className="p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-all duration-200 text-center group hover-lift"
@@ -572,7 +557,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => {
-                    actions.setActiveTab('open-restaurant');
+                    actions.setActiveTab('compliance');
                     if (onSwitchToDetailed) onSwitchToDetailed();
                   }}
                   className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 flex items-center space-x-2 shadow-lg"

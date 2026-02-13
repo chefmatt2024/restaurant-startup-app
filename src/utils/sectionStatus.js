@@ -23,50 +23,40 @@ export function getSectionStatus(draft) {
     return false;
   };
 
+  const ideaDone = !!(draft.businessPlan?.ideation?.businessConcept || draft.businessPlan?.ideation?.coreInspiration || draft.businessPlan?.ideation?.solutionIdea);
+  const pitchDone = !!(draft.businessPlan?.elevatorPitch?.finalPitch || draft.businessPlan?.elevatorPitch?.hook);
+  const summaryDone = !!(draft.businessPlan?.executiveSummary?.businessName || draft.businessPlan?.executiveSummary?.missionStatement);
+  const marketDone = !!(draft.businessPlan?.marketAnalysis?.targetMarket || draft.businessPlan?.marketAnalysis?.marketSize || draft.businessPlan?.marketAnalysis?.competitiveAnalysis);
+  const competitiveDone = !!(draft.businessPlan?.marketAnalysis?.competitiveAnalysis);
+  const servicesDone = !!(draft.businessPlan?.serviceDescription?.productsServices);
+  const marketingDone = !!(draft.businessPlan?.marketingStrategy?.marketingMix || draft.businessPlan?.marketingStrategy?.customerAcquisition);
+  const managementDone = !!(draft.businessPlan?.managementTeam?.keyPersonnel);
+  const capTableDone = !!(draft.financialData?.capTable?.entries?.length > 0);
+  const equipmentDone = !!(draft.equipmentData?.equipment?.length > 0);
+  const menuDone = !!(draft.menuData?.menuItems?.length > 0);
+  const documentsDone = !!(draft.complianceData?.documents?.length > 0);
+
   return {
-    'idea-formation': {
-      label: 'Idea Formation',
-      completed: !!(draft.businessPlan?.ideation?.businessConcept ||
-        draft.businessPlan?.ideation?.coreInspiration ||
-        draft.businessPlan?.ideation?.solutionIdea)
+    'concept-pitch': {
+      label: 'Concept & Pitch',
+      completed: !!(ideaDone || pitchDone || summaryDone)
     },
-    'elevator-pitch': {
-      label: 'Elevator Pitch',
-      completed: !!(draft.businessPlan?.elevatorPitch?.finalPitch ||
-        draft.businessPlan?.elevatorPitch?.hook)
+    'market-competition': {
+      label: 'Market & Competition',
+      completed: !!(marketDone || competitiveDone)
     },
-    'executive-summary': {
-      label: 'Executive Summary',
-      completed: !!(draft.businessPlan?.executiveSummary?.businessName ||
-        draft.businessPlan?.executiveSummary?.missionStatement)
-    },
-    'market-analysis': {
-      label: 'Market Analysis',
-      completed: !!(draft.businessPlan?.marketAnalysis?.targetMarket ||
-        draft.businessPlan?.marketAnalysis?.marketSize ||
-        draft.businessPlan?.marketAnalysis?.competitiveAnalysis)
-    },
-    'competitive-analysis': {
-      label: 'Competitive Analysis',
-      completed: !!(draft.businessPlan?.marketAnalysis?.competitiveAnalysis)
-    },
-    'services': {
-      label: 'Products/Services',
-      completed: !!(draft.businessPlan?.serviceDescription?.productsServices)
+    'offer-marketing': {
+      label: 'Offer & Marketing',
+      completed: !!(servicesDone || marketingDone)
     },
     'operations': {
       label: 'Operations Plan',
       completed: !!(draft.businessPlan?.operationsPlan?.location ||
         draft.businessPlan?.operationsPlan?.staffingPlan)
     },
-    'management': {
-      label: 'Management Team',
-      completed: !!(draft.businessPlan?.managementTeam?.keyPersonnel)
-    },
-    'marketing': {
-      label: 'Marketing Strategy',
-      completed: !!(draft.businessPlan?.marketingStrategy?.marketingMix ||
-        draft.businessPlan?.marketingStrategy?.customerAcquisition)
+    'team-cap-table': {
+      label: 'Team & Cap Table',
+      completed: !!(managementDone || capTableDone)
     },
     'financials': {
       label: 'Financial Projections',
@@ -83,21 +73,17 @@ export function getSectionStatus(draft) {
       label: 'Vendor Management',
       completed: !!(draft.vendors && draft.vendors.length > 0)
     },
-    'equipment-planning': {
-      label: 'Equipment Planning',
-      completed: !!(draft.equipmentData?.equipment?.length > 0)
-    },
-    'menu-builder': {
-      label: 'Menu Builder',
-      completed: !!(draft.menuData?.menuItems?.length > 0)
+    'equipment-menu': {
+      label: 'Equipment & Menu',
+      completed: !!(equipmentDone || menuDone)
     },
     'branding': {
       label: 'Branding Planner',
       completed: !!(draft.brandingData?.brandName)
     },
-    'documents': {
-      label: 'Documents & Compliance',
-      completed: !!(draft.complianceData?.documents?.length > 0)
+    'compliance': {
+      label: 'Compliance',
+      completed: documentsDone
     }
   };
 }

@@ -40,7 +40,7 @@ const WelcomeMessage = ({ isOpen, onClose }) => {
   const handleGetStarted = () => {
     onClose();
     // Optionally redirect to a specific tab
-    actions.setActiveTab('idea-formation');
+    actions.setActiveTab('concept-pitch');
     // Trigger welcome tour after a short delay
     setTimeout(() => {
       const tourCompleted = localStorage.getItem('welcomeTourCompleted');
@@ -120,7 +120,7 @@ const WelcomeMessage = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => {
-                  actions.setActiveTab('idea-formation');
+                  actions.setActiveTab('concept-pitch');
                   onClose();
                 }}
                 className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"

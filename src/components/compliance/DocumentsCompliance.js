@@ -1216,6 +1216,28 @@ const DocumentsCompliance = () => {
           </div>
         </div>
 
+        {/* Boston restaurant permits – quick links */}
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <h3 className="font-semibold text-gray-900 mb-2">Boston restaurant permits – official links</h3>
+          <div className="flex flex-wrap gap-2">
+            <a href="https://www.boston.gov/departments/inspectional-services/how-get-food-service-permit" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <ExternalLink className="h-4 w-4" /> Food Service Permit (ISD)
+            </a>
+            <a href="https://www.boston.gov/departments/public-health-commission" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <ExternalLink className="h-4 w-4" /> Boston Public Health (BPHC)
+            </a>
+            <a href="https://www.boston.gov/departments/inspectional-services" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <ExternalLink className="h-4 w-4" /> Inspectional Services (ISD)
+            </a>
+            <a href="https://www.boston.gov/departments/fire-department" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <ExternalLink className="h-4 w-4" /> Boston Fire Department
+            </a>
+            <a href="https://www.sec.state.ma.us" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <ExternalLink className="h-4 w-4" /> MA Secretary of State
+            </a>
+          </div>
+        </div>
+
         {/* Upcoming Deadlines Alert */}
         {upcomingDeadlines.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

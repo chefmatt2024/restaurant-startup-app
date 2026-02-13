@@ -4,9 +4,41 @@ import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
 import { Clock, Users, MapPin, CheckCircle, AlertTriangle, Settings, Truck, Shield, Calendar, Calculator } from 'lucide-react';
 
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const DEFAULT_DAY_HOURS = { closed: false, open: '11:00', close: '22:00' };
+
+// Build human-readable hours summary from financialData.restaurantOperations.hoursOfOperation
+const formatHoursSummary = (hoursOfOperation) => {
+  if (!hoursOfOperation) return '';
+  const parts = DAYS.map((day) => {
+    const h = hoursOfOperation[day] || DEFAULT_DAY_HOURS;
+    const label = day.charAt(0).toUpperCase() + day.slice(1);
+    if (h.closed) return `${label}: Closed`;
+    const open = (h.open || '11:00').replace(/^(\d{1,2}):(\d{2})$/, (_, hr, min) => {
+      const hh = parseInt(hr, 10);
+      if (hh === 0) return '12:' + min + ' AM';
+      if (hh < 12) return hr + ':' + min + ' AM';
+      if (hh === 12) return '12:' + min + ' PM';
+      return (hh - 12) + ':' + min + ' PM';
+    });
+    const close = (h.close || '22:00').replace(/^(\d{1,2}):(\d{2})$/, (_, hr, min) => {
+      const hh = parseInt(hr, 10);
+      if (hh === 0) return '12:' + min + ' AM';
+      if (hh < 12) return hr + ':' + min + ' AM';
+      if (hh === 12) return '12:' + min + ' PM';
+      return (hh - 12) + ':' + min + ' PM';
+    });
+    return `${label}: ${open}-${close}`;
+  });
+  return parts.join(', ');
+};
+
 const OperationsPlan = () => {
   const { state, actions } = useApp();
   const data = state.businessPlan.operationsPlan;
+  const financialData = state.financialData;
+  const restaurantOps = financialData?.restaurantOperations || {};
+  const hoursOfOperation = restaurantOps.hoursOfOperation || {};
   const [activeTab, setActiveTab] = useState('facility');
   const [staffingCalculator, setStaffingCalculator] = useState({
     seatingCapacity: 50,
@@ -16,6 +48,19 @@ const OperationsPlan = () => {
 
   const handleFieldChange = (field, value) => {
     actions.updateBusinessPlan('operationsPlan', { [field]: value });
+  };
+
+  // Update hours in financials (single source of truth) and sync summary to business plan for docs
+  const handleHoursChange = (day, updates) => {
+    const current = restaurantOps.hoursOfOperation || {};
+    const dayHours = { ...DEFAULT_DAY_HOURS, ...current[day], ...updates };
+    const newHours = { ...current, [day]: dayHours };
+    actions.updateFinancialData('restaurantOperations', {
+      ...restaurantOps,
+      hoursOfOperation: newHours
+    });
+    const summary = formatHoursSummary({ ...current, [day]: dayHours });
+    if (summary) actions.updateBusinessPlan('operationsPlan', { hoursOfOperation: summary });
   };
 
   // Boston restaurant operational requirements
@@ -544,16 +589,60 @@ const OperationsPlan = () => {
     </div>
   );
 
+  const formatTimeForInput = (time) => {
+    if (!time) return '11:00';
+    if (typeof time === 'string' && /^\d{1,2}:\d{2}$/.test(time)) return time.length === 4 ? '0' + time : time;
+    return time || '11:00';
+  };
+
   const renderSchedule = () => (
     <div className="space-y-6">
-      <FormField
-        label="Operating Hours"
-        type="textarea"
-        value={data.operatingHours}
-        onChange={(value) => handleFieldChange('operatingHours', value)}
-        placeholder="Monday-Thursday: 11:30am-10pm, Friday-Saturday: 11:30am-11pm, Sunday: 12pm-9pm"
-        rows={2}
-      />
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p className="text-sm text-gray-600 mb-3">
+          These hours are shared with <strong>Financial Projections</strong>. Changes here update revenue and staffing calculations there.
+        </p>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Hours of Operation (by day)</label>
+        <div className="grid grid-cols-1 gap-2">
+          {DAYS.map((day) => {
+            const hours = hoursOfOperation[day] || DEFAULT_DAY_HOURS;
+            const closed = hours.closed === true;
+            const openVal = formatTimeForInput(hours.open);
+            const closeVal = formatTimeForInput(hours.close);
+            return (
+              <div key={day} className="flex flex-wrap items-center gap-2 p-2 hover:bg-white/60 rounded">
+                <span className="w-24 text-sm font-medium capitalize">{day}</span>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!closed}
+                    onChange={(e) => handleHoursChange(day, { closed: !e.target.checked, open: hours.open, close: hours.close })}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
+                  />
+                  <span className="text-xs text-gray-600">Open</span>
+                </label>
+                {!closed && (
+                  <>
+                    <input
+                      type="time"
+                      value={openVal}
+                      onChange={(e) => handleHoursChange(day, { open: e.target.value, close: hours.close, closed: false })}
+                      className="text-sm border border-gray-300 rounded px-2 py-1 w-24"
+                    />
+                    <span className="text-gray-500 text-sm">to</span>
+                    <input
+                      type="time"
+                      value={closeVal}
+                      onChange={(e) => handleHoursChange(day, { close: e.target.value, open: hours.open, closed: false })}
+                      className="text-sm border border-gray-300 rounded px-2 py-1 w-24"
+                    />
+                  </>
+                )}
+                {closed && <span className="text-sm text-gray-500 italic">Closed</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <FormField
         label="Seasonal Variations"

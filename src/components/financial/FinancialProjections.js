@@ -604,6 +604,29 @@ const FinancialProjections = () => {
     };
   }, [data.fundingSources, data.startupCosts, data.restaurantType]);
 
+  // Pre-opening budget: costs that occur before opening (runway view)
+  const preOpeningBudget = useMemo(() => {
+    const startup = data.startupCosts || {};
+    const total =
+      (startup.preOpeningSalaries || 0) +
+      (startup.preOpeningRent || 0) +
+      (startup.trainingPreOpen || 0) +
+      (startup.professionalFees || 0) +
+      (startup.initialMarketing || 0) +
+      (startup.depositsLicenses || 0);
+    return {
+      total,
+      breakdown: {
+        preOpeningSalaries: startup.preOpeningSalaries || 0,
+        preOpeningRent: startup.preOpeningRent || 0,
+        trainingPreOpen: startup.trainingPreOpen || 0,
+        professionalFees: startup.professionalFees || 0,
+        initialMarketing: startup.initialMarketing || 0,
+        depositsLicenses: startup.depositsLicenses || 0
+      }
+    };
+  }, [data.startupCosts]);
+
   // Calculate key metrics
   const calculations = useMemo(() => {
     // CRITICAL FIX: Use dailySalesProjections instead of data.revenue
@@ -3376,6 +3399,21 @@ const FinancialProjections = () => {
 
       {/* Boston Startup Costs */}
       <SectionCard title="Boston Restaurant Startup Costs" color="purple">
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h4 className="font-semibold text-amber-900 mb-2">Pre-opening budget (runway)</h4>
+          <p className="text-sm text-amber-800 mb-2">Costs that occur before opening: salaries, rent, training, marketing, deposits.</p>
+          <div className="text-xl font-bold text-amber-900">{formatCurrency(preOpeningBudget.total)}</div>
+          {preOpeningBudget.total > 0 && (
+            <ul className="text-xs text-amber-700 mt-2 space-y-0.5">
+              {preOpeningBudget.breakdown.preOpeningSalaries > 0 && <li>Pre-opening salaries: {formatCurrency(preOpeningBudget.breakdown.preOpeningSalaries)}</li>}
+              {preOpeningBudget.breakdown.preOpeningRent > 0 && <li>Pre-opening rent: {formatCurrency(preOpeningBudget.breakdown.preOpeningRent)}</li>}
+              {preOpeningBudget.breakdown.trainingPreOpen > 0 && <li>Training: {formatCurrency(preOpeningBudget.breakdown.trainingPreOpen)}</li>}
+              {preOpeningBudget.breakdown.professionalFees > 0 && <li>Professional fees: {formatCurrency(preOpeningBudget.breakdown.professionalFees)}</li>}
+              {preOpeningBudget.breakdown.initialMarketing > 0 && <li>Initial marketing: {formatCurrency(preOpeningBudget.breakdown.initialMarketing)}</li>}
+              {preOpeningBudget.breakdown.depositsLicenses > 0 && <li>Deposits & licenses: {formatCurrency(preOpeningBudget.breakdown.depositsLicenses)}</li>}
+            </ul>
+          )}
+        </div>
         <div className="mb-4 p-4 bg-purple-50 rounded-lg">
           <h4 className="font-semibold text-purple-800 mb-2">Boston-Specific Requirements:</h4>
           <ul className="text-sm text-purple-700 space-y-1">

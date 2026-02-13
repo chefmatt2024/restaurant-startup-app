@@ -429,13 +429,13 @@ ${pitchData.ask || '[What you\'re asking for - investment, partnership, etc.]'}`
         {/* Next Steps */}
         <div className="flex justify-between pt-6 border-t border-gray-200">
           <button
-            onClick={() => actions.setActiveTab('idea-formation')}
+            onClick={() => actions.setActiveTab('concept-pitch')}
             className="btn-secondary"
           >
             ← Back to Idea Formation
           </button>
           <button
-            onClick={() => actions.setActiveTab('executive-summary')}
+            onClick={() => actions.setActiveTab('concept-pitch')}
             className="btn-primary"
           >
             Start Business Plan →

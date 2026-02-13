@@ -9,7 +9,7 @@ const LandingPage = () => {
 
   // If user is authenticated, redirect to dashboard
   if (state.isAuthenticated && state.userId) {
-    actions.setActiveTab('idea-formation');
+    actions.setActiveTab('concept-pitch');
     return null;
   }
 

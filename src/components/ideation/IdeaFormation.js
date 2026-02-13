@@ -459,7 +459,7 @@ const IdeaFormation = () => {
             )}
             {activeStep === 5 && completedSteps() === 5 && (
               <button
-                onClick={() => actions.setActiveTab('elevator-pitch')}
+                onClick={() => actions.setActiveTab('concept-pitch')}
                 className="btn-primary flex items-center space-x-2"
               >
                 <span>Create Elevator Pitch</span>

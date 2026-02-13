@@ -6,7 +6,7 @@ const AppLanding = () => {
   const { actions } = useApp();
 
   const handleLaunchApp = () => {
-    actions.setActiveTab('idea-formation');
+    actions.setActiveTab('concept-pitch');
   };
 
   const handleBackToMainSite = () => {

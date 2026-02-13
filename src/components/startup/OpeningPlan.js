@@ -1,40 +1,41 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
+
+// Total task count for progress display (e.g. Dashboard). Update if phases change.
+export const OPENING_PLAN_TOTAL_TASKS = 28;
 import {
   Calendar, CheckCircle, Clock, DollarSign, FileText, MapPin, 
   Building, Users, Utensils, Truck, Shield, Target, TrendingUp,
   AlertCircle, Info, Star, ArrowRight, Play, BookOpen, Zap, Lightbulb,
-  BarChart3
+  BarChart3, ExternalLink
 } from 'lucide-react';
 
 const OpeningPlan = () => {
-  const { state } = useApp();
+  const { state, actions } = useApp();
   const [activePhase, setActivePhase] = useState('preparation');
-  const [completedTasks, setCompletedTasks] = useState(new Set());
+  const persistedIds = state.openingPlanProgress?.completedTaskIds || [];
+  const completedTasks = new Set(persistedIds);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [lastCompletedTask, setLastCompletedTask] = useState(null);
 
   const toggleTaskCompletion = (taskId) => {
-    const newCompleted = new Set(completedTasks);
-    const wasCompleted = newCompleted.has(taskId);
+    const newSet = new Set(completedTasks);
+    const wasCompleted = newSet.has(taskId);
     
     if (wasCompleted) {
-      newCompleted.delete(taskId);
+      newSet.delete(taskId);
       setLastCompletedTask(null);
     } else {
-      newCompleted.add(taskId);
-      // Find the task details for celebration
+      newSet.add(taskId);
       const task = openingPhases.flatMap(phase => phase.tasks).find(t => t.id === taskId);
       setLastCompletedTask(task);
       setShowCelebration(true);
-      
-      // Hide celebration after 3 seconds
       setTimeout(() => setShowCelebration(false), 3000);
     }
     
-    setCompletedTasks(newCompleted);
+    actions.updateOpeningPlanProgress([...newSet]);
   };
 
   const getProgressPercentage = (phaseTasks) => {
@@ -96,6 +97,7 @@ const OpeningPlan = () => {
           timeEstimate: '3-5 days',
           priority: 'High',
           category: 'ideation',
+          tabId: 'concept-pitch',
           bostonTip: 'Boston loves authentic, chef-driven concepts. Consider seasonal menus and local sourcing.',
           actions: [
             'Complete Idea Formation section',
@@ -111,6 +113,7 @@ const OpeningPlan = () => {
           timeEstimate: '1-2 weeks',
           priority: 'High',
           category: 'planning',
+          tabId: 'concept-pitch',
           bostonTip: 'Include detailed market analysis for your target neighborhood. Boston has diverse demographics.',
           actions: [
             'Complete Executive Summary',
@@ -126,6 +129,7 @@ const OpeningPlan = () => {
           timeEstimate: '3-5 days',
           priority: 'Medium',
           category: 'planning',
+          tabId: 'team-cap-table',
           bostonTip: 'Boston has a strong culinary talent pool. Plan for competitive salaries and benefits.',
           actions: [
             'Define key management roles',
@@ -150,6 +154,7 @@ const OpeningPlan = () => {
           timeEstimate: '1 week',
           priority: 'High',
           category: 'financial',
+          tabId: 'financials',
           bostonTip: 'Boston restaurant startup costs: $175K-$400K. Include 20% contingency for unexpected expenses.',
           actions: [
             'Use Financial Projections tool',
@@ -338,6 +343,7 @@ const OpeningPlan = () => {
           timeEstimate: '4-8 weeks',
           priority: 'High',
           category: 'compliance',
+          relatedTab: 'compliance',
           bostonTip: 'Boston building permits require detailed plans. Work with experienced architects and contractors.',
           actions: [
             'Submit architectural plans',
@@ -353,6 +359,7 @@ const OpeningPlan = () => {
           timeEstimate: '3-4 weeks',
           priority: 'High',
           category: 'compliance',
+          relatedTab: 'compliance',
           bostonTip: 'Download the official Food Establishment Permit Application (Form 4/14) from the Documents & Compliance section. This form must be completed with all required documentation.',
           actions: [
             'Download Food Establishment Permit Application (Form 4/14)',
@@ -628,6 +635,14 @@ const OpeningPlan = () => {
         <p className="text-sm text-gray-500 mt-4">
           Typical total: 4–8 months from lease signing to opening in Boston. Permits often run in parallel with construction.
         </p>
+        <button
+          type="button"
+          onClick={() => actions.setActiveTab('timeline')}
+          className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium text-sm"
+        >
+          <Calendar className="h-4 w-4" />
+          Edit dates in Project Timeline
+        </button>
       </SectionCard>
 
       {/* Header */}
@@ -894,6 +909,30 @@ const OpeningPlan = () => {
               </div>
             </div>
 
+            {/* Boston official links (Phase 4: Permits) */}
+            {phase.id === 'permits' && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-2">Boston restaurant permits – official links</h4>
+                <div className="flex flex-wrap gap-2">
+                  <a href="https://www.boston.gov/departments/inspectional-services/how-get-food-service-permit" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <ExternalLink className="h-4 w-4" /> Food Service Permit (ISD)
+                  </a>
+                  <a href="https://www.boston.gov/departments/public-health-commission" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <ExternalLink className="h-4 w-4" /> Boston Public Health (BPHC)
+                  </a>
+                  <a href="https://www.boston.gov/departments/inspectional-services" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <ExternalLink className="h-4 w-4" /> Inspectional Services (ISD)
+                  </a>
+                  <a href="https://www.boston.gov/departments/fire-department" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <ExternalLink className="h-4 w-4" /> Boston Fire Department
+                  </a>
+                  <a href="https://www.sec.state.ma.us" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <ExternalLink className="h-4 w-4" /> MA Secretary of State
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* Tasks */}
             <div className="space-y-4">
               {phase.tasks.map((task) => (
@@ -939,31 +978,54 @@ const OpeningPlan = () => {
                       </div>
                     </div>
                     
-                    <div className="ml-4 text-right">
-                      <div className="text-sm text-gray-500 mb-2">
+                    <div className="ml-4 text-right flex flex-col items-end gap-2">
+                      <div className="text-sm text-gray-500">
                         <Clock className="h-4 w-4 inline mr-1" />
                         {task.timeEstimate}
                       </div>
-                      <button
-                        onClick={() => toggleTaskCompletion(task.id)}
-                        className={`inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                          completedTasks.has(task.id)
-                            ? 'bg-green-600 text-white'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                      >
-                        {completedTasks.has(task.id) ? (
-                          <>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Completed
-                          </>
-                        ) : (
-                          <>
-                            <Star className="h-4 w-4 mr-2" />
-                            Mark Complete
-                          </>
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        {task.tabId && (
+                          <button
+                            type="button"
+                            onClick={() => actions.setActiveTab(task.tabId)}
+                            className="inline-flex items-center px-3 py-2 rounded-lg font-medium text-sm bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Open in app
+                          </button>
                         )}
-                      </button>
+                        {task.relatedTab === 'compliance' && (
+                          <button
+                            type="button"
+                            onClick={() => actions.setActiveTab('compliance')}
+                            className="inline-flex items-center px-3 py-2 rounded-lg font-medium text-sm bg-white border border-red-600 text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <Shield className="h-4 w-4 mr-1" />
+                            Open Compliance
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => toggleTaskCompletion(task.id)}
+                          className={`inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                            completedTasks.has(task.id)
+                              ? 'bg-green-600 text-white'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {completedTasks.has(task.id) ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Completed
+                            </>
+                          ) : (
+                            <>
+                              <Star className="h-4 w-4 mr-2" />
+                              Mark Complete
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

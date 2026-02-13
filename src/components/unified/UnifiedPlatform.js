@@ -146,7 +146,7 @@ const UnifiedPlatform = () => {
     if (app.status === 'active') {
       if (app.id === 'restaurant-planner') {
         // Launch the restaurant planning app
-        actions.setActiveTab('idea-formation');
+        actions.setActiveTab('concept-pitch');
       } else if (app.id === 'culinary-rd') {
         // Launch culinary R&D app
         window.open(app.link, '_blank');
