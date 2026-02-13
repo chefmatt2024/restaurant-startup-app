@@ -117,7 +117,10 @@ const Dashboard = () => {
       {/* View Toggle - sticky below header so it's always visible */}
       <div className="sticky top-0 z-20 bg-white border-b-2 border-gray-200 shadow-md">
         <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-3">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <span className="text-xs text-gray-500 sm:mr-auto">
+              {showOverview ? 'High-level progress & next steps' : 'Vendors, financials & all plan sections'}
+            </span>
             <span className="text-sm font-medium text-gray-600 hidden sm:inline">Switch view:</span>
             <div className="inline-flex p-1.5 bg-gray-100 rounded-lg border border-gray-200">
               <button
@@ -143,9 +146,6 @@ const Dashboard = () => {
                 Operating
               </button>
             </div>
-            <span className="text-xs text-gray-500 sm:ml-1">
-              {showOverview ? 'High-level progress & next steps' : 'Vendors, financials & all plan sections'}
-            </span>
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@ export const DETAIL_VIEW_TABS = [
     { id: 'market-competition', label: 'Market & Competition', icon: BarChart3, color: 'green', description: 'Market & competitive analysis' },
     { id: 'offer-marketing', label: 'Offer & Marketing', icon: Target, color: 'purple', description: 'Products, services, marketing' },
     { id: 'operations', label: 'Operations', icon: Building, color: 'purple' },
-    { id: 'team-cap-table', label: 'Team & Cap Table', icon: Users, color: 'indigo', description: 'Management team & ownership' },
+    { id: 'team-cap-table', label: 'Team & Cap Table', icon: Users, color: 'indigo', description: 'Staffing, management team & cap table' },
     { id: 'financials', label: 'Financial Projections', icon: DollarSign, color: 'green' },
     { id: 'business-analytics', label: 'Business Analytics', icon: BarChart3, color: 'blue' },
     { id: 'timeline', label: 'Project Timeline', icon: Calendar, color: 'indigo' },
@@ -54,8 +54,8 @@ const TabNavigation = ({ sectionStatus = {} }) => {
 
   return (
     <nav ref={navRef} className="bg-gray-50 border-b border-gray-200">
-      <div className="px-6">
-        <div className="flex flex-wrap items-end justify-end gap-y-2 overflow-x-auto pb-2 pt-4">
+      <div className="px-6 flex justify-end">
+        <div className="flex flex-wrap items-end justify-end gap-y-2 gap-x-1 overflow-x-auto pb-2 pt-4">
           {tabs.map((tab, index) => {
             const Icon = tab.icon;
             const isActive = state.activeTab === tab.id;
