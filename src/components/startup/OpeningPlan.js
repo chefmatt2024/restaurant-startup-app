@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
-
-// Total task count for progress display (e.g. Dashboard). Update if phases change.
-export const OPENING_PLAN_TOTAL_TASKS = 28;
 import {
-  Calendar, CheckCircle, Clock, DollarSign, FileText, MapPin, 
+  Calendar, CheckCircle, Clock, DollarSign, FileText, MapPin,
   Building, Users, Utensils, Truck, Shield, Target, TrendingUp,
   AlertCircle, Info, Star, ArrowRight, Play, BookOpen, Zap, Lightbulb,
   BarChart3, ExternalLink
 } from 'lucide-react';
+
+// Total task count for progress display (e.g. Dashboard). Update if phases change.
+export const OPENING_PLAN_TOTAL_TASKS = 28;
 
 const OpeningPlan = () => {
   const { state, actions } = useApp();
