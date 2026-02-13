@@ -12,8 +12,10 @@ import PLImporter from './PLImporter';
 import ExcelFinancialImporter from './ExcelFinancialImporter';
 import ScenarioManager from './ScenarioManager';
 import MonthlyStatement from './MonthlyStatement';
-import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles, FileText } from 'lucide-react';
+import { Calculator, TrendingUp, DollarSign, AlertTriangle, BarChart3, Download, CheckCircle, Building2, Store, Wrench, Sparkles, FileText, Plus, Trash2 } from 'lucide-react';
 import { OPERATING_EXPENSE_KEYS, OPERATING_EXPENSE_LABELS, STARTUP_COST_KEYS, STARTUP_COST_LABELS } from '../../config/pnlLineItems';
+import { MONTHLY_PL_SECTIONS, getInitialMonthlyPL } from '../../config/monthlyPLAccounts';
+import { LOCATION_OPTIONS } from '../../config/locationOptions';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
@@ -26,6 +28,26 @@ const FinancialProjections = () => {
     actions.updateFinancialData('restaurantType', {
       ...restaurantType,
       [field]: value
+    });
+  };
+
+  // Monthly P&L: merge saved data with defaults so all account codes exist
+  const monthlyPL = useMemo(() => {
+    const defaults = getInitialMonthlyPL();
+    const saved = data.monthlyPL || {};
+    const merged = {};
+    MONTHLY_PL_SECTIONS.forEach(({ id }) => {
+      merged[id] = { ...(defaults[id] || {}), ...(saved[id] || {}) };
+    });
+    return merged;
+  }, [data.monthlyPL]);
+
+  const handleMonthlyPLChange = (sectionId, code, value) => {
+    const num = value === '' ? 0 : parseFloat(value) || 0;
+    const sectionData = monthlyPL[sectionId] || {};
+    actions.updateFinancialData('monthlyPL', {
+      ...monthlyPL,
+      [sectionId]: { ...sectionData, [code]: num }
     });
   };
 
@@ -584,7 +606,17 @@ const FinancialProjections = () => {
       (startupCosts.plumbingElectrical || 0) +
       (startupCosts.professionalFees || 0) +
       (startupCosts.preOpeningRent || 0) +
-      (startupCosts.otherStartup || 0);
+      (startupCosts.otherStartup || 0) +
+      (startupCosts.realEstateLand || 0) +
+      (startupCosts.realEstateBuildings || 0) +
+      (startupCosts.equipment || 0) +
+      (startupCosts.vehicles || 0) +
+      (startupCosts.otherFixedAssets || 0) +
+      (startupCosts.prepaidInsurance || 0) +
+      (startupCosts.rentDeposits || 0) +
+      (startupCosts.utilityDeposits || 0) +
+      (startupCosts.supplies || 0) +
+      (startupCosts.workingCapitalCashOnHand || 0);
     const fundingGap = totalStartupCosts - totalFunding;
     
     return {
@@ -764,7 +796,17 @@ const FinancialProjections = () => {
       (startupCosts.plumbingElectrical || 0) +
       (startupCosts.professionalFees || 0) +
       (startupCosts.preOpeningRent || 0) +
-      (startupCosts.otherStartup || 0);
+      (startupCosts.otherStartup || 0) +
+      (startupCosts.realEstateLand || 0) +
+      (startupCosts.realEstateBuildings || 0) +
+      (startupCosts.equipment || 0) +
+      (startupCosts.vehicles || 0) +
+      (startupCosts.otherFixedAssets || 0) +
+      (startupCosts.prepaidInsurance || 0) +
+      (startupCosts.rentDeposits || 0) +
+      (startupCosts.utilityDeposits || 0) +
+      (startupCosts.supplies || 0) +
+      (startupCosts.workingCapitalCashOnHand || 0);
 
     // Calculate total funding - include ALL funding sources
     const funding = data.fundingSources || {};
@@ -803,9 +845,11 @@ const FinancialProjections = () => {
       ? (totalExpenses / (grossMargin / 100)) / monthlyBurnRate 
       : 0;
     
-    // Working capital estimate (typically 2-3 months of expenses)
+    // Cash flow needs: 6-month reserve of operating expenses (recommended for initial opening)
+    const cashFlowReserve6Months = totalExpenses / 2;
+    // Working capital estimate (typically 2-3 months) kept for reference
     const workingCapitalNeeded = monthlyBurnRate * 2.5;
-    const totalCapitalNeeded = totalStartupCosts + workingCapitalNeeded;
+    const totalCapitalNeeded = totalStartupCosts + cashFlowReserve6Months;
     const capitalGap = totalCapitalNeeded - totalFunding;
 
     // Cash flow projections (simplified)
@@ -839,6 +883,7 @@ const FinancialProjections = () => {
       monthlyBurnRate,
       runwayMonths,
       monthsToBreakEven,
+      cashFlowReserve6Months,
       workingCapitalNeeded,
       totalCapitalNeeded,
       capitalGap,
@@ -1083,15 +1128,15 @@ const FinancialProjections = () => {
           </div>
         </SectionCard>
 
-        {/* Header with Boston Context */}
+        {/* Header with location context */}
         <SectionCard 
-        title="Boston Restaurant Financial Projections" 
-        description="Comprehensive financial modeling tailored for Boston's restaurant market with local benchmarks and regulations."
+        title={`${data.restaurantDetails?.location || 'Boston'} Restaurant Financial Projections`} 
+        description={`Financial modeling tailored for ${data.restaurantDetails?.location || 'Boston'}'s restaurant market with local benchmarks and regulations.`}
         color="blue"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-100 p-4 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">Boston Market Context</h4>
+            <h4 className="font-semibold text-blue-800 mb-2">{data.restaurantDetails?.location || 'Boston'} Market Context</h4>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Avg rent: ${bostonBenchmarks.avgRentPerSqFt}/sq ft/year</li>
               <li>• Target food cost: {(bostonBenchmarks.avgFoodCostPercent * 100).toFixed(0)}%</li>
@@ -1119,6 +1164,19 @@ const FinancialProjections = () => {
 
       {/* Restaurant Operations Configuration */}
       <SectionCard title="Restaurant Operations Configuration" color="purple">
+        <p className="text-sm text-gray-600 mb-4">Seats and square footage are linked with <strong>Operations → Facility & Layout</strong>. Location is used for benchmarks and compliance across the app.</p>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">City / Area</label>
+          <select
+            value={data.restaurantDetails?.location || 'Boston'}
+            onChange={(e) => actions.updateFinancialData('restaurantDetails', { ...data.restaurantDetails, location: e.target.value })}
+            className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {LOCATION_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Basic Operations */}
           <div>
@@ -1128,8 +1186,23 @@ const FinancialProjections = () => {
                 label="Total Seats"
                 type="number"
                 value={data.restaurantOperations?.seats || 50}
-                onChange={(value) => handleFieldChange('restaurantOperations', 'seats', parseInt(value))}
+                onChange={(value) => {
+                  const num = parseInt(value, 10) || 0;
+                  handleFieldChange('restaurantOperations', 'seats', num);
+                  actions.updateBusinessPlan('operationsPlan', { seatingCapacity: num });
+                }}
                 placeholder="50"
+              />
+              <FormField
+                label="Square Footage"
+                type="number"
+                value={data.restaurantDetails?.squareFootage ?? 2000}
+                onChange={(value) => {
+                  const num = parseInt(value, 10) || 0;
+                  actions.updateFinancialData('restaurantDetails', { squareFootage: num });
+                  actions.updateBusinessPlan('operationsPlan', { totalSquareFootage: num });
+                }}
+                placeholder="2000"
               />
               
               <div>
@@ -2734,6 +2807,71 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
+      {/* Monthly Revenue & Expenses (Chart of Accounts) - Opening projections; used in Monthly Statement for actual vs plan */}
+      <SectionCard
+        title="Opening projections: Monthly P&amp;L by account"
+        description="Estimate monthly revenue and expenses by line item (chart of accounts). These numbers are your opening plan—once you're open, enter actuals in the Monthly Financial Statement (bottom of this page) to compare to plan."
+        color="teal"
+      >
+        <div className="space-y-6">
+          {MONTHLY_PL_SECTIONS.map((section) => {
+            const sectionData = monthlyPL[section.id] || {};
+            const sectionTotal = section.lines.reduce((sum, { code }) => sum + (Number(sectionData[code]) || 0), 0);
+            return (
+              <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">{section.title}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {section.lines.map(({ code, label }) => (
+                    <FormField
+                      key={code}
+                      label={`${code} ${label}`}
+                      type="number"
+                      value={sectionData[code] === 0 ? '' : sectionData[code]}
+                      onChange={(value) => handleMonthlyPLChange(section.id, code, value)}
+                      placeholder="0"
+                    />
+                  ))}
+                </div>
+                <p className="text-sm font-medium text-gray-700 mt-2">{section.totalLabel}: {sectionTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+              </div>
+            );
+          })}
+          {/* Summary totals */}
+          {(() => {
+            const totalRevenue = (monthlyPL.revenue && Object.values(monthlyPL.revenue).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+            const totalCOGS = (monthlyPL.cogs && Object.values(monthlyPL.cogs).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+            const grossProfit = totalRevenue - totalCOGS;
+            const expenseSectionIds = ['labor', 'directOperating', 'transaction', 'marketing', 'generalAdmin', 'travelMeals', 'repairsMaintenance', 'property'];
+            const totalExpenses = expenseSectionIds.reduce((sum, id) => {
+              const section = MONTHLY_PL_SECTIONS.find((s) => s.id === id);
+              if (!section) return sum;
+              const sectionData = monthlyPL[id] || {};
+              return sum + section.lines.reduce((s, { code }) => s + (Number(sectionData[code]) || 0), 0);
+            }, 0);
+            const netOperatingIncome = grossProfit - totalExpenses;
+            const totalOtherIncome = (monthlyPL.otherIncome && Object.values(monthlyPL.otherIncome).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+            const totalOtherExpenses = (monthlyPL.otherExpenses && Object.values(monthlyPL.otherExpenses).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+            const netOtherIncome = totalOtherIncome - totalOtherExpenses;
+            const netIncome = netOperatingIncome + netOtherIncome;
+            const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            return (
+              <div className="border-2 border-teal-200 rounded-lg p-4 bg-teal-50/50 space-y-1 text-sm">
+                <div className="font-semibold text-gray-800">Summary (monthly)</div>
+                <div>Total Income: {fmt(totalRevenue)}</div>
+                <div>Total Cost of Goods Sold: {fmt(totalCOGS)}</div>
+                <div className="font-medium">Gross Profit: {fmt(grossProfit)}</div>
+                <div>Total Expenses: {fmt(totalExpenses)}</div>
+                <div className="font-medium">Net Operating Income: {fmt(netOperatingIncome)}</div>
+                <div>Total Other Income: {fmt(totalOtherIncome)}</div>
+                <div>Total Other Expenses: {fmt(totalOtherExpenses)}</div>
+                <div className="font-medium">Net Other Income: {fmt(netOtherIncome)}</div>
+                <div className="font-semibold text-teal-800">Net Income: {fmt(netIncome)}</div>
+              </div>
+            );
+          })()}
+        </div>
+      </SectionCard>
+
       {/* Operating Expenses */}
       <SectionCard title="Boston Operating Expenses (Annual)" color="red">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2745,7 +2883,7 @@ const FinancialProjections = () => {
             placeholder="120000"
           />
           <FormField
-            label="Utilities (Boston avg: $8/sq ft)"
+            label={`Utilities (${data.restaurantDetails?.location || 'Boston'} avg: $8/sq ft)`}
             type="number"
             value={data.operatingExpenses.utilities}
             onChange={(value) => handleFieldChange('operatingExpenses', 'utilities', value)}
@@ -3397,8 +3535,365 @@ const FinancialProjections = () => {
         </div>
       </SectionCard>
 
-      {/* Boston Startup Costs */}
-      <SectionCard title="Boston Restaurant Startup Costs" color="purple">
+      {/* Start-up Expenses Year 1 (Starting Balance Sheet) - Expanded */}
+      <SectionCard title="Start-up Expenses Year 1 (Starting Balance Sheet)" color="blue">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Prepared By"
+              type="text"
+              value={data.startingBalanceSheetMeta?.preparedBy ?? ''}
+              onChange={(value) => actions.updateFinancialData('startingBalanceSheetMeta', { ...(data.startingBalanceSheetMeta || {}), preparedBy: value })}
+              placeholder="e.g., MKM"
+            />
+            <FormField
+              label="Company Name"
+              type="text"
+              value={data.startingBalanceSheetMeta?.companyName ?? ''}
+              onChange={(value) => actions.updateFinancialData('startingBalanceSheetMeta', { ...data.startingBalanceSheetMeta, companyName: value })}
+              placeholder="e.g., Quartermaster"
+            />
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Fixed Assets</h4>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Asset</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Amount</th>
+                    <th className="text-center py-2 px-3 font-semibold text-gray-700">Depreciation (years)</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'realEstateLand', label: 'Real Estate – Land', depKey: 'realEstateLand' },
+                    { key: 'realEstateBuildings', label: 'Real Estate – Buildings', depKey: 'realEstateBuildings' },
+                    { key: 'leaseholdImprovements', label: 'Leasehold Improvements', depKey: 'leaseholdImprovements' },
+                    { key: 'equipment', label: 'Equipment', depKey: 'equipment' },
+                    { key: 'furnitureFixtures', label: 'Furniture and Fixtures', depKey: 'furnitureFixtures' },
+                    { key: 'vehicles', label: 'Vehicles', depKey: 'vehicles' },
+                    { key: 'otherFixedAssets', label: 'Other', depKey: 'other' }
+                  ].map(({ key, label, depKey }) => (
+                    <tr key={key} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="py-2 px-3 text-gray-900">{label}</td>
+                      <td className="py-2 px-3 text-right">
+                        <input
+                          type="number"
+                          value={(data.startupCosts || {})[key] ?? ''}
+                          onChange={(e) => handleFieldChange('startupCosts', key, parseFloat(e.target.value) || 0)}
+                          className="w-28 text-right border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="py-2 px-3 text-center text-gray-600">
+                        {(data.fixedAssetsDepreciation || {})[depKey] != null ? `${data.fixedAssetsDepreciation[depKey]} yrs` : 'Not Depreciated'}
+                      </td>
+                      <td className="py-2 px-3 text-gray-500">—</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-100 font-semibold">
+                  <tr>
+                    <td className="py-2 px-3">Total Fixed Assets</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(
+                      ((data.startupCosts || {}).realEstateLand || 0) +
+                      ((data.startupCosts || {}).realEstateBuildings || 0) +
+                      ((data.startupCosts || {}).leaseholdImprovements || 0) +
+                      ((data.startupCosts || {}).equipment || 0) +
+                      ((data.startupCosts || {}).furnitureFixtures || 0) +
+                      ((data.startupCosts || {}).vehicles || 0) +
+                      ((data.startupCosts || {}).otherFixedAssets || 0)
+                    )}</td>
+                    <td colSpan={2} />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Operating Capital</h4>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Item</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Amount</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'preOpeningSalaries', label: 'Pre-Opening Salaries and Wages' },
+                    { key: 'prepaidInsurance', label: 'Prepaid Insurance Premiums' },
+                    { key: 'initialInventory', label: 'Inventory' },
+                    { key: 'professionalFees', label: 'Legal and Accounting Fees' },
+                    { key: 'rentDeposits', label: 'Rent Deposits' },
+                    { key: 'utilityDeposits', label: 'Utility Deposits' },
+                    { key: 'supplies', label: 'Supplies' },
+                    { key: 'initialMarketing', label: 'Advertising and Promotions' },
+                    { key: 'depositsLicenses', label: 'Licenses' },
+                    { key: 'otherStartup', label: 'Other Initial Start-Up Costs' },
+                    { key: 'workingCapitalCashOnHand', label: 'Working Capital (Cash On Hand)' }
+                  ].map(({ key, label }) => (
+                    <tr key={key} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="py-2 px-3 text-gray-900">{label}</td>
+                      <td className="py-2 px-3 text-right">
+                        <input
+                          type="number"
+                          value={(data.startupCosts || {})[key] ?? ''}
+                          onChange={(e) => handleFieldChange('startupCosts', key, parseFloat(e.target.value) || 0)}
+                          className="w-28 text-right border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="py-2 px-3 text-gray-500">—</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-100 font-semibold">
+                  <tr>
+                    <td className="py-2 px-3">Total Operating Capital</td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(
+                      ((data.startupCosts || {}).preOpeningSalaries || 0) +
+                      ((data.startupCosts || {}).prepaidInsurance || 0) +
+                      ((data.startupCosts || {}).initialInventory || 0) +
+                      ((data.startupCosts || {}).professionalFees || 0) +
+                      ((data.startupCosts || {}).rentDeposits || 0) +
+                      ((data.startupCosts || {}).utilityDeposits || 0) +
+                      ((data.startupCosts || {}).supplies || 0) +
+                      ((data.startupCosts || {}).initialMarketing || 0) +
+                      ((data.startupCosts || {}).depositsLicenses || 0) +
+                      ((data.startupCosts || {}).otherStartup || 0) +
+                      ((data.startupCosts || {}).workingCapitalCashOnHand || 0)
+                    )}</td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+            <span className="text-lg font-semibold text-blue-900">Total Required Funds (Fixed Assets + Operating Capital)</span>
+            <span className="text-2xl font-bold text-blue-700">{formatCurrency(calculations.totalStartupCosts)}</span>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Sources of Funding</h4>
+            <p className="text-xs text-gray-500 mb-2">Total funding must equal Total Required Funds to be fully funded.</p>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Source</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Percentage</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Totals</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Loan Rate</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Term (mo)</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Monthly Payment</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const fs = data.fundingSources || {};
+                    const totalFunding = fundingAnalysis.totalFunding || 0;
+                    const totalRequired = calculations.totalCapitalNeeded || (calculations.totalStartupCosts + (calculations.cashFlowReserve6Months || 0));
+                    const pct = (amt) => totalRequired > 0 ? ((amt / totalRequired) * 100).toFixed(2) + '%' : '0.00%';
+                    const rows = [
+                      { label: "Owner's Equity", amt: (fs.personalSavings || 0) + (fs.personalAssets || 0) + (fs.homeEquity || 0) + (fs.retirementFunds || 0), rate: null, term: null, payment: null },
+                      { label: 'Outside Investors', amt: (fs.angelInvestors || 0) + (fs.ventureCapital || 0) + (fs.privateInvestors || 0), rate: null, term: null, payment: null },
+                      { label: 'Owner Financing', amt: (fs.bankLoans || 0) + (fs.familyLoans || 0) + (fs.friendLoans || 0), rate: fs.fundingTerms?.interestRates?.bankLoans ?? 6, term: fs.fundingTerms?.repaymentTerms?.bankLoans ?? 120, payment: fundingAnalysis.debtService?.bankLoans ?? fundingAnalysis.debtService?.familyLoans },
+                      { label: 'SBA / BLDC', amt: fs.sbaLoans || 0, rate: fs.fundingTerms?.interestRates?.sbaLoans ?? 6.7, term: fs.fundingTerms?.repaymentTerms?.sbaLoans ?? 84, payment: fundingAnalysis.debtService?.sbaLoans },
+                      { label: 'Vehicle Loans', amt: fs.equipmentFinancing || 0, rate: fs.fundingTerms?.interestRates?.equipmentFinancing ?? 6, term: fs.fundingTerms?.repaymentTerms?.equipmentFinancing ?? 48, payment: fundingAnalysis.debtService?.equipmentFinancing },
+                      { label: 'Other Bank Debt', amt: (fs.lineOfCredit || 0) + (fs.businessCreditCards || 0), rate: null, term: null, payment: null }
+                    ];
+                    return rows.map((row, i) => (
+                      <tr key={i} className="border-t border-gray-100 hover:bg-gray-50">
+                        <td className="py-2 px-3 text-gray-900">{row.label}</td>
+                        <td className="py-2 px-3 text-right text-gray-600">{pct(row.amt)}</td>
+                        <td className="py-2 px-3 text-right font-medium">{formatCurrency(row.amt)}</td>
+                        <td className="py-2 px-3 text-right text-gray-600">{row.rate != null ? row.rate + '%' : '—'}</td>
+                        <td className="py-2 px-3 text-right text-gray-600">{row.term != null ? row.term : '—'}</td>
+                        <td className="py-2 px-3 text-right">{row.payment != null ? formatCurrency(row.payment) : '—'}</td>
+                        <td className="py-2 px-3 text-gray-500">—</td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+                <tfoot className="bg-gray-100 font-semibold">
+                  <tr>
+                    <td className="py-2 px-3">Total Sources of Funding</td>
+                    <td className="py-2 px-3 text-right">
+                      {((fundingAnalysis.totalFunding || 0) / (calculations.totalCapitalNeeded || 1) * 100).toFixed(2)}%
+                    </td>
+                    <td className="py-2 px-3 text-right">{formatCurrency(fundingAnalysis.totalFunding)}</td>
+                    <td colSpan={2} />
+                    <td className="py-2 px-3 text-right">{formatCurrency(fundingAnalysis.totalMonthlyDebtService)}</td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${calculations.capitalGap <= 0 ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>
+              {calculations.capitalGap <= 0
+                ? 'You are fully funded (Balanced).'
+                : `Total Funding Needed: ${formatCurrency(calculations.capitalGap)}`}
+            </div>
+          </div>
+
+          {data.restaurantType?.type === 'existing' && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Existing Businesses ONLY — Calculating Cash on Hand</h4>
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {['Cash', 'Accounts Receivable', 'Prepaid Expenses', 'Accounts Payable', 'Accrued Expenses'].map((label, i) => (
+                      <tr key={i} className="border-t border-gray-100">
+                        <td className="py-2 px-3 text-gray-700">{label}</td>
+                        <td className="py-2 px-3 text-right text-gray-500">—</td>
+                      </tr>
+                    ))}
+                    <tr className="border-t-2 border-gray-300 font-semibold">
+                      <td className="py-2 px-3">Total Cash on Hand</td>
+                      <td className="py-2 px-3 text-right">$ —</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* Startup Costs List (line items with example costs) */}
+      <SectionCard title="Startup Costs List" description="Line-item list by category. Edit quantities and unit costs; total = Quantity × Unit Cost." color="gray">
+        {(() => {
+          const lineItems = (data.startupCostLineItems?.items || []).slice();
+          const categories = ['Business Set up', 'Equipment and supplies', 'COGS', 'Construction build out'];
+          const updateLineItems = (newItems) => {
+            actions.updateFinancialData('startupCostLineItems', { items: newItems });
+          };
+          const updateItem = (id, field, value) => {
+            const next = lineItems.map((item) =>
+              item.id === id ? { ...item, [field]: field === 'quantity' || field === 'unitCost' ? (parseFloat(value) || 0) : value } : item
+            );
+            updateLineItems(next);
+          };
+          const addRow = (category) => {
+            const newItem = {
+              id: 'sc_' + Date.now(),
+              category: category || categories[0],
+              description: '',
+              unit: '1',
+              quantity: 1,
+              unitCost: 0
+            };
+            updateLineItems([...lineItems, newItem]);
+          };
+          const removeRow = (id) => updateLineItems(lineItems.filter((item) => item.id !== id));
+          const mainCategories = ['Business Set up', 'Equipment and supplies', 'COGS', 'Construction build out'];
+          const otherRows = lineItems.filter((r) => !mainCategories.includes(r.category));
+          const byCategory = mainCategories.map((cat) => ({ category: cat, rows: lineItems.filter((r) => r.category === cat) }));
+          if (otherRows.length > 0) byCategory.push({ category: 'Other', rows: otherRows });
+          const grandTotal = lineItems.reduce((sum, r) => sum + (r.quantity || 0) * (r.unitCost || 0), 0);
+          const formatNum = (n) => (n == null || n === '') ? '' : Number(n);
+          return (
+            <div className="space-y-6">
+              {byCategory.map(({ category, rows }) => {
+                const subTotal = rows.reduce((sum, r) => sum + (r.quantity || 0) * (r.unitCost || 0), 0);
+                return (
+                  <div key={category}>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center justify-between">
+                      <span>{category}</span>
+                      <span className="text-sm font-normal text-gray-600">{formatCurrency(subTotal)}</span>
+                    </h4>
+                    <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="w-12 py-2 px-2 font-semibold text-gray-700">No</th>
+                            <th className="text-left py-2 px-2 font-semibold text-gray-700">Description of work</th>
+                            <th className="text-left py-2 px-2 font-semibold text-gray-700 w-24">Unit</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700 w-20">Quantity</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700 w-24">Unit Cost</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700 w-24">Total</th>
+                            <th className="w-10" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((row, idx) => {
+                            const total = (row.quantity || 0) * (row.unitCost || 0);
+                            return (
+                              <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50">
+                                <td className="py-1 px-2 text-gray-600">{idx + 1}</td>
+                                <td className="py-1 px-2">
+                                  <input
+                                    type="text"
+                                    value={row.description || ''}
+                                    onChange={(e) => updateItem(row.id, 'description', e.target.value)}
+                                    className="w-full min-w-[180px] border border-gray-300 rounded px-2 py-1 text-gray-900"
+                                    placeholder="Description"
+                                  />
+                                </td>
+                                <td className="py-1 px-2">
+                                  <input
+                                    type="text"
+                                    value={row.unit || ''}
+                                    onChange={(e) => updateItem(row.id, 'unit', e.target.value)}
+                                    className="w-full border border-gray-300 rounded px-2 py-1"
+                                    placeholder="Unit"
+                                  />
+                                </td>
+                                <td className="py-1 px-2 text-right">
+                                  <input
+                                    type="number"
+                                    value={formatNum(row.quantity)}
+                                    onChange={(e) => updateItem(row.id, 'quantity', e.target.value)}
+                                    className="w-20 text-right border border-gray-300 rounded px-2 py-1"
+                                  />
+                                </td>
+                                <td className="py-1 px-2 text-right">
+                                  <input
+                                    type="number"
+                                    value={formatNum(row.unitCost)}
+                                    onChange={(e) => updateItem(row.id, 'unitCost', e.target.value)}
+                                    className="w-24 text-right border border-gray-300 rounded px-2 py-1"
+                                  />
+                                </td>
+                                <td className="py-1 px-2 text-right font-medium">{formatCurrency(total)}</td>
+                                <td className="py-1 px-2">
+                                  <button type="button" onClick={() => removeRow(row.id)} className="text-red-500 hover:text-red-700 p-1" aria-label="Remove row">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <button type="button" onClick={() => addRow(category)} className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                      <Plus className="w-4 h-4" /> Add row
+                    </button>
+                  </div>
+                );
+              })}
+              <div className="pt-4 border-t-2 border-gray-300">
+                <div className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+                  <span className="text-lg font-semibold text-gray-900">Total Cost to Opening</span>
+                  <span className="text-2xl font-bold text-gray-900">{formatCurrency(grandTotal)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </SectionCard>
+
+      {/* Location-specific startup costs */}
+      <SectionCard title={`${data.restaurantDetails?.location || 'Boston'} Restaurant Startup Costs`} color="purple">
         <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <h4 className="font-semibold text-amber-900 mb-2">Pre-opening budget (runway)</h4>
           <p className="text-sm text-amber-800 mb-2">Costs that occur before opening: salaries, rent, training, marketing, deposits.</p>
@@ -3415,9 +3910,9 @@ const FinancialProjections = () => {
           )}
         </div>
         <div className="mb-4 p-4 bg-purple-50 rounded-lg">
-          <h4 className="font-semibold text-purple-800 mb-2">Boston-Specific Requirements:</h4>
+          <h4 className="font-semibold text-purple-800 mb-2">{data.restaurantDetails?.location || 'Boston'}-Specific Requirements:</h4>
           <ul className="text-sm text-purple-700 space-y-1">
-            <li>• Boston business license & food service permit</li>
+            <li>• {data.restaurantDetails?.location || 'Boston'} business license & food service permit</li>
             <li>• MA alcoholic beverage license (if applicable)</li>
             <li>• Fire department approval & sprinkler system</li>
             <li>• Board of Health inspection & certification</li>
@@ -3454,7 +3949,7 @@ const FinancialProjections = () => {
             placeholder="15000"
           />
           <FormField
-            label="Boston Permits & Licenses"
+            label={`${data.restaurantDetails?.location || 'Boston'} Permits & Licenses`}
             type="number"
             value={data.startupCosts.depositsLicenses}
             onChange={(value) => handleFieldChange('startupCosts', 'depositsLicenses', value)}
@@ -3560,11 +4055,26 @@ const FinancialProjections = () => {
           />
         </div>
 
-        <div className="mt-6 p-4 bg-purple-100 rounded-lg">
-          <div className="flex items-center justify-between">
+        <div className="mt-6 space-y-3">
+          <div className="p-4 bg-purple-100 rounded-lg flex items-center justify-between">
             <span className="text-lg font-semibold">Total Startup Investment:</span>
             <span className="text-2xl font-bold text-purple-600">
               {formatCurrency(calculations.totalStartupCosts)}
+            </span>
+          </div>
+          <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center justify-between">
+            <div>
+              <span className="text-lg font-semibold text-gray-900">Cash flow needs (6-month reserve):</span>
+              <p className="text-sm text-gray-600 mt-0.5">Reserve of operating expenses for first 6 months</p>
+            </div>
+            <span className="text-xl font-bold text-indigo-700">
+              {formatCurrency(calculations.cashFlowReserve6Months)}
+            </span>
+          </div>
+          <div className="p-4 bg-gray-100 border border-gray-300 rounded-lg flex items-center justify-between">
+            <span className="text-lg font-semibold text-gray-900">Total capital needed (startup + 6‑mo reserve):</span>
+            <span className="text-2xl font-bold text-gray-800">
+              {formatCurrency(calculations.totalCapitalNeeded)}
             </span>
           </div>
         </div>
@@ -3580,6 +4090,7 @@ const FinancialProjections = () => {
               startupCosts: data.startupCosts,
               totalStartupCosts: calculations.totalStartupCosts,
               restaurantType: restaurantType,
+              cashFlowReserve6Months: calculations.cashFlowReserve6Months,
               workingCapitalNeeded: calculations.workingCapitalNeeded,
               totalCapitalNeeded: calculations.totalCapitalNeeded,
               capitalGap: calculations.capitalGap,
@@ -3858,7 +4369,7 @@ const FinancialProjections = () => {
 
               {/* Boston Market Comparison */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">Boston Market Comparison</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{data.restaurantDetails?.location || 'Boston'} Market Comparison</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Food Cost %:</span>
@@ -4065,11 +4576,11 @@ ${calculations.fundingGap > 0 ? `• Secure additional funding of ${formatCurren
       </SectionCard>
 
       {/* Monthly Statement - For Open Restaurants */}
-      <SectionCard title="Monthly Financial Statement" icon={FileText} color="purple">
+      <SectionCard id="monthly-statement" title="Monthly Financial Statement" icon={FileText} color="purple">
         <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800">
-            <strong>Track Actual vs. Forecasted Expenses:</strong> Set your restaurant open date and enter actual monthly expenses to compare against your financial projections. 
-            Click on any "Actual" value to edit it.
+            <strong>Track actuals vs. plan:</strong> Choose a month and use <strong>Opening P&L (vs plan)</strong> to compare your real numbers to the opening projections you entered above. 
+            Click any &quot;Actual&quot; value to edit. Use <strong>Simple (calculated)</strong> to compare to a derived forecast instead.
           </p>
         </div>
         <MonthlyStatement />

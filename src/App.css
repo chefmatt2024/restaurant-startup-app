@@ -421,4 +421,240 @@ h1, h2, h3, h4, h5, h6, p {
   .gap-8 {
     gap: 1rem;
   }
+}
+
+/* ========== Guide Assistant (AI step-through popup) ========== */
+.guide-assistant-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.guide-assistant-overlay * {
+  pointer-events: auto;
+}
+
+.guide-assistant-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  animation: guide-fade-in 0.25s ease-out;
+}
+
+.guide-assistant-backdrop-exit {
+  animation: guide-fade-out 0.2s ease-in forwards;
+}
+
+.guide-assistant-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  animation: guide-scale-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-assistant-card-exit {
+  animation: guide-scale-out 0.2s ease-in forwards;
+}
+
+.guide-assistant-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  padding: 0.5rem;
+  color: #64748b;
+  border-radius: 0.5rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.guide-assistant-close:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+/* Animated character / avatar - "walking" float */
+.guide-assistant-character {
+  padding: 1.5rem 1.5rem 0;
+  flex-shrink: 0;
+}
+
+.guide-assistant-avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+  animation: guide-walk 2.5s ease-in-out infinite;
+}
+
+.guide-assistant-avatar-icon {
+  width: 36px;
+  height: 36px;
+  color: white;
+  animation: guide-sparkle 1.5s ease-in-out infinite;
+}
+
+.guide-assistant-content {
+  padding: 1rem 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.guide-assistant-step {
+  animation: guide-slide-in 0.3s ease-out;
+}
+
+.guide-assistant-step-next {
+  animation: guide-slide-from-right 0.3s ease-out;
+}
+
+.guide-assistant-step-prev {
+  animation: guide-slide-from-left 0.3s ease-out;
+}
+
+.guide-assistant-goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.guide-assistant-goto:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.guide-assistant-progress {
+  padding: 0 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.guide-assistant-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.3s ease-out;
+}
+
+.guide-assistant-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.guide-assistant-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  border-radius: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.guide-assistant-nav:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.guide-assistant-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.guide-assistant-nav-next {
+  color: #3b82f6;
+}
+
+.guide-assistant-nav-next:hover:not(:disabled) {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+@keyframes guide-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes guide-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes guide-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes guide-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}
+
+@keyframes guide-walk {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-4px) translateX(2px); }
+  50% { transform: translateY(0) translateX(4px); }
+  75% { transform: translateY(-4px) translateX(2px); }
+}
+
+@keyframes guide-sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+@keyframes guide-slide-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes guide-slide-from-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes guide-slide-from-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
 } 

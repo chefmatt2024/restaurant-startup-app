@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authService, dbService, getAppId, getInitialAuthToken, getAllUsers, deleteUserAccount } from '../services/firebase';
+import { getInitialMonthlyPL } from '../config/monthlyPLAccounts';
 
 // Action Types
 export const ActionTypes = {
@@ -546,14 +547,87 @@ const initialState = {
       plumbingElectrical: 0,
       professionalFees: 0,
       preOpeningRent: 0,
-      otherStartup: 0
+      otherStartup: 0,
+      // Fixed assets (balance sheet)
+      realEstateLand: 0,
+      realEstateBuildings: 0,
+      equipment: 0,
+      vehicles: 0,
+      otherFixedAssets: 0,
+      // Operating capital (balance sheet)
+      prepaidInsurance: 0,
+      rentDeposits: 0,
+      utilityDeposits: 0,
+      supplies: 0,
+      workingCapitalCashOnHand: 0
+    },
+    fixedAssetsDepreciation: {
+      realEstateLand: null,
+      realEstateBuildings: 1,
+      leaseholdImprovements: 7,
+      equipment: 7,
+      furnitureFixtures: 5,
+      vehicles: 5,
+      other: 5
+    },
+    startingBalanceSheetMeta: {
+      preparedBy: '',
+      companyName: ''
+    },
+    startupCostLineItems: {
+      items: [
+        { id: 'sc1', category: 'Business Set up', description: 'Fees and licensing', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc2', category: 'Business Set up', description: 'Legal fees licenses', unit: '1', quantity: 1, unitCost: 5000 },
+        { id: 'sc3', category: 'Business Set up', description: 'Accounting and invoice setup', unit: '1', quantity: 1, unitCost: 2000 },
+        { id: 'sc4', category: 'Business Set up', description: 'LLC formation (one time)', unit: '1', quantity: 1, unitCost: 500 },
+        { id: 'sc5', category: 'Business Set up', description: 'Payroll and HR set up', unit: 'per/month', quantity: 1, unitCost: 400 },
+        { id: 'sc6', category: 'Business Set up', description: 'Concept design', unit: '1', quantity: 1, unitCost: 5000 },
+        { id: 'sc7', category: 'Business Set up', description: 'Marketing, Branding, PR pre opening', unit: '1', quantity: 1, unitCost: 5000 },
+        { id: 'sc8', category: 'Business Set up', description: 'Architect fees', unit: '1', quantity: 1, unitCost: 5000 },
+        { id: 'sc9', category: 'Equipment and supplies', description: 'Signage', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc10', category: 'Equipment and supplies', description: 'POS System (install)', unit: '1', quantity: 1, unitCost: 690 },
+        { id: 'sc11', category: 'Equipment and supplies', description: 'Kitchen equipment hotline and major appliances', unit: '1', quantity: 1, unitCost: 15000 },
+        { id: 'sc12', category: 'Equipment and supplies', description: 'Upstairs refrigeration', unit: '1', quantity: 2, unitCost: 1100 },
+        { id: 'sc13', category: 'Equipment and supplies', description: 'Ice machine', unit: '1', quantity: 1, unitCost: 1500 },
+        { id: 'sc14', category: 'Equipment and supplies', description: 'Downstairs chest freezers', unit: '1', quantity: 1, unitCost: 600 },
+        { id: 'sc15', category: 'Equipment and supplies', description: 'Keg beverage coolers (3 door)', unit: '1', quantity: 2, unitCost: 800 },
+        { id: 'sc16', category: 'Equipment and supplies', description: 'Equipment', unit: '1', quantity: 2, unitCost: 800 },
+        { id: 'sc17', category: 'Equipment and supplies', description: 'Sound system', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc18', category: 'Equipment and supplies', description: 'Water filtration (Blue Drop install)', unit: '1', quantity: 1, unitCost: 700 },
+        { id: 'sc19', category: 'COGS', description: 'Food inventory', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc20', category: 'COGS', description: 'Non alcoholic bev', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc21', category: 'COGS', description: 'Paper goods', unit: '1', quantity: 1, unitCost: 200 },
+        { id: 'sc22', category: 'COGS', description: 'Branded Cups', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc23', category: 'COGS', description: 'Branded Merch.', unit: '1', quantity: 1, unitCost: 1000 },
+        { id: 'sc24', category: 'COGS', description: 'Training labor', unit: 'hours', quantity: 30, unitCost: 20 },
+        { id: 'sc25', category: 'COGS', description: 'Consultants - Beverage', unit: '1', quantity: 1, unitCost: 2000 },
+        { id: 'sc26', category: 'Construction build out', description: 'Construction admin', unit: '1', quantity: 1, unitCost: 35000 },
+        { id: 'sc27', category: 'Construction build out', description: 'Laborer', unit: '1', quantity: 1, unitCost: 4000 },
+        { id: 'sc28', category: 'Construction build out', description: 'Testing', unit: '1', quantity: 1, unitCost: 1200 },
+        { id: 'sc29', category: 'Construction build out', description: 'Insurance', unit: '1', quantity: 1, unitCost: 3000 },
+        { id: 'sc30', category: 'Construction build out', description: 'Building Permit', unit: '1', quantity: 1, unitCost: 3300 },
+        { id: 'sc31', category: 'Construction build out', description: 'Rough Carpentry Labor', unit: '1', quantity: 1, unitCost: 6500 },
+        { id: 'sc32', category: 'Construction build out', description: 'Finish Carpentry Labor', unit: '1', quantity: 1, unitCost: 7000 },
+        { id: 'sc33', category: 'Construction build out', description: 'Cabinetry', unit: '1', quantity: 1, unitCost: 5000 },
+        { id: 'sc34', category: 'Construction build out', description: 'Door Installation', unit: '1', quantity: 1, unitCost: 2000 },
+        { id: 'sc35', category: 'Construction build out', description: 'Hood system', unit: '1', quantity: 1, unitCost: 40000 },
+        { id: 'sc36', category: 'Construction build out', description: 'Walk in cooler', unit: '1', quantity: 1, unitCost: 8000 },
+        { id: 'sc37', category: 'Construction build out', description: 'Plumbing Labor', unit: '1', quantity: 1, unitCost: 23000 },
+        { id: 'sc38', category: 'Construction build out', description: 'Fire Protection', unit: '1', quantity: 1, unitCost: 6000 },
+        { id: 'sc39', category: 'Construction build out', description: 'HVAC Labor', unit: '1', quantity: 1, unitCost: 12000 },
+        { id: 'sc40', category: 'Construction build out', description: 'Electrical Labor', unit: '1', quantity: 1, unitCost: 20000 },
+        { id: 'sc41', category: 'Construction build out', description: 'Fire Alarm', unit: '1', quantity: 1, unitCost: 6000 }
+      ]
     },
     // Vendor linkage for P&L line items (vendor id per expense key)
     expenseVendors: {
       operating: {},
       startup: {}
     },
+    // Monthly P&L estimates by chart-of-accounts (section id -> account code -> monthly amount)
+    monthlyPL: getInitialMonthlyPL(),
     restaurantDetails: {
+      location: 'Boston',
       seats: 50,
       squareFootage: 2000,
       operatingHours: '11:00 AM - 10:00 PM',

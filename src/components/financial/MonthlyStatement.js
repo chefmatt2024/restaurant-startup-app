@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
-import { Calendar, DollarSign, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, FileText, Plus, Edit2 } from 'lucide-react';
+import { Calendar, DollarSign, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, FileText, Plus, Edit2, BarChart3, List } from 'lucide-react';
 import { OPERATING_EXPENSE_KEYS, OPERATING_EXPENSE_LABELS, sumOperatingExpenses } from '../../config/pnlLineItems';
+import { MONTHLY_PL_SECTIONS, getInitialMonthlyPL } from '../../config/monthlyPLAccounts';
 
 const MonthlyStatement = () => {
   const { state, actions } = useApp();
@@ -21,6 +22,9 @@ const MonthlyStatement = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [editingCategory, setEditingCategory] = useState(null);
+  // 'simple' = calculated forecast vs flat actuals; 'openingPL' = chart-of-accounts projection vs actuals
+  const [viewMode, setViewMode] = useState('openingPL');
+  const [editingPL, setEditingPL] = useState(null); // { sectionId, code } when editing a cell in opening P&L view
   
   // Generate list of years (from open date to current year + 1)
   const years = useMemo(() => {
@@ -121,6 +125,43 @@ const MonthlyStatement = () => {
   // Get actual expenses for selected month
   const monthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
   const actualExpenses = monthlyActuals[monthKey] || {};
+  
+  // Opening P&L: projection (monthlyPL) and actuals (monthlyActuals[monthKey].pl) merged with defaults
+  const openingProjection = useMemo(() => {
+    const defaults = getInitialMonthlyPL();
+    const saved = data.monthlyPL || {};
+    const merged = {};
+    MONTHLY_PL_SECTIONS.forEach(({ id }) => {
+      merged[id] = { ...(defaults[id] || {}), ...(saved[id] || {}) };
+    });
+    return merged;
+  }, [data.monthlyPL]);
+  
+  const actualsPL = useMemo(() => {
+    const defaults = getInitialMonthlyPL();
+    const monthData = monthlyActuals[monthKey]?.pl || {};
+    const merged = {};
+    MONTHLY_PL_SECTIONS.forEach(({ id }) => {
+      merged[id] = { ...(defaults[id] || {}), ...(monthData[id] || {}) };
+    });
+    return merged;
+  }, [monthlyActuals, monthKey]);
+  
+  const handleActualPLChange = (sectionId, code, value) => {
+    const num = value === '' ? 0 : parseFloat(value) || 0;
+    const monthData = monthlyActuals[monthKey] || {};
+    const pl = monthData.pl || {};
+    const sectionData = pl[sectionId] || {};
+    const updatedPl = {
+      ...pl,
+      [sectionId]: { ...sectionData, [code]: num }
+    };
+    const updatedActuals = {
+      ...monthlyActuals,
+      [monthKey]: { ...monthData, pl: updatedPl }
+    };
+    actions.updateFinancialData('monthlyActuals', updatedActuals);
+  };
   
   // Calculate variances (all P&L keys)
   const variances = useMemo(() => {
@@ -258,8 +299,146 @@ const MonthlyStatement = () => {
             />
           </div>
         </div>
+        {/* View mode: Opening P&L (compare to plan) vs Simple (calculated forecast) */}
+        <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+          <span className="text-sm font-medium text-gray-700">Compare:</span>
+          <div className="inline-flex p-1 bg-gray-100 rounded-lg border border-gray-200">
+            <button
+              type="button"
+              onClick={() => setViewMode('openingPL')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 ${
+                viewMode === 'openingPL' ? 'bg-teal-600 text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Opening P&L (vs plan)
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('simple')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 ${
+                viewMode === 'simple' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              Simple (calculated)
+            </button>
+          </div>
+          <p className="text-xs text-gray-500">
+            {viewMode === 'openingPL' ? 'Projection = your opening estimates from Financial Projections. Enter actuals below.' : 'Forecast = derived from annual revenue & expenses.'}
+          </p>
+        </div>
       </div>
       
+      {viewMode === 'openingPL' && (
+        <>
+          <SectionCard title="Actual vs opening plan (by account)" icon={BarChart3}>
+            <p className="text-sm text-gray-500 mb-4">Select month above. Projection = opening estimates; edit Actual to enter real numbers.</p>
+            <div className="space-y-4">
+              {MONTHLY_PL_SECTIONS.map((section) => {
+                const projSection = openingProjection[section.id] || {};
+                const actualSection = actualsPL[section.id] || {};
+                const sectionProjTotal = section.lines.reduce((sum, { code }) => sum + (Number(projSection[code]) || 0), 0);
+                const sectionActualTotal = section.lines.reduce((sum, { code }) => sum + (Number(actualSection[code]) || 0), 0);
+                const sectionVariance = sectionActualTotal - sectionProjTotal;
+                return (
+                  <div key={section.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-2">{section.title}</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-2 px-2 font-semibold text-gray-700">Line</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700">Projection</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700">Actual</th>
+                            <th className="text-right py-2 px-2 font-semibold text-gray-700">Variance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.lines.map(({ code, label }) => {
+                            const proj = Number(projSection[code]) || 0;
+                            const actual = Number(actualSection[code]) || 0;
+                            const variance = actual - proj;
+                            const isEditing = editingPL?.sectionId === section.id && editingPL?.code === code;
+                            return (
+                              <tr key={code} className="border-b border-gray-100 hover:bg-gray-50">
+                                <td className="py-1.5 px-2 font-medium text-gray-900">{code} {label}</td>
+                                <td className="py-1.5 px-2 text-right text-gray-700">{formatCurrency(proj)}</td>
+                                <td className="py-1.5 px-2 text-right">
+                                  {isEditing ? (
+                                    <input
+                                      type="number"
+                                      value={actual || ''}
+                                      onChange={(e) => handleActualPLChange(section.id, code, e.target.value)}
+                                      onBlur={() => setEditingPL(null)}
+                                      className="w-28 px-2 py-1 border border-teal-500 rounded text-right text-sm"
+                                      autoFocus
+                                    />
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingPL({ sectionId: section.id, code })}
+                                      className="text-teal-600 hover:text-teal-800 hover:underline"
+                                    >
+                                      {formatCurrency(actual)}
+                                    </button>
+                                  )}
+                                </td>
+                                <td className={`py-1.5 px-2 text-right font-medium ${variance >= 0 && section.id !== 'revenue' && section.id !== 'otherIncome' ? 'text-red-600' : variance <= 0 && section.id !== 'revenue' && section.id !== 'otherIncome' ? 'text-green-600' : variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {formatCurrency(variance)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-gray-100 font-medium">
+                            <td className="py-1.5 px-2">{section.totalLabel}</td>
+                            <td className="py-1.5 px-2 text-right">{formatCurrency(sectionProjTotal)}</td>
+                            <td className="py-1.5 px-2 text-right">{formatCurrency(sectionActualTotal)}</td>
+                            <td className={`py-1.5 px-2 text-right ${sectionVariance >= 0 && !['revenue', 'otherIncome'].includes(section.id) ? 'text-red-600' : sectionVariance <= 0 && !['revenue', 'otherIncome'].includes(section.id) ? 'text-green-600' : sectionVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(sectionVariance)}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {(() => {
+              const totalRevenue = Object.values(openingProjection.revenue || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+              const totalCOGS = Object.values(openingProjection.cogs || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+              const expenseIds = ['labor', 'directOperating', 'transaction', 'marketing', 'generalAdmin', 'travelMeals', 'repairsMaintenance', 'property'];
+              const totalExpensesProj = expenseIds.reduce((sum, id) => sum + (openingProjection[id] ? Object.values(openingProjection[id]).reduce((s, v) => s + (Number(v) || 0), 0) : 0), 0);
+              const totalOtherInc = (openingProjection.otherIncome && Object.values(openingProjection.otherIncome).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+              const totalOtherExp = (openingProjection.otherExpenses && Object.values(openingProjection.otherExpenses).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+              const revActual = Object.values(actualsPL.revenue || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+              const cogsActual = Object.values(actualsPL.cogs || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+              const expensesActual = expenseIds.reduce((sum, id) => sum + (actualsPL[id] ? Object.values(actualsPL[id]).reduce((s, v) => s + (Number(v) || 0), 0) : 0), 0);
+              const otherIncActual = (actualsPL.otherIncome && Object.values(actualsPL.otherIncome).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+              const otherExpActual = (actualsPL.otherExpenses && Object.values(actualsPL.otherExpenses).reduce((s, v) => s + (Number(v) || 0), 0)) || 0;
+              const netProj = totalRevenue - totalCOGS - totalExpensesProj + totalOtherInc - totalOtherExp;
+              const netActual = revActual - cogsActual - expensesActual + otherIncActual - otherExpActual;
+              const netVariance = netActual - netProj;
+              const fmt = (n) => formatCurrency(n);
+              return (
+                <div className="border-2 border-teal-200 rounded-lg p-4 bg-teal-50/50 mt-4 space-y-1 text-sm">
+                  <div className="font-semibold text-gray-800">Summary for {monthKey}</div>
+                  <div>Total Revenue: Proj {fmt(totalRevenue)} → Actual {fmt(revActual)}</div>
+                  <div>Total COGS: Proj {fmt(totalCOGS)} → Actual {fmt(cogsActual)}</div>
+                  <div>Total Expenses: Proj {fmt(totalExpensesProj)} → Actual {fmt(expensesActual)}</div>
+                  <div className="font-medium">Net Income: Proj {fmt(netProj)} → Actual {fmt(netActual)} ({netVariance >= 0 ? '+' : ''}{fmt(netVariance)})</div>
+                </div>
+              );
+            })()}
+          </SectionCard>
+        </>
+      )}
+      
+      {viewMode === 'simple' && (
+        <>
       {/* Revenue Section */}
       <SectionCard title="Revenue" icon={TrendingUp}>
         <div className="overflow-x-auto">
@@ -537,6 +716,8 @@ const MonthlyStatement = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useApp } from '../../contexts/AppContext';
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist';
 import { OPENING_PLAN_TOTAL_TASKS } from '../startup/OpeningPlan';
 import QuickStartTemplates from '../onboarding/QuickStartTemplates';
+import { getSectionStatus, PROGRESS_SECTION_ORDER } from '../../utils/sectionStatus';
 import {
   CheckCircle, 
   Clock, 
@@ -16,6 +17,7 @@ import {
   BarChart3,
   Building,
   Lightbulb,
+  List,
   Mic,
   Compass,
   Shield,
@@ -34,116 +36,40 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
   const { state, actions } = useApp();
   const [showTemplates, setShowTemplates] = useState(false);
 
-  // Calculate completion status for each section
+  // Section display metadata (icon, color, priority) – order comes from PROGRESS_SECTION_ORDER via getSectionStatus
+  const sectionMeta = {
+    'startup-and-opening': { icon: Compass, color: 'blue', priority: 'high' },
+    'concept-pitch': { icon: Lightbulb, color: 'yellow', priority: 'high' },
+    'market-competition': { icon: BarChart3, color: 'green', priority: 'high' },
+    'offer-marketing': { icon: Target, color: 'purple', priority: 'high' },
+    'financials': { icon: DollarSign, color: 'green', priority: 'high' },
+    'team-cap-table': { icon: Users, color: 'indigo', priority: 'medium' },
+    'operations': { icon: Building, color: 'purple', priority: 'medium' },
+    'timeline': { icon: Calendar, color: 'indigo', priority: 'medium' },
+    'vendors': { icon: Truck, color: 'orange', priority: 'low' },
+    'equipment-menu': { icon: Utensils, color: 'orange', priority: 'medium' },
+    'branding': { icon: Palette, color: 'purple', priority: 'low' },
+    'compliance': { icon: Shield, color: 'red', priority: 'high' }
+  };
+
+  // Calculate completion status for each section (single source of truth, in journey order)
   const sectionStatus = useMemo(() => {
     const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
-    if (!currentDraft) return {};
-
-    // Helper function to check if an object has meaningful content
-    const hasContent = (obj) => {
-      if (!obj) return false;
-      if (typeof obj === 'string') return obj.trim().length > 0;
-      if (Array.isArray(obj)) return obj.length > 0;
-      if (typeof obj === 'object') {
-        return Object.values(obj).some(val => {
-          if (typeof val === 'string') return val.trim().length > 0;
-          if (typeof val === 'number') return val > 0;
-          if (Array.isArray(val)) return val.length > 0;
-          if (typeof val === 'object') return hasContent(val);
-          return false;
-        });
+    const base = getSectionStatus(currentDraft, state.openingPlanProgress?.completedTaskIds || []);
+    const sections = {};
+    PROGRESS_SECTION_ORDER.forEach(id => {
+      if (base[id]) {
+        const meta = sectionMeta[id] || {};
+        sections[id] = {
+          ...base[id],
+          icon: meta.icon,
+          color: meta.color,
+          priority: meta.priority
+        };
       }
-      return false;
-    };
-
-    const ideaDone = !!(currentDraft.businessPlan?.ideation?.businessConcept || currentDraft.businessPlan?.ideation?.coreInspiration || currentDraft.businessPlan?.ideation?.solutionIdea);
-    const pitchDone = !!(currentDraft.businessPlan?.elevatorPitch?.finalPitch || currentDraft.businessPlan?.elevatorPitch?.hook);
-    const summaryDone = !!(currentDraft.businessPlan?.executiveSummary?.businessName || currentDraft.businessPlan?.executiveSummary?.missionStatement);
-    const marketDone = !!(currentDraft.businessPlan?.marketAnalysis?.targetMarket || currentDraft.businessPlan?.marketAnalysis?.marketSize || currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis);
-    const competitiveDone = !!(currentDraft.businessPlan?.marketAnalysis?.competitiveAnalysis);
-    const servicesDone = !!(currentDraft.businessPlan?.serviceDescription?.productsServices);
-    const marketingDone = !!(currentDraft.businessPlan?.marketingStrategy?.marketingMix || currentDraft.businessPlan?.marketingStrategy?.customerAcquisition);
-    const managementDone = !!(currentDraft.businessPlan?.managementTeam?.keyPersonnel);
-    const capTableDone = !!(currentDraft.financialData?.capTable?.entries?.length > 0);
-    const equipmentDone = !!(currentDraft.equipmentData?.equipment?.length > 0);
-    const menuDone = !!(currentDraft.menuData?.menuItems?.length > 0);
-    const documentsDone = !!(currentDraft.complianceData?.documents?.length > 0);
-
-    const sections = {
-      'concept-pitch': {
-        label: 'Concept & Pitch',
-        icon: Lightbulb,
-        color: 'yellow',
-        completed: !!(ideaDone || pitchDone || summaryDone),
-        priority: 'high'
-      },
-      'market-competition': {
-        label: 'Market & Competition',
-        icon: BarChart3,
-        color: 'green',
-        completed: !!(marketDone || competitiveDone),
-        priority: 'high'
-      },
-      'offer-marketing': {
-        label: 'Offer & Marketing',
-        icon: Target,
-        color: 'purple',
-        completed: !!(servicesDone || marketingDone),
-        priority: 'high'
-      },
-      'operations': {
-        label: 'Operations Plan',
-        icon: Building,
-        color: 'purple',
-        completed: !!(currentDraft.businessPlan?.operationsPlan?.location || currentDraft.businessPlan?.operationsPlan?.staffingPlan),
-        priority: 'medium'
-      },
-      'team-cap-table': {
-        label: 'Team & Cap Table',
-        icon: Users,
-        color: 'indigo',
-        completed: !!(managementDone || capTableDone),
-        priority: 'medium'
-      },
-      'financials': {
-        label: 'Financial Projections',
-        icon: DollarSign,
-        color: 'green',
-        completed: !!(currentDraft.financialData?.revenue?.foodSales > 0 || currentDraft.financialData?.revenue?.beverageSales > 0 || currentDraft.financialData?.operatingExpenses?.rent > 0 || currentDraft.financialData?.startupCosts?.totalBuildCost > 0 || currentDraft.financialData?.startupCosts?.purchasePrice > 0 || currentDraft.financialData?.restaurantOperations?.seats > 0 || currentDraft.financialData?.restaurantType?.buildCosts > 0 || currentDraft.financialData?.restaurantType?.purchasePrice > 0),
-        priority: 'high'
-      },
-      'vendors': {
-        label: 'Vendor Management',
-        icon: Truck,
-        color: 'orange',
-        completed: !!(currentDraft.vendors && currentDraft.vendors.length > 0),
-        priority: 'low'
-      },
-      'equipment-menu': {
-        label: 'Equipment & Menu',
-        icon: Utensils,
-        color: 'orange',
-        completed: !!(equipmentDone || menuDone),
-        priority: 'medium'
-      },
-      'branding': {
-        label: 'Branding Planner',
-        icon: Palette,
-        color: 'purple',
-        completed: !!(currentDraft.brandingData?.brandName),
-        priority: 'low'
-      },
-      'compliance': {
-        label: 'Compliance',
-        icon: Shield,
-        color: 'red',
-        completed: documentsDone,
-        priority: 'high'
-      }
-    };
-
+    });
     return sections;
-  }, [state.drafts, state.currentDraftId]);
+  }, [state.drafts, state.currentDraftId, state.openingPlanProgress?.completedTaskIds]);
 
   // Calculate overall progress
   const progress = useMemo(() => {
@@ -155,23 +81,18 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
     return { completed, total, percentage };
   }, [sectionStatus]);
 
-  // Get next recommended tasks
+  // Get next recommended tasks (first 3 incomplete sections in journey order)
   const nextTasks = useMemo(() => {
-    const sections = Object.entries(sectionStatus)
-      .filter(([_, section]) => !section.completed)
-      .sort((a, b) => {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return priorityOrder[b[1].priority] - priorityOrder[a[1].priority];
-      })
-      .slice(0, 3);
-
-    return sections.map(([id, section]) => ({
-      id,
-      ...section,
-      action: () => {
-        if (onSwitchToDetailed) onSwitchToDetailed(id);
-      }
-    }));
+    const incomplete = PROGRESS_SECTION_ORDER.filter(id => sectionStatus[id] && !sectionStatus[id].completed)
+      .slice(0, 3)
+      .map(id => ({
+        id,
+        ...sectionStatus[id],
+        action: () => {
+          if (onSwitchToDetailed) onSwitchToDetailed(id);
+        }
+      }));
+    return incomplete;
   }, [sectionStatus, onSwitchToDetailed]);
 
   // Get recent activity
@@ -235,6 +156,19 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
         <div className="mt-3 text-sm text-slate-300 font-medium">
           {progress.completed} of {progress.total} sections completed
         </div>
+        {onSwitchToDetailed && (
+          <div className="mt-4 pt-4 border-t border-slate-600">
+            <button
+              type="button"
+              onClick={() => onSwitchToDetailed()}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium flex items-center gap-2 transition-colors border border-white/30"
+            >
+              <List className="w-4 h-4" />
+              Switch to Open Restaurant
+            </button>
+            <p className="text-slate-400 text-xs mt-2">Vendors, financials, compliance & all plan sections</p>
+          </div>
+        )}
       </div>
 
       {/* Quick Start Templates - Show for new users */}
@@ -341,7 +275,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               onClick={onSwitchToDetailed}
               className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
             >
-              Open Detailed View
+              Switch to Open Restaurant
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

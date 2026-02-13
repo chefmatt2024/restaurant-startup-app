@@ -3,7 +3,8 @@ import { useApp } from '../contexts/AppContext';
 import Header from '../components/layout/Header';
 import TabNavigation, { DETAIL_VIEW_TABS } from '../components/layout/TabNavigation';
 import { getSectionStatus } from '../utils/sectionStatus';
-import { ChevronRight, LayoutDashboard, List } from 'lucide-react';
+import GuideAssistant from '../components/onboarding/GuideAssistant';
+import { ChevronRight, LayoutDashboard, List, Sparkles } from 'lucide-react';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
 import FinancialProjections from '../components/financial/FinancialProjections';
@@ -30,7 +31,10 @@ const Dashboard = () => {
   const [showOverview, setShowOverview] = useState(true);
 
   const currentDraft = state.drafts?.find(d => d.id === state.currentDraftId);
-  const sectionStatus = useMemo(() => getSectionStatus(currentDraft), [currentDraft]);
+  const sectionStatus = useMemo(
+    () => getSectionStatus(currentDraft, state.openingPlanProgress?.completedTaskIds || []),
+    [currentDraft, state.openingPlanProgress?.completedTaskIds]
+  );
   const completedCount = useMemo(() => Object.values(sectionStatus).filter(s => s.completed).length, [sectionStatus]);
   const totalSections = useMemo(() => Object.keys(sectionStatus).length, [sectionStatus]);
   const activeTabInfo = DETAIL_VIEW_TABS.find(t => t.id === state.activeTab);
@@ -114,37 +118,39 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      {/* View Toggle - sticky below header so it's always visible */}
-      <div className="sticky top-0 z-20 bg-white border-b-2 border-gray-200 shadow-md">
+      {/* View mode toggle: Planning (Overview) vs Open Restaurant - always visible below header */}
+      <div className="sticky top-0 z-20 bg-white border-b-2 border-indigo-200 shadow-md">
         <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-3">
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <span className="text-xs text-gray-500 sm:mr-auto">
-              {showOverview ? 'High-level progress & next steps' : 'Vendors, financials & all plan sections'}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm text-gray-600">
+              {showOverview ? 'Planning your restaurant' : 'Open restaurant — vendors, financials & compliance'}
             </span>
-            <span className="text-sm font-medium text-gray-600 hidden sm:inline">Switch view:</span>
-            <div className="inline-flex p-1.5 bg-gray-100 rounded-lg border border-gray-200">
-              <button
-                onClick={() => setShowOverview(true)}
-                className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                  showOverview
-                    ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Overview
-              </button>
-              <button
-                onClick={() => setShowOverview(false)}
-                className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                  !showOverview
-                    ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                Operating
-              </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-sm font-medium text-gray-600 hidden sm:inline">Mode:</span>
+              <div className="inline-flex p-1.5 bg-gray-100 rounded-lg border-2 border-gray-300" role="group" aria-label="Switch between planning and open restaurant view">
+                <button
+                  onClick={() => setShowOverview(true)}
+                  className={`px-4 sm:px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    showOverview
+                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200 ring-2 ring-blue-200'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Planning
+                </button>
+                <button
+                  onClick={() => setShowOverview(false)}
+                  className={`px-4 sm:px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    !showOverview
+                      ? 'bg-white text-indigo-600 shadow-sm border border-gray-200 ring-2 ring-indigo-200'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  Open Restaurant
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -154,10 +160,9 @@ const Dashboard = () => {
         {showOverview ? (
           <DashboardOverview onSwitchToDetailed={handleSwitchToDetailed} />
         ) : (
-          <div className="modern-card overflow-hidden shadow-2xl">
-            <TabNavigation sectionStatus={sectionStatus} />
-            {/* Breadcrumb + section title - where you are */}
-            <div className="px-6 lg:px-8 pt-4 pb-2 border-b border-gray-100 bg-gray-50/50">
+          <div className="modern-card overflow-hidden shadow-2xl flex flex-col">
+            {/* Progress bar at top: breadcrumb + section title */}
+            <div className="px-6 lg:px-8 pt-4 pb-2 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
               <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2" aria-label="Breadcrumb">
                 <button
                   type="button"
@@ -167,7 +172,7 @@ const Dashboard = () => {
                   Overview
                 </button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700 font-medium">Operating</span>
+                <span className="text-gray-700 font-medium">Open Restaurant</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-900 font-semibold" aria-current="page">{currentSectionLabel}</span>
               </nav>
@@ -183,8 +188,12 @@ const Dashboard = () => {
                 ) : null}
               </p>
             </div>
-            <div className="p-6 lg:p-8 bg-gradient-to-br from-white to-gray-50">
-              {renderActiveTab()}
+            {/* Main content (left) + tabs (right) */}
+            <div className="flex flex-1 min-h-0">
+              <div className="flex-1 min-w-0 p-6 lg:p-8 bg-gradient-to-br from-white to-gray-50 overflow-auto">
+                {renderActiveTab()}
+              </div>
+              <TabNavigation sectionStatus={sectionStatus} variant="sidebar" />
             </div>
           </div>
         )}
@@ -193,6 +202,21 @@ const Dashboard = () => {
         isOpen={showWelcomeTour}
         onComplete={handleTourComplete}
         onSkip={handleTourComplete}
+      />
+
+      {/* AI Step Guide - floating button opens popup that walks through steps */}
+      <button
+        type="button"
+        onClick={() => setShowGuideAssistant(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        aria-label="Open step-by-step guide"
+      >
+        <Sparkles className="w-7 h-7" />
+      </button>
+      <GuideAssistant
+        isOpen={showGuideAssistant}
+        onClose={() => setShowGuideAssistant(false)}
+        sectionStatus={sectionStatus}
       />
     </div>
   );

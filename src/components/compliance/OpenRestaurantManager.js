@@ -32,6 +32,7 @@ import {
 const OpenRestaurantManager = () => {
   const { state, actions } = useApp();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'documents', 'licenses', 'renewals', 'vault'
+  const switchToFinancials = () => actions.setActiveTab('financials');
   const [completedDocuments, setCompletedDocuments] = useState({});
   const [licenseStatus, setLicenseStatus] = useState({});
 
@@ -256,7 +257,7 @@ const OpenRestaurantManager = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => setActiveTab('documents')}
           className="p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left group"
@@ -291,6 +292,18 @@ const OpenRestaurantManager = () => {
           </div>
           <h3 className="font-bold text-gray-900 mb-1">Renewal Calendar</h3>
           <p className="text-sm text-gray-600">Never miss a renewal deadline</p>
+        </button>
+
+        <button
+          onClick={switchToFinancials}
+          className="p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-all text-left group"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <DollarSign className="w-8 h-8 text-teal-600" />
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-teal-600 transition-colors" />
+          </div>
+          <h3 className="font-bold text-gray-900 mb-1">Compare actuals to opening plan</h3>
+          <p className="text-sm text-gray-600">Enter monthly numbers and compare to your P&L projections</p>
         </button>
       </div>
 

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // Total task count for progress display (e.g. Dashboard). Update if phases change.
-export const OPENING_PLAN_TOTAL_TASKS = 28;
+export const OPENING_PLAN_TOTAL_TASKS = 36;
 
 const OpeningPlan = () => {
   const { state, actions } = useApp();
@@ -564,6 +564,143 @@ const OpeningPlan = () => {
             'Register for Boston business tax requirements',
             'Set up ongoing permit renewal calendar'
           ]
+        },
+        {
+          id: 'pos-payments',
+          title: 'POS & Payments Go-Live',
+          description: 'Set up point-of-sale, merchant account, and payment processing before opening',
+          timeEstimate: '1–2 weeks',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'financials',
+          bostonTip: 'Test all payment flows (card, contactless, tips) and ensure PCI compliance.',
+          actions: [
+            'Register merchant account and payment processor',
+            'Install and configure POS terminals',
+            'Load menu and pricing into POS',
+            'Test transactions and tip handling',
+            'Train staff on POS and refunds'
+          ]
+        },
+        {
+          id: 'opening-inventory',
+          title: 'Opening Inventory Order',
+          description: 'Place and schedule first food, beverage, and supply orders for opening',
+          timeEstimate: '1–2 weeks',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'vendors',
+          bostonTip: 'Coordinate delivery windows with buildout completion. Order perishables for delivery just before soft open.',
+          actions: [
+            'Finalize opening menu and par levels',
+            'Place orders with food and beverage vendors',
+            'Order cleaning and paper goods',
+            'Schedule delivery dates (avoid before walk-in ready)',
+            'Plan receiving and storage (FIFO, labeling)'
+          ]
+        },
+        {
+          id: 'insurance-certificates',
+          title: 'Insurance Proof & Certificates',
+          description: 'Obtain and file proof of insurance required by lease, lenders, and partners',
+          timeEstimate: '1–2 weeks',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'compliance',
+          bostonTip: 'Landlords and the city often require certificates of insurance (COI) before occupancy.',
+          actions: [
+            'Secure general liability and property insurance',
+            'Obtain workers’ compensation policy',
+            'Request liquor liability if serving alcohol',
+            'Send certificates of insurance (COI) to landlord and any required parties',
+            'File proof with Boston Licensing Board if required'
+          ]
+        },
+        {
+          id: 'bank-cash',
+          title: 'Bank Account & Daily Cash Handling',
+          description: 'Open business accounts and define safe, deposits, and reconciliation',
+          timeEstimate: '1 week',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'financials',
+          bostonTip: 'Separate business and personal funds from day one. Plan daily cash drops and bank runs.',
+          actions: [
+            'Open business checking and savings accounts',
+            'Set up merchant deposit schedule with bank',
+            'Define safe, cash handling, and drop procedures',
+            'Assign opening/closing cash responsibilities',
+            'Plan daily or weekly reconciliation process'
+          ]
+        },
+        {
+          id: 'training-schedule',
+          title: 'Training Week Schedule',
+          description: 'Create a day-by-day training plan for food safety, POS, and service standards',
+          timeEstimate: '1 week to design; 1–2 weeks to run',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'team-cap-table',
+          bostonTip: 'Include ServSafe (or equivalent), POS, menu tasting, and role-playing for service.',
+          actions: [
+            'Schedule ServSafe (or equivalent) food safety certification',
+            'Build day-by-day training agenda (BOH, FOH, POS)',
+            'Include menu tasting and allergy/safety protocols',
+            'Plan fire and emergency procedures training',
+            'Document attendance and sign-offs'
+          ]
+        },
+        {
+          id: 'first-week-staffing',
+          title: 'First-Week Staffing Schedule',
+          description: 'Build the opening-week schedule so every shift is covered without overstaffing',
+          timeEstimate: '3–5 days',
+          priority: 'High',
+          category: 'operations',
+          tabId: 'team-cap-table',
+          bostonTip: 'Overstaff slightly for the first few days; adjust after you see volume.',
+          actions: [
+            'List all roles and shifts for opening week',
+            'Assign staff to each shift (include backups)',
+            'Share schedule and arrival times with team',
+            'Plan manager coverage for open and close',
+            'Communicate break and meal procedures'
+          ]
+        },
+        {
+          id: 'health-inspection-prep',
+          title: 'Health Inspection Prep Checklist',
+          description: 'Walk-through to ensure you pass pre-opening health inspection',
+          timeEstimate: '2–3 days',
+          priority: 'High',
+          category: 'compliance',
+          tabId: 'compliance',
+          bostonTip: 'Boston Public Health Commission inspects before granting Food Establishment Permit. Use a checklist so nothing is missed.',
+          actions: [
+            'Calibrate and place thermometers (coolers, hot holding)',
+            'Verify hand sinks, soap, and signage',
+            'Label all food (prep date, use-by); no home containers',
+            'Confirm three-compartment sink and chemical test strips',
+            'Check grease trap and hood documentation',
+            'Ensure restrooms and staff areas meet code',
+            'Organize cleaning logs and manager certifications'
+          ]
+        },
+        {
+          id: 'grand-opening-run-of-show',
+          title: 'Grand Opening Day Run-of-Show',
+          description: 'Timeline and roles for opening day so the first service runs smoothly',
+          timeEstimate: '1 day to write; execute on opening day',
+          priority: 'Medium',
+          category: 'operations',
+          bostonTip: 'Assign a dedicated “runner” for problems so the GM can stay visible.',
+          actions: [
+            'Write hour-by-hour timeline (door open, first seat, first order)',
+            'Assign who unlocks, who does final walk-through, who greets first guests',
+            'Define backup plan for POS or kitchen issues',
+            'Plan brief all-hands huddle before doors open',
+            'Schedule debrief after service to capture fixes for day two'
+          ]
         }
       ]
     }
@@ -612,8 +749,55 @@ const OpeningPlan = () => {
     { step: 5, name: 'Pre-opening & opening', summary: 'Staffing, training, soft open, then open to the public', duration: '2–4 weeks' }
   ];
 
+  // Critical gates for "Final 30 Days" – chronological order (permits → money → inventory → people → open)
+  const final30Gates = [
+    { id: 'health-inspection-prep', label: 'Health inspection prep checklist done', tabId: 'compliance' },
+    { id: 'inspections', label: 'All required inspections scheduled and passed', tabId: 'compliance' },
+    { id: 'food-establishment-permit', label: 'Food Establishment Permit (health inspection passed)', tabId: 'compliance' },
+    { id: 'certificate-of-occupancy', label: 'Certificate of Occupancy obtained', tabId: 'compliance' },
+    { id: 'insurance-certificates', label: 'Insurance certificates filed (landlord/lender)', tabId: 'compliance' },
+    { id: 'bank-cash', label: 'Bank account & cash handling procedures set', tabId: 'financials' },
+    { id: 'pos-payments', label: 'POS & payments go-live (tested)', tabId: 'financials' },
+    { id: 'opening-inventory', label: 'Opening inventory ordered and delivery scheduled', tabId: 'vendors' },
+    { id: 'training-schedule', label: 'Training week completed (food safety, POS, service)', tabId: 'team-cap-table' },
+    { id: 'first-week-staffing', label: 'First-week staffing schedule published', tabId: 'team-cap-table' },
+    { id: 'soft-opening', label: 'Soft opening completed', tabId: 'startup-and-opening' },
+    { id: 'grand-opening-run-of-show', label: 'Grand opening day run-of-show ready', tabId: 'startup-and-opening' }
+  ];
+
   return (
     <div className="animate-fade-in space-y-6">
+      {/* Final 30 Days: Pre-Opening Readiness */}
+      <SectionCard
+        title="Final 30 days: Pre-opening readiness"
+        description="Critical gates before you open. Check off each in the Opening Plan below; use the links to jump to the right section."
+        color="red"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {final30Gates.map((gate) => {
+            const done = completedTasks.has(gate.id);
+            return (
+              <button
+                key={gate.id}
+                type="button"
+                onClick={() => actions.setActiveTab(gate.tabId)}
+                className={`flex items-center gap-2 p-3 rounded-lg border text-left text-sm transition-all ${
+                  done
+                    ? 'bg-green-50 border-green-200 text-green-800'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-red-300 hover:bg-red-50/50'
+                }`}
+              >
+                {done ? <CheckCircle className="w-5 h-5 flex-shrink-0 text-green-600" /> : <Clock className="w-5 h-5 flex-shrink-0 text-gray-400" />}
+                <span className="font-medium">{gate.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-gray-500 mt-3">
+          You’re ready to open when permits are in hand, staff are trained, POS and inventory are live, and soft open is done. Use the full phases below for step-by-step tasks.
+        </p>
+      </SectionCard>
+
       {/* Process review: lease → construction → permits → opening */}
       <SectionCard
         title="Process review: Lease signing → Construction → Permits → Opening"

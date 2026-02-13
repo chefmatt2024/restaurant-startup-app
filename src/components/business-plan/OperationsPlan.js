@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
-import { Clock, MapPin, Truck, Shield, Calendar } from 'lucide-react';
+import { Clock, MapPin, Truck, Calendar } from 'lucide-react';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DEFAULT_DAY_HOURS = { closed: false, open: '11:00', close: '22:00' };
@@ -38,11 +38,33 @@ const OperationsPlan = () => {
   const data = state.businessPlan.operationsPlan;
   const financialData = state.financialData;
   const restaurantOps = financialData?.restaurantOperations || {};
+  const restaurantDetails = financialData?.restaurantDetails || {};
   const hoursOfOperation = restaurantOps.hoursOfOperation || {};
   const [activeTab, setActiveTab] = useState('facility');
 
   const handleFieldChange = (field, value) => {
     actions.updateBusinessPlan('operationsPlan', { [field]: value });
+  };
+
+  // Linked to Financials: single source of truth is financialData; sync to business plan for docs
+  const linkedSeats = restaurantOps.seats ?? data.seatingCapacity ?? 50;
+  const linkedSquareFootage = restaurantDetails.squareFootage ?? data.totalSquareFootage ?? 2000;
+  const location = restaurantDetails.location || 'Boston';
+
+  const handleLocationChange = (value) => {
+    actions.updateFinancialData('restaurantDetails', { ...restaurantDetails, location: value });
+  };
+
+  const handleLinkedSeatsChange = (value) => {
+    const num = parseInt(value, 10) || 0;
+    actions.updateFinancialData('restaurantOperations', { seats: num });
+    actions.updateBusinessPlan('operationsPlan', { seatingCapacity: num });
+  };
+
+  const handleLinkedSquareFootageChange = (value) => {
+    const num = parseInt(value, 10) || 0;
+    actions.updateFinancialData('restaurantDetails', { squareFootage: num });
+    actions.updateBusinessPlan('operationsPlan', { totalSquareFootage: num });
   };
 
   // Update hours in financials (single source of truth) and sync summary to business plan for docs
@@ -58,37 +80,10 @@ const OperationsPlan = () => {
     if (summary) actions.updateBusinessPlan('operationsPlan', { hoursOfOperation: summary });
   };
 
-  // Boston restaurant operational requirements
-  const bostonRequirements = {
-    permits: [
-      { name: 'Food Service License', agency: 'Boston Public Health Commission', timeline: '4-6 weeks', cost: 240 },
-      { name: 'Business License', agency: 'City of Boston', timeline: '2-3 weeks', cost: 75 },
-      { name: 'Building Permit', agency: 'Boston Inspectional Services', timeline: '6-8 weeks', cost: 'Varies' },
-      { name: 'Sign Permit', agency: 'Boston Planning Department', timeline: '2-4 weeks', cost: 150 },
-      { name: 'Fire Dept Permit', agency: 'Boston Fire Department', timeline: '1-2 weeks', cost: 100 },
-      { name: 'Site Cleanliness License', agency: 'Boston Inspectional Services', timeline: '2-3 weeks', cost: 50, website: 'https://www.boston.gov/departments/inspectional-services/site-cleanliness' }
-    ],
-    inspections: [
-      { type: 'Health Inspection', frequency: 'Annual', agency: 'BPHC', criticality: 'High' },
-      { type: 'Fire Safety', frequency: 'Annual', agency: 'BFD', criticality: 'High' },
-      { type: 'Building Code', frequency: 'As needed', agency: 'ISD', criticality: 'Medium' },
-      { type: 'Liquor Compliance', frequency: 'Quarterly', agency: 'BLB', criticality: 'High' },
-      { type: 'Site Cleanliness', frequency: 'Annual', agency: 'ISD', criticality: 'High' }
-    ],
-    regulations: {
-      minimumWage: 15.00, // MA minimum wage for tipped workers
-      overtime: 1.5,
-      breakRequirements: '30 min for 6+ hour shifts',
-      healthCertification: 'Required for all food handlers',
-      maxOccupancy: 'Based on sq ft and layout'
-    }
-  };
-
   const tabs = [
     { id: 'facility', label: 'Facility & Layout', icon: MapPin },
     { id: 'operations', label: 'Daily Operations', icon: Clock },
     { id: 'supply', label: 'Supply Chain', icon: Truck },
-    { id: 'compliance', label: 'Compliance & Safety', icon: Shield },
     { id: 'schedule', label: 'Operating Schedule', icon: Calendar }
   ];
 
@@ -125,7 +120,7 @@ const OperationsPlan = () => {
           </div>
           
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Boston Zoning Requirements</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">{location} Zoning Requirements</h4>
             <div className="space-y-2 text-sm text-gray-600">
               <p>• Commercial kitchen ventilation must meet MA Building Code</p>
               <p>• ADA compliance required for all areas</p>
@@ -145,20 +140,23 @@ const OperationsPlan = () => {
         placeholder="e.g., 123 Main Street, Back Bay, Boston, MA 02116"
       />
 
+      <div className="mb-2 rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-2 text-sm text-indigo-800">
+        Square footage and seating capacity are linked with <strong>Financial Projections</strong>. Changes here update revenue, rent, and capacity calculations there.
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           label="Total Square Footage"
           type="number"
-          value={data.totalSquareFootage}
-          onChange={(value) => handleFieldChange('totalSquareFootage', value)}
+          value={linkedSquareFootage}
+          onChange={(value) => handleLinkedSquareFootageChange(value)}
           placeholder="e.g., 2500"
         />
         
         <FormField
           label="Seating Capacity"
           type="number"
-          value={data.seatingCapacity}
-          onChange={(value) => handleFieldChange('seatingCapacity', value)}
+          value={linkedSeats}
+          onChange={(value) => handleLinkedSeatsChange(value)}
           placeholder="e.g., 80"
         />
       </div>
@@ -334,92 +332,6 @@ const OperationsPlan = () => {
         onChange={(value) => handleFieldChange('menuProcurement', value)}
         placeholder="How do you source ingredients for each menu category? Local vs. national suppliers, seasonal adjustments, cost management"
         rows={4}
-      />
-    </div>
-  );
-
-  const renderCompliance = () => (
-    <div className="space-y-6">
-      {/* Required Permits */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Shield className="h-5 w-5 text-red-600" />
-          <h3 className="text-lg font-semibold text-red-900">Boston Restaurant Permits & Licenses</h3>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 font-semibold text-gray-900">Permit</th>
-                <th className="text-left py-2 px-3 font-semibold text-gray-900">Agency</th>
-                <th className="text-left py-2 px-3 font-semibold text-gray-900">Timeline</th>
-                <th className="text-left py-2 px-3 font-semibold text-gray-900">Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bostonRequirements.permits.map((permit, index) => (
-                <tr key={index} className="border-b border-gray-100">
-                  <td className="py-2 px-3 font-medium text-gray-900">{permit.name}</td>
-                  <td className="py-2 px-3 text-gray-700">{permit.agency}</td>
-                  <td className="py-2 px-3 text-gray-700">{permit.timeline}</td>
-                  <td className="py-2 px-3 text-gray-700">${permit.cost}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Inspection Schedule */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-4">Inspection Schedule</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {bostonRequirements.inspections.map((inspection, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-gray-900">{inspection.type}</h4>
-                <span className={`px-2 py-1 text-xs font-medium rounded ${
-                  inspection.criticality === 'High' ? 'bg-red-100 text-red-800' :
-                  inspection.criticality === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {inspection.criticality}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">Frequency: {inspection.frequency}</p>
-              <p className="text-sm text-gray-600">Agency: {inspection.agency}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <FormField
-        label="Health & Safety Procedures"
-        type="textarea"
-        value={data.healthSafetyProcedures}
-        onChange={(value) => handleFieldChange('healthSafetyProcedures', value)}
-        placeholder="Food safety protocols, cleaning schedules, employee health policies, accident reporting procedures"
-        rows={4}
-      />
-
-      <FormField
-        label="Emergency Procedures"
-        type="textarea"
-        value={data.emergencyProcedures}
-        onChange={(value) => handleFieldChange('emergencyProcedures', value)}
-        placeholder="Fire evacuation plan, medical emergency response, power outage procedures, security protocols"
-        rows={3}
-      />
-
-      <FormField
-        label="Insurance Coverage"
-        type="textarea"
-        value={data.insuranceCoverage}
-        onChange={(value) => handleFieldChange('insuranceCoverage', value)}
-        placeholder="General liability, property insurance, workers' compensation, liquor liability, cyber liability"
-        rows={3}
       />
     </div>
   );

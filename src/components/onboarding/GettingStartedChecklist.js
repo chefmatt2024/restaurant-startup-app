@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { CheckCircle, Circle, Target, BarChart3, FileText, MapPin, Building2, Users, ArrowRight, Compass } from 'lucide-react';
+import { CheckCircle, Circle, Target, BarChart3, FileText, MapPin, Building2, Users, ArrowRight, Compass, Shield } from 'lucide-react';
 
 const GettingStartedChecklist = () => {
   const { state, actions } = useApp();
   const [completedItems, setCompletedItems] = useState(new Set());
   const [isMinimized, setIsMinimized] = useState(false);
 
+  // Order matches pre-opening journey (same as progress bar)
   const checklistItems = [
     {
       id: 'opening-plan',
@@ -31,6 +32,28 @@ const GettingStartedChecklist = () => {
       }
     },
     {
+      id: 'market',
+      title: 'Research Your Market',
+      description: 'Analyze competition and target market',
+      tab: 'market-competition',
+      icon: <MapPin className="w-5 h-5" />,
+      checkFunction: () => {
+        const draft = state.drafts?.find(d => d.id === state.currentDraftId);
+        return draft?.businessPlan?.marketAnalysis?.targetMarket?.length > 0;
+      }
+    },
+    {
+      id: 'offer-marketing',
+      title: 'Define Offer & Marketing',
+      description: 'Products, services, and how you’ll reach customers',
+      tab: 'offer-marketing',
+      icon: <Target className="w-5 h-5" />,
+      checkFunction: () => {
+        const draft = state.drafts?.find(d => d.id === state.currentDraftId);
+        return !!(draft?.businessPlan?.serviceDescription?.productsServices || draft?.businessPlan?.marketingStrategy?.marketingMix || draft?.businessPlan?.marketingStrategy?.customerAcquisition);
+      }
+    },
+    {
       id: 'financials',
       title: 'Create Financial Projections',
       description: 'Set up your startup costs and revenue projections',
@@ -42,14 +65,14 @@ const GettingStartedChecklist = () => {
       }
     },
     {
-      id: 'market',
-      title: 'Research Your Market',
-      description: 'Analyze competition and target market',
-      tab: 'market-competition',
-      icon: <MapPin className="w-5 h-5" />,
+      id: 'team',
+      title: 'Define Management Team',
+      description: 'Outline your key team members',
+      tab: 'team-cap-table',
+      icon: <Users className="w-5 h-5" />,
       checkFunction: () => {
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
-        return draft?.businessPlan?.marketAnalysis?.targetMarket?.length > 0;
+        return !!(draft?.businessPlan?.managementTeam?.keyPersonnel || (draft?.businessPlan?.managementTeam?.teamMembers?.length > 0));
       }
     },
     {
@@ -74,14 +97,18 @@ const GettingStartedChecklist = () => {
       }
     },
     {
-      id: 'team',
-      title: 'Define Management Team',
-      description: 'Outline your key team members',
-      tab: 'team-cap-table',
-      icon: <Users className="w-5 h-5" />,
+      id: 'compliance',
+      title: 'Start Permits & Compliance',
+      description: 'Track licenses, permits, and inspections (Boston requirements)',
+      tab: 'compliance',
+      icon: <Shield className="w-5 h-5" />,
       checkFunction: () => {
+        const completed = state.openingPlanProgress?.completedTaskIds || [];
+        const permitTaskIds = ['business-certificate', 'business-licenses', 'building-permits', 'food-establishment-permit', 'certificate-of-occupancy', 'inspections', 'alcohol-licensing', 'boston-specific-requirements'];
+        const hasPermitProgress = permitTaskIds.some(id => completed.includes(id));
         const draft = state.drafts?.find(d => d.id === state.currentDraftId);
-        return !!(draft?.businessPlan?.managementTeam?.keyPersonnel || (draft?.businessPlan?.managementTeam?.teamMembers?.length > 0));
+        const hasComplianceData = !!(draft?.complianceData?.documents?.length > 0);
+        return hasPermitProgress || hasComplianceData;
       }
     }
   ];

@@ -5,7 +5,9 @@ const SectionCard = ({
   description, 
   children, 
   color = 'blue',
-  className = '' 
+  className = '',
+  id,
+  icon: Icon
 }) => {
   const getColorClasses = () => {
     const colors = {
@@ -24,10 +26,13 @@ const SectionCard = ({
   };
 
   return (
-    <div className={`rounded-lg border-2 ${getColorClasses()} ${className}`}>
+    <div id={id} className={`rounded-lg border-2 ${getColorClasses()} ${className}`}>
       <div className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            {Icon && <Icon className="w-6 h-6 text-gray-600" />}
+            {title}
+          </h2>
           {description && (
             <p className="text-gray-700 leading-relaxed">{description}</p>
           )}
