@@ -30,7 +30,8 @@ import {
   Star,
   Zap,
   Rocket,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 
 const DashboardOverview = ({ onSwitchToDetailed }) => {

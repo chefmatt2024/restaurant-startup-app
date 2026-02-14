@@ -58,10 +58,8 @@ const ReportsView = () => {
   const monthlyActuals = state.financialData?.monthlyActuals || {};
   const completedTaskIds = state.openingPlanProgress?.completedTaskIds || [];
 
-  // Plan summary: use first month that has data, or selected month from monthlyPL (plan is often same across months or we use one representative)
-  const planSummary = useMemo(() => {
-    return plSummaryFromMonth(monthlyPL) || plSummaryFromMonth(getFirstMonthPl(monthlyPL));
-  }, [monthlyPL]);
+  // Plan summary: monthlyPL is keyed by section (revenue, cogs, ...), same shape as one month's pl
+  const planSummary = useMemo(() => plSummaryFromMonth(monthlyPL), [monthlyPL]);
 
   const monthKeys = useMemo(() => {
     const keys = new Set(Object.keys(monthlyActuals));

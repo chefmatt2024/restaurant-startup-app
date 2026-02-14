@@ -21,7 +21,8 @@ import {
   CheckCircle,
   ClipboardList,
   FileCheck,
-  Map
+  Map,
+  BookOpen
 } from 'lucide-react';
 
 // Export for breadcrumb/section title in Dashboard. Order = pre-opening journey (matches PROGRESS_SECTION_ORDER).

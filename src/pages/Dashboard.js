@@ -4,6 +4,8 @@ import Header from '../components/layout/Header';
 import TabNavigation, { DETAIL_VIEW_TABS } from '../components/layout/TabNavigation';
 import { getSectionStatus } from '../utils/sectionStatus';
 import GuideAssistant from '../components/onboarding/GuideAssistant';
+import AIAssistant from '../components/ai/AIAssistant';
+import { getAIPlaceholderForStep, getAIContextForStep } from '../config/aiStepContext';
 import { ChevronRight, LayoutDashboard, List, Sparkles } from 'lucide-react';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
