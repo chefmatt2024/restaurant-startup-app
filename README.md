@@ -4,7 +4,7 @@ A comprehensive business planning application specifically designed for restaura
 
 ## 🚀 Live Demo
 
-[Deployed App](https://restaurant-startup-app.web.app)
+**Live app:** [restaurant-startup-app.web.app](https://restaurant-startup-app.web.app)
 
 ## ✨ Features
 
@@ -101,7 +101,7 @@ A comprehensive business planning application specifically designed for restaura
 ## 📱 Usage
 
 ### Getting Started
-1. **Sign Up**: Create an account or use anonymous mode
+1. **Sign Up**: Create an account (required; email/password or Google sign-in)
 2. **Create Draft**: Start a new business plan draft
 3. **Fill Sections**: Complete each section of your business plan
 4. **Track Progress**: Use the opening plan to track your progress
