@@ -5,8 +5,9 @@ import TabNavigation, { DETAIL_VIEW_TABS } from '../components/layout/TabNavigat
 import { getSectionStatus } from '../utils/sectionStatus';
 import GuideAssistant from '../components/onboarding/GuideAssistant';
 import AIAssistant from '../components/ai/AIAssistant';
+import SpatulaMascot from '../components/ai/SpatulaMascot';
 import { getAIPlaceholderForStep, getAIContextForStep } from '../config/aiStepContext';
-import { ChevronRight, LayoutDashboard, List, Sparkles } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, List, Sparkles, X } from 'lucide-react';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
 import FinancialProjections from '../components/financial/FinancialProjections';
@@ -38,6 +39,7 @@ const Dashboard = () => {
   const [showOverview, setShowOverview] = useState(true);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [showGuideAssistant, setShowGuideAssistant] = useState(false);
+  const [showAIPopup, setShowAIPopup] = useState(false);
 
   const currentDraft = state.drafts?.find(d => d.id === state.currentDraftId);
   const sectionStatus = useMemo(
@@ -236,11 +238,21 @@ const Dashboard = () => {
         onSkip={handleTourComplete}
       />
 
-      {/* AI Step Guide - floating button opens popup that walks through steps */}
+      {/* AI Assistant - spatula mascot FAB (pops up to help) */}
+      <button
+        type="button"
+        onClick={() => setShowAIPopup(true)}
+        className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full bg-white border-2 border-amber-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 overflow-hidden"
+        aria-label="Open AI assistant"
+        title="Ask the spatula — AI help"
+      >
+        <SpatulaMascot size={48} animated />
+      </button>
+      {/* Step-by-step guide FAB - left of spatula */}
       <button
         type="button"
         onClick={() => setShowGuideAssistant(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-24 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         aria-label="Open step-by-step guide"
       >
         <Sparkles className="w-7 h-7" />
@@ -250,6 +262,38 @@ const Dashboard = () => {
         onClose={() => setShowGuideAssistant(false)}
         sectionStatus={sectionStatus}
       />
+
+      {/* AI Assistant popup - slide-up panel with spatula */}
+      {showAIPopup && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40" aria-hidden onClick={() => setShowAIPopup(false)} />
+          <div className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-t-2xl shadow-2xl flex flex-col animate-slide-up">
+            <div className="flex-shrink-0 flex items-center gap-3 px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-2xl">
+              <SpatulaMascot size={48} />
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-gray-900">Spatula Assistant</h2>
+                <p className="text-sm text-gray-600">Ask me anything about your restaurant plan.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAIPopup(false)}
+                className="p-2 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-auto p-6">
+              <AIAssistant
+                section={showOverview ? null : state.activeTab}
+                context={showOverview ? {} : getAIContextForStep(state.activeTab, state)}
+                placeholder={showOverview ? 'Ask me anything about your restaurant business plan...' : getAIPlaceholderForStep(state.activeTab)}
+                showQuickActions={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
