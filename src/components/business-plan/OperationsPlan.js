@@ -451,7 +451,6 @@ const OperationsPlan = () => {
         {activeTab === 'facility' && renderFacility()}
         {activeTab === 'operations' && renderOperations()}
         {activeTab === 'supply' && renderSupplyChain()}
-        {activeTab === 'compliance' && renderCompliance()}
         {activeTab === 'schedule' && renderSchedule()}
       </SectionCard>
     </div>

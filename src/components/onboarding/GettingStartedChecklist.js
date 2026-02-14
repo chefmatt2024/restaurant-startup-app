@@ -78,7 +78,7 @@ const GettingStartedChecklist = () => {
     {
       id: 'operations',
       title: 'Plan Operations',
-      description: 'Set up equipment, menu, and vendors',
+      description: 'Operations plan (facility, layout), equipment, and menu—see Operations and Equipment & Menu tabs',
       tab: 'operations',
       icon: <Building2 className="w-5 h-5" />,
       checkFunction: () => {

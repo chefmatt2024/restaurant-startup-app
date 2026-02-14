@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import DraftManager from './DraftManager';
@@ -8,6 +8,7 @@ import UserProfile from '../auth/UserProfile';
 import TrialStatus from '../auth/TrialStatus';
 import InvitationManager from '../sharing/InvitationManager';
 import { getPendingInvitations } from '../../services/sharingService';
+import { getNotifications } from '../../utils/notificationsUtils';
 
 const Header = () => {
   const { state, actions } = useApp();
@@ -21,8 +22,10 @@ const Header = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
+  const notifications = useMemo(() => getNotifications(state), [state.notificationReadIds, state.openingPlanProgress, state.subscription]);
 
   const handleSave = async () => {
     await actions.saveData();
@@ -178,6 +181,55 @@ const Header = () => {
                 </div>
               )}
 
+              {/* In-app Notifications */}
+              {state.isAuthenticated && (
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      setShowUserDropdown(false);
+                      setShowInvitations(false);
+                    }}
+                    className="relative flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    aria-label={notifications.length ? `${notifications.length} notifications` : 'Notifications'}
+                  >
+                    <Bell className="w-5 h-5" />
+                    {notifications.length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                        {notifications.length > 3 ? '3+' : notifications.length}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+                      <div className="px-3 py-2 border-b border-gray-100">
+                        <h3 className="font-semibold text-gray-900">Notifications</h3>
+                      </div>
+                      <div className="max-h-72 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <p className="px-3 py-4 text-sm text-gray-500">You're all caught up.</p>
+                        ) : (
+                          notifications.map((n) => (
+                            <button
+                              key={n.id}
+                              onClick={() => {
+                                actions.markNotificationsRead([n.id]);
+                                if (n.actionTab) actions.setActiveTab(n.actionTab);
+                                setShowNotifications(false);
+                              }}
+                              className="w-full text-left px-3 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                            >
+                              <div className="font-medium text-gray-900 text-sm">{n.title}</div>
+                              <div className="text-xs text-gray-600 mt-0.5">{n.body}</div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Invitation Notification */}
               {state.isAuthenticated && pendingInvitations.length > 0 && (
                 <div className="relative">
@@ -185,6 +237,7 @@ const Header = () => {
                     onClick={() => {
                       setShowInvitations(!showInvitations);
                       setShowUserDropdown(false);
+                      setShowNotifications(false);
                     }}
                     className="relative flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                   >

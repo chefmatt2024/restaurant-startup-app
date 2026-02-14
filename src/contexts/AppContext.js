@@ -36,6 +36,10 @@ export const ActionTypes = {
   SET_DRAFT_COMPARISON: 'SET_DRAFT_COMPARISON',
   UPDATE_PROJECT_TIMELINE: 'UPDATE_PROJECT_TIMELINE',
   UPDATE_OPENING_PLAN_PROGRESS: 'UPDATE_OPENING_PLAN_PROGRESS',
+  UPDATE_DOCUMENT_VERSIONS: 'UPDATE_DOCUMENT_VERSIONS',
+  UPDATE_SOPS: 'UPDATE_SOPS',
+  UPDATE_LEDGER_ENTRIES: 'UPDATE_LEDGER_ENTRIES',
+  MARK_NOTIFICATIONS_READ: 'MARK_NOTIFICATIONS_READ',
   
   // Auto-save actions
   SET_SAVE_STATUS: 'SET_SAVE_STATUS',
@@ -649,7 +653,11 @@ const initialState = {
   vendors: [],
   certifications: [],
   projectTimeline: null,
-  openingPlanProgress: { completedTaskIds: [] }
+  openingPlanProgress: { completedTaskIds: [] },
+  documentVersions: [],
+  sops: [],
+  ledgerEntries: [],
+  notificationReadIds: []
 };
 
 // Draft helper functions
@@ -664,7 +672,9 @@ const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null) => {
     businessPlan: baseDraft ? { ...baseDraft.businessPlan } : { ...initialState.businessPlan },
     financialData: baseDraft ? { ...baseDraft.financialData } : { ...initialState.financialData },
     vendors: baseDraft ? [...baseDraft.vendors] : [],
-    openingPlanProgress: baseDraft?.openingPlanProgress ? { ...baseDraft.openingPlanProgress, completedTaskIds: [...(baseDraft.openingPlanProgress.completedTaskIds || [])] } : { completedTaskIds: [] }
+    openingPlanProgress: baseDraft?.openingPlanProgress ? { ...baseDraft.openingPlanProgress, completedTaskIds: [...(baseDraft.openingPlanProgress.completedTaskIds || [])] } : { completedTaskIds: [] },
+    documentVersions: baseDraft?.documentVersions ? [...baseDraft.documentVersions] : [],
+    sops: baseDraft?.sops ? baseDraft.sops.map(s => ({ ...s, steps: [...(s.steps || [])] })) : []
   };
 };
 
@@ -1711,7 +1721,10 @@ const updateCurrentDraftData = (state) => {
       businessPlan: currentDraft.businessPlan,
       financialData: currentDraft.financialData,
       vendors: Array.isArray(currentDraft.vendors) ? currentDraft.vendors : [],
-      openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] }
+      openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] },
+      documentVersions: Array.isArray(currentDraft.documentVersions) ? currentDraft.documentVersions : [],
+      sops: Array.isArray(currentDraft.sops) ? currentDraft.sops : [],
+      ledgerEntries: Array.isArray(currentDraft.ledgerEntries) ? currentDraft.ledgerEntries : []
     };
   }
   return state;
@@ -1924,7 +1937,9 @@ export const appReducer = (state, action) => {
         businessPlan: newDraft.businessPlan,
         financialData: newDraft.financialData,
         vendors: newDraft.vendors,
-        openingPlanProgress: newDraft.openingPlanProgress || { completedTaskIds: [] }
+        openingPlanProgress: newDraft.openingPlanProgress || { completedTaskIds: [] },
+        documentVersions: newDraft.documentVersions || [],
+        sops: newDraft.sops || []
       };
     }
     
@@ -2002,6 +2017,38 @@ export const appReducer = (state, action) => {
       return {
         ...state,
         lastSavedAt: action.payload
+      };
+
+    case ActionTypes.UPDATE_DOCUMENT_VERSIONS: {
+      const documentVersions = action.payload;
+      const updatedDrafts = state.drafts.map(draft =>
+        draft.id === state.currentDraftId ? { ...draft, documentVersions, updatedAt: new Date() } : draft
+      );
+      return { ...state, documentVersions, drafts: updatedDrafts };
+    }
+
+    case ActionTypes.UPDATE_SOPS: {
+      const sops = action.payload;
+      const updatedDrafts = state.drafts.map(draft =>
+        draft.id === state.currentDraftId ? { ...draft, sops, updatedAt: new Date() } : draft
+      );
+      return { ...state, sops, drafts: updatedDrafts };
+    }
+
+    case ActionTypes.UPDATE_LEDGER_ENTRIES: {
+      const ledgerEntries = action.payload;
+      const updatedDrafts = state.drafts.map(draft =>
+        draft.id === state.currentDraftId ? { ...draft, ledgerEntries, updatedAt: new Date() } : draft
+      );
+      return { ...state, ledgerEntries, drafts: updatedDrafts };
+    }
+
+    case ActionTypes.MARK_NOTIFICATIONS_READ:
+      return {
+        ...state,
+        notificationReadIds: Array.isArray(action.payload)
+          ? [...new Set([...state.notificationReadIds, ...action.payload])]
+          : state.notificationReadIds
       };
     
     default:
@@ -2121,6 +2168,18 @@ export const AppProvider = ({ children }) => {
     updateOpeningPlanProgress: (completedTaskIds) => {
       dispatch({ type: ActionTypes.UPDATE_OPENING_PLAN_PROGRESS, payload: Array.isArray(completedTaskIds) ? completedTaskIds : (completedTaskIds?.completedTaskIds || []) });
     },
+    updateDocumentVersions: (documentVersions) => {
+      dispatch({ type: ActionTypes.UPDATE_DOCUMENT_VERSIONS, payload: documentVersions });
+    },
+    updateSops: (sops) => {
+      dispatch({ type: ActionTypes.UPDATE_SOPS, payload: sops });
+    },
+    updateLedgerEntries: (ledgerEntries) => {
+      dispatch({ type: ActionTypes.UPDATE_LEDGER_ENTRIES, payload: ledgerEntries });
+    },
+    markNotificationsRead: (ids) => {
+      dispatch({ type: ActionTypes.MARK_NOTIFICATIONS_READ, payload: ids });
+    },
     
     // Save data to Firebase (with optional silent mode for auto-save)
     saveData: async (silent = false) => {
@@ -2156,6 +2215,9 @@ export const AppProvider = ({ children }) => {
             financialData: state.financialData,
             vendors: Array.isArray(state.vendors) ? state.vendors : [],
             openingPlanProgress: state.openingPlanProgress || { completedTaskIds: [] },
+            documentVersions: Array.isArray(state.documentVersions) ? state.documentVersions : [],
+            sops: Array.isArray(state.sops) ? state.sops : [],
+            ledgerEntries: Array.isArray(state.ledgerEntries) ? state.ledgerEntries : [],
             updatedAt: new Date()
           };
           

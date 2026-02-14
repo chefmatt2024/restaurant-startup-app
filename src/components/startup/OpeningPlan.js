@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
+import { getTipForTask, getAreaConfig } from '../../config/areaContent';
 import {
   Calendar, CheckCircle, Clock, DollarSign, FileText, MapPin,
   Building, Users, Utensils, Truck, Shield, Target, TrendingUp,
@@ -9,10 +10,15 @@ import {
 } from 'lucide-react';
 
 // Total task count for progress display (e.g. Dashboard). Update if phases change.
-export const OPENING_PLAN_TOTAL_TASKS = 36;
+export const OPENING_PLAN_TOTAL_TASKS = 34;
+
+/** Replace "Boston" in text with selected area for location-aware copy */
+const replaceAreaInText = (text, area) => (text || '').replace(/\bBoston\b/g, area || 'Boston');
 
 const OpeningPlan = () => {
   const { state, actions } = useApp();
+  const area = state.financialData?.restaurantDetails?.location || 'Boston';
+  const areaConfig = getAreaConfig(area);
   const [activePhase, setActivePhase] = useState('preparation');
   const persistedIds = state.openingPlanProgress?.completedTaskIds || [];
   const completedTasks = new Set(persistedIds);
@@ -92,8 +98,8 @@ const OpeningPlan = () => {
       tasks: [
         {
           id: 'business-concept',
-          title: 'Define Business Concept',
-          description: 'Finalize your restaurant concept, cuisine type, and target market',
+          title: 'Define Concept, Pitch & Executive Summary',
+          description: 'Finalize your restaurant concept, elevator pitch, and executive summary (Concept & Pitch tab)',
           timeEstimate: '3-5 days',
           priority: 'High',
           category: 'ideation',
@@ -102,24 +108,8 @@ const OpeningPlan = () => {
           actions: [
             'Complete Idea Formation section',
             'Define your unique value proposition',
-            'Research Boston food trends and gaps',
-            'Create elevator pitch'
-          ]
-        },
-        {
-          id: 'business-plan',
-          title: 'Create Business Plan',
-          description: 'Develop comprehensive business plan with financial projections',
-          timeEstimate: '1-2 weeks',
-          priority: 'High',
-          category: 'planning',
-          tabId: 'concept-pitch',
-          bostonTip: 'Include detailed market analysis for your target neighborhood. Boston has diverse demographics.',
-          actions: [
-            'Complete Executive Summary',
-            'Conduct Market Analysis',
-            'Create Financial Projections',
-            'Define Operations Plan'
+            'Create elevator pitch',
+            'Complete Executive Summary'
           ]
         },
         {
@@ -165,32 +155,19 @@ const OpeningPlan = () => {
         },
         {
           id: 'funding-strategy',
-          title: 'Develop Funding Strategy',
-          description: 'Identify and secure funding sources',
+          title: 'Develop Funding Strategy & Lender Package',
+          description: 'Identify funding sources and prepare financial package for lenders/investors',
           timeEstimate: '2-4 weeks',
           priority: 'High',
           category: 'financial',
-          bostonTip: 'Consider SBA loans, local business grants, and angel investors familiar with Boston market.',
+          tabId: 'financials',
+          bostonTip: 'Consider SBA loans, local grants, and angel investors. Boston lenders appreciate detailed market analysis and conservative projections.',
           actions: [
             'Assess personal investment capacity',
             'Research SBA loan options',
             'Identify potential investors',
-            'Prepare funding presentations'
-          ]
-        },
-        {
-          id: 'financial-documents',
-          title: 'Prepare Financial Documents',
-          description: 'Create professional financial packages for lenders/investors',
-          timeEstimate: '1 week',
-          priority: 'Medium',
-          category: 'financial',
-          bostonTip: 'Boston lenders appreciate detailed market analysis and conservative projections.',
-          actions: [
-            'Create 3-year financial projections',
-            'Prepare cash flow analysis',
-            'Develop break-even analysis',
-            'Assemble funding package'
+            'Create 3-year projections and cash flow analysis (Financial Projections tab)',
+            'Develop break-even analysis and assemble funding package'
           ]
         },
         {
@@ -817,7 +794,7 @@ const OpeningPlan = () => {
           ))}
         </div>
         <p className="text-sm text-gray-500 mt-4">
-          Typical total: 4–8 months from lease signing to opening in Boston. Permits often run in parallel with construction.
+          Typical total: 4–8 months from lease signing to opening in {area}. Permits often run in parallel with construction.
         </p>
         <button
           type="button"
@@ -1063,8 +1040,8 @@ const OpeningPlan = () => {
             <div className={`border-2 rounded-lg p-6 ${getPhaseColor(phase.color)}`}>
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{phase.title}</h2>
-                  <p className="text-gray-700 mb-3">{phase.description}</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{replaceAreaInText(phase.title, area)}</h2>
+                  <p className="text-gray-700 mb-3">{replaceAreaInText(phase.description, area)}</p>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
@@ -1128,23 +1105,25 @@ const OpeningPlan = () => {
                           const IconComponent = getCategoryIcon(task.category);
                           return <IconComponent className="h-5 w-5 text-blue-600" />;
                         })()}
-                        <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{replaceAreaInText(task.title, area)}</h3>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                           {task.priority}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-3">{task.description}</p>
+                      <p className="text-gray-600 mb-3">{replaceAreaInText(task.description, area)}</p>
                       
-                      {/* Boston Tip */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-                        <div className="flex items-start space-x-2">
-                          <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <h5 className="font-medium text-green-900 text-sm">Boston Tip:</h5>
-                            <p className="text-sm text-green-700">{task.bostonTip}</p>
+                      {/* Local tip (area-specific) */}
+                      {getTipForTask(area, task) && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                          <div className="flex items-start space-x-2">
+                            <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <h5 className="font-medium text-green-900 text-sm">{area} tip:</h5>
+                              <p className="text-sm text-green-700">{getTipForTask(area, task)}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Actions */}
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -1155,7 +1134,7 @@ const OpeningPlan = () => {
                               <span className="flex-shrink-0 w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center mt-0.5">
                                 <span className="text-xs font-medium text-blue-700">{index + 1}</span>
                               </span>
-                              <span>{action}</span>
+                              <span>{replaceAreaInText(action, area)}</span>
                             </li>
                           ))}
                         </ul>
@@ -1249,11 +1228,11 @@ const OpeningPlan = () => {
         </div>
       </div>
 
-      {/* Boston-Specific Insights */}
+      {/* Area-specific insights */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-          Boston Restaurant Market Insights
+          {area} Restaurant Market Insights
         </h3>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="space-y-3">
@@ -1359,7 +1338,7 @@ const OpeningPlan = () => {
              <p className="text-gray-600 mb-4">{lastCompletedTask.title}</p>
              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                <p className="text-sm text-green-700">
-                 Great progress! You're one step closer to opening your Boston restaurant.
+                 Great progress! You're one step closer to opening your {area} restaurant.
                </p>
              </div>
              <button

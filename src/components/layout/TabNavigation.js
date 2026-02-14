@@ -18,12 +18,16 @@ import {
   Palette,
   Rocket,
   Award,
-  CheckCircle
+  CheckCircle,
+  ClipboardList,
+  FileCheck,
+  Map
 } from 'lucide-react';
 
 // Export for breadcrumb/section title in Dashboard. Order = pre-opening journey (matches PROGRESS_SECTION_ORDER).
 export const DETAIL_VIEW_TABS = [
-    { id: 'startup-and-opening', label: 'Startup & Opening Plan', icon: Compass, color: 'blue', description: 'Journey & Boston roadmap' },
+    { id: 'startup-and-opening', label: 'Startup & Opening Plan', icon: Compass, color: 'blue', description: 'Journey & local roadmap' },
+    { id: 'process-map', label: 'Process map', icon: Map, color: 'slate', description: 'Start to opening: full journey' },
     { id: 'concept-pitch', label: 'Concept & Pitch', icon: Lightbulb, color: 'yellow', description: 'Idea, elevator pitch, exec summary' },
     { id: 'market-competition', label: 'Market & Competition', icon: BarChart3, color: 'green', description: 'Market & competitive analysis' },
     { id: 'offer-marketing', label: 'Offer & Marketing', icon: Target, color: 'purple', description: 'Products, services, marketing' },
@@ -35,6 +39,10 @@ export const DETAIL_VIEW_TABS = [
     { id: 'equipment-menu', label: 'Equipment & Menu', icon: Utensils, color: 'orange', description: 'Equipment planning & menu builder' },
     { id: 'branding', label: 'Branding Planner', icon: Palette, color: 'purple', description: 'Brand identity & materials' },
     { id: 'compliance', label: 'Compliance', icon: Shield, color: 'red', description: 'Documents, licenses, certifications' },
+    { id: 'documents', label: 'Documents', icon: FileCheck, color: 'blue', description: 'Onboarding doc workflow' },
+    { id: 'reports', label: 'Reports', icon: BarChart3, color: 'green', description: 'P&L, variance, progress' },
+    { id: 'ledger', label: 'Ledger', icon: BookOpen, color: 'amber', description: 'Expenses & invoices' },
+    { id: 'sops', label: 'SOPs', icon: ClipboardList, color: 'indigo', description: 'Standard operating procedures' },
     { id: 'import', label: 'Import Document', icon: FileText, color: 'blue', description: 'Upload & extract data' },
     { id: 'business-analytics', label: 'Business Analytics', icon: BarChart3, color: 'blue' }
 ];

@@ -20,6 +20,10 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { PROGRESS_SECTION_ORDER } from '../../utils/sectionStatus';
+import { DETAIL_VIEW_TABS } from '../layout/TabNavigation';
+
+const tabById = {};
+DETAIL_VIEW_TABS.forEach(t => { tabById[t.id] = t; });
 
 const STEP_ICONS = {
   'startup-and-opening': Compass,

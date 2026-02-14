@@ -25,6 +25,11 @@ import AdminDashboard from '../components/admin/AdminDashboard';
 import DocumentImporter from '../components/import/DocumentImporter';
 import WelcomeTour from '../components/onboarding/WelcomeTour';
 import TrialExpirationBanner from '../components/trial/TrialExpirationBanner';
+import OnboardingDocumentsWorkflow from '../components/onboarding/OnboardingDocumentsWorkflow';
+import ReportsView from '../components/reports/ReportsView';
+import LedgerView from '../components/ledger/LedgerView';
+import SOPManager from '../components/sops/SOPManager';
+import ProcessMapView from '../components/process/ProcessMapView';
 
 const Dashboard = () => {
   const { state, actions } = useApp();
@@ -45,6 +50,8 @@ const Dashboard = () => {
     switch (state.activeTab) {
       case 'startup-and-opening':
         return <StartupAndOpeningPlan />;
+      case 'process-map':
+        return <ProcessMapView />;
       case 'concept-pitch':
         return <ConceptAndPitch />;
       case 'market-competition':
@@ -67,6 +74,18 @@ const Dashboard = () => {
         return <BrandingPlanner />;
       case 'compliance':
         return <ComplianceHub />;
+      case 'documents':
+        return (
+          <div className="space-y-6">
+            <OnboardingDocumentsWorkflow />
+          </div>
+        );
+      case 'reports':
+        return <ReportsView />;
+      case 'ledger':
+        return <LedgerView />;
+      case 'sops':
+        return <SOPManager />;
       case 'business-analytics':
         return <BusinessAnalytics />;
       case 'pricing':
@@ -83,6 +102,7 @@ const Dashboard = () => {
   };
 
   const [showWelcomeTour, setShowWelcomeTour] = React.useState(false);
+  const [showGuideAssistant, setShowGuideAssistant] = useState(false);
 
   // Check if user should see welcome tour (only once for new users)
   React.useEffect(() => {
@@ -190,8 +210,19 @@ const Dashboard = () => {
             </div>
             {/* Main content (left) + tabs (right) */}
             <div className="flex flex-1 min-h-0">
-              <div className="flex-1 min-w-0 p-6 lg:p-8 bg-gradient-to-br from-white to-gray-50 overflow-auto">
-                {renderActiveTab()}
+              <div className="flex-1 min-w-0 flex flex-col min-h-0">
+                <div className="flex-1 min-h-0 p-6 lg:p-8 bg-gradient-to-br from-white to-gray-50 overflow-auto">
+                  {renderActiveTab()}
+                </div>
+                {/* Step-aware AI Assistant: available on every step */}
+                <div className="flex-shrink-0 border-t border-gray-200 bg-white px-6 py-4">
+                  <AIAssistant
+                    section={state.activeTab}
+                    context={getAIContextForStep(state.activeTab, state)}
+                    placeholder={getAIPlaceholderForStep(state.activeTab)}
+                    showQuickActions={false}
+                  />
+                </div>
               </div>
               <TabNavigation sectionStatus={sectionStatus} variant="sidebar" />
             </div>

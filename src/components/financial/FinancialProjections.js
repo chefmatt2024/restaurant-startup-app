@@ -4301,7 +4301,12 @@ const FinancialProjections = () => {
       </SectionCard>
 
       <SectionCard title="Generate Investor Documents" color="purple">
-        <DocumentGenerator />
+        <DocumentGenerator
+          onDocumentGenerated={(type) => {
+            const next = [...(state.documentVersions || []), { id: `doc_${Date.now()}`, type, generatedAt: new Date() }];
+            actions.updateDocumentVersions(next);
+          }}
+        />
       </SectionCard>
 
       {/* Financial Insights & Export */}

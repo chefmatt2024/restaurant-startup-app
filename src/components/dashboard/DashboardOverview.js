@@ -4,6 +4,7 @@ import GettingStartedChecklist from '../onboarding/GettingStartedChecklist';
 import { OPENING_PLAN_TOTAL_TASKS } from '../startup/OpeningPlan';
 import QuickStartTemplates from '../onboarding/QuickStartTemplates';
 import { getSectionStatus, PROGRESS_SECTION_ORDER } from '../../utils/sectionStatus';
+import { LOCATION_OPTIONS } from '../../config/areaContent';
 import {
   CheckCircle, 
   Clock, 
@@ -139,6 +140,19 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
             <p className="text-slate-200 text-lg">
               {currentDraft ? `Working on: ${currentDraft.name}` : 'Ready to start your restaurant journey?'}
             </p>
+            <div className="mt-3 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-300 text-sm">Opening in</span>
+              <select
+                value={state.financialData?.restaurantDetails?.location || 'Boston'}
+                onChange={(e) => actions.updateFinancialData('restaurantDetails', { ...state.financialData?.restaurantDetails, location: e.target.value })}
+                className="rounded-md border border-slate-600 bg-slate-700 text-white px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400"
+              >
+                {LOCATION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="text-right">
             <div className="text-4xl font-bold text-white">{progress.percentage}%</div>

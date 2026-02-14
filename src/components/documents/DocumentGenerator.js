@@ -3,7 +3,7 @@ import { useApp } from '../../contexts/AppContext';
 import jsPDF from 'jspdf';
 import { FileText, Download, File, Presentation, BarChart3, Loader } from 'lucide-react';
 
-const DocumentGenerator = () => {
+const DocumentGenerator = ({ onDocumentGenerated }) => {
   const { state } = useApp();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingDoc, setGeneratingDoc] = useState(null);
@@ -507,7 +507,7 @@ const DocumentGenerator = () => {
 
       const fileName = `${(businessPlan.executiveSummary.businessName || 'Restaurant').replace(/[^a-zA-Z0-9]/g, '_')}_Business_Plan.pdf`;
       doc.save(fileName);
-      
+      if (typeof onDocumentGenerated === 'function') onDocumentGenerated('business-plan');
       setIsGenerating(false);
       setGeneratingDoc(null);
     } catch (error) {
