@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import SectionCard from '../ui/SectionCard';
-import { getTipForTask, getAreaConfig } from '../../config/areaContent';
 import {
   Calendar, CheckCircle, Clock, DollarSign, FileText, MapPin,
   Building, Users, Utensils, Truck, Shield, Target, TrendingUp,
   AlertCircle, Info, Star, ArrowRight, Play, BookOpen, Zap, Lightbulb,
   BarChart3, ExternalLink
 } from 'lucide-react';
+import { getTipForTask, getAreaConfig } from '../../config/areaContent';
 
 // Total task count for progress display (e.g. Dashboard). Update if phases change.
 export const OPENING_PLAN_TOTAL_TASKS = 34;
