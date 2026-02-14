@@ -22,9 +22,6 @@ import {
 import { PROGRESS_SECTION_ORDER } from '../../utils/sectionStatus';
 import { DETAIL_VIEW_TABS } from '../layout/TabNavigation';
 
-const tabById = {};
-DETAIL_VIEW_TABS.forEach(t => { tabById[t.id] = t; });
-
 const STEP_ICONS = {
   'startup-and-opening': Compass,
   'concept-pitch': Lightbulb,
@@ -55,11 +52,16 @@ const STEP_BLURBS = {
   'compliance': 'Track permits, licenses, and inspections. Use the Open Restaurant view once you\'re running.'
 };
 
+const getTabLabel = (id) => {
+  const tab = DETAIL_VIEW_TABS.find(t => t.id === id);
+  return (tab && tab.label) || id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+};
+
 const GUIDE_STEPS = PROGRESS_SECTION_ORDER.filter(
   id => STEP_ICONS[id]
 ).map(id => ({
   id,
-  label: (tabById[id] && tabById[id].label) || id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+  label: getTabLabel(id),
   icon: STEP_ICONS[id],
   blurb: STEP_BLURBS[id]
 }));

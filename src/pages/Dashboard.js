@@ -36,6 +36,8 @@ import ProcessMapView from '../components/process/ProcessMapView';
 const Dashboard = () => {
   const { state, actions } = useApp();
   const [showOverview, setShowOverview] = useState(true);
+  const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const [showGuideAssistant, setShowGuideAssistant] = useState(false);
 
   const currentDraft = state.drafts?.find(d => d.id === state.currentDraftId);
   const sectionStatus = useMemo(
@@ -102,9 +104,6 @@ const Dashboard = () => {
         return <StartupAndOpeningPlan />;
     }
   };
-
-  const [showWelcomeTour, setShowWelcomeTour] = React.useState(false);
-  const [showGuideAssistant, setShowGuideAssistant] = useState(false);
 
   // Check if user should see welcome tour (only once for new users)
   React.useEffect(() => {
