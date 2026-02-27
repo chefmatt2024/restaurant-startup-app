@@ -400,7 +400,7 @@ const FinancialProjections = () => {
       annual: annualTotals,
       allPositions
     };
-  }, [data.operatingExpenses.labor]);
+  }, [data.operatingExpenses?.labor]);
 
   // Calculate comprehensive financial analysis
   const financialAnalysis = useMemo(() => {

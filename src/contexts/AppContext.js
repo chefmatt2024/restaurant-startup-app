@@ -2524,4 +2524,7 @@ export const useApp = () => {
   return context;
 };
 
+/** Initial state shape for tests and defaults */
+export const getInitialAppState = () => ({ ...initialState });
+
 export default AppContext; 

@@ -49,7 +49,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
     'team-cap-table': { icon: Users, color: 'indigo', priority: 'medium' },
     'operations': { icon: Building, color: 'purple', priority: 'medium' },
     'timeline': { icon: Calendar, color: 'indigo', priority: 'medium' },
-    'vendors': { icon: Truck, color: 'orange', priority: 'low' },
+    'vendors-expenses': { icon: Truck, color: 'orange', priority: 'low' },
     'equipment-menu': { icon: Utensils, color: 'orange', priority: 'medium' },
     'branding': { icon: Palette, color: 'purple', priority: 'low' },
     'compliance': { icon: Shield, color: 'red', priority: 'high' }

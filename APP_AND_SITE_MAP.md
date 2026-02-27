@@ -67,6 +67,8 @@ After login, the **Dashboard** (`/` or `/dashboard`) shows:
 
 ### Sidebar tabs (planning sections)
 
+Tabs are grouped in the sidebar by phase: **Pre-opening & Plan** → **Plan & Operations** → **Operations (post-open)**. See `TAB_SECTIONS_CHART.md` for full phase mapping.
+
 | Tab ID | Label | Description |
 |--------|--------|-------------|
 | `startup-and-opening` | Startup & Opening Plan | Journey & local roadmap |
@@ -74,20 +76,19 @@ After login, the **Dashboard** (`/` or `/dashboard`) shows:
 | `concept-pitch` | Concept & Pitch | Idea, elevator pitch, exec summary |
 | `market-competition` | Market & Competition | Market & competitive analysis |
 | `offer-marketing` | Offer & Marketing | Products, services, marketing |
-| `financials` | Financial Projections | P&L, projections (available to all) |
-| `team-cap-table` | Team & Cap Table | Staffing, management team & cap table |
-| `operations` | Operations | Operations plan |
-| `timeline` | Project Timeline | Timeline / Gantt-style tasks |
-| `vendors` | Vendor Management | Vendors and contacts |
-| `equipment-menu` | Equipment & Menu | Equipment planning & menu builder |
+| `timeline` | Project Timeline | Milestones & dates to open |
 | `branding` | Branding Planner | Brand identity & materials |
+| `financials` | Financial Projections | Revenue, costs, P&L & funding |
+| `team-cap-table` | Team & Cap Table | Staffing, management team & cap table |
+| `operations` | Operations | Facility, staffing & run of house |
+| `vendors-expenses` | Vendors & Expenses | Vendors, expenses & ledger (sub-tabs) |
+| `equipment-menu` | Equipment & Menu | Equipment planning & menu builder |
 | `compliance` | Compliance | Documents, licenses, certifications |
 | `documents` | Documents | Onboarding doc workflow |
-| `reports` | Reports | P&L, variance, progress |
-| `ledger` | Ledger | Expenses & invoices |
-| `sops` | SOPs | Standard operating procedures |
 | `import` | Import Document | Upload & extract data |
-| `business-analytics` | Business Analytics | Analytics (premium / gated) |
+| `reports` | Reports | P&L, variance, progress |
+| `sops` | SOPs | Standard operating procedures |
+| `business-analytics` | Business Analytics | Metrics & dashboards |
 
 ### Additional app areas (not in sidebar tabs)
 
@@ -150,7 +151,7 @@ After login, the **Dashboard** (`/` or `/dashboard`) shows:
 | Routes | `src/App.js` |
 | Project setup modal | `src/components/layout/ProjectSetupModal.js` |
 | Feature presets | `src/config/featurePresets.js` |
-| Dashboard tabs config | `src/components/layout/TabNavigation.js` (`DETAIL_VIEW_TABS`), filtering by `enabledFeatures` |
+| Dashboard tabs config | `src/components/layout/TabNavigation.js` (`DETAIL_VIEW_TABS`, phase grouping); **TAB_SECTIONS_CHART.md** (full chart) |
 | Dashboard content | `src/pages/Dashboard.js` (`renderActiveTab`, no-drafts → project setup) |
 | Overview (filtered sections) | `src/components/dashboard/DashboardOverview.js` |
 | Human sitemap page | `src/pages/SitemapPage.js` |

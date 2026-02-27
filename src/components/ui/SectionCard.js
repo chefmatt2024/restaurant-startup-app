@@ -9,6 +9,7 @@ const SectionCard = ({
   id,
   icon: Icon
 }) => {
+  const iconEl = Icon && (React.isValidElement(Icon) ? Icon : <Icon className="w-6 h-6 text-gray-600" />);
   const getColorClasses = () => {
     const colors = {
       blue: 'bg-blue-50 border-blue-200',
@@ -30,7 +31,7 @@ const SectionCard = ({
       <div className="p-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-            {Icon && <Icon className="w-6 h-6 text-gray-600" />}
+            {iconEl}
             {title}
           </h2>
           {description && (

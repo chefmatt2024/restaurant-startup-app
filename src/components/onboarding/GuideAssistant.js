@@ -31,7 +31,9 @@ const STEP_ICONS = {
   'team-cap-table': Users,
   'operations': Building,
   'timeline': Calendar,
+  'vendors-expenses': Truck,
   'vendors': Truck,
+  'ledger': Receipt,
   'equipment-menu': Utensils,
   'branding': Palette,
   'compliance': Shield
@@ -46,7 +48,9 @@ const STEP_BLURBS = {
   'team-cap-table': 'Outline your management team and cap table. Staffing plan and labor costs link to Financials.',
   'operations': 'Plan facility, layout, square footage, seating, and operating schedule. Linked with Financial Projections.',
   'timeline': 'Set milestones and dates for your opening. Keeps the whole team aligned on what happens when.',
+  'vendors-expenses': 'Manage vendors and track expenses & invoices in one place. Add suppliers and log expenses or invoices.',
   'vendors': 'Add suppliers for food, beverage, and services. Link vendors to P&L line items for tracking.',
+  'ledger': 'Track expenses and invoices. Categorize and filter by month.',
   'equipment-menu': 'List equipment needs and build your menu. Both feed into startup costs and operations.',
   'branding': 'Define your brand name, voice, and visual identity. Used across the plan and investor materials.',
   'compliance': 'Track permits, licenses, and inspections. Use the Open Restaurant view once you\'re running.'

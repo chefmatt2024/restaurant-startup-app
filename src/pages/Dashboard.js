@@ -12,7 +12,7 @@ import { ChevronRight, LayoutDashboard, List, Sparkles, X } from 'lucide-react';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
 import FinancialProjections from '../components/financial/FinancialProjections';
-import VendorManagement from '../components/vendors/VendorManagement';
+import VendorsAndExpensesView from '../components/vendors/VendorsAndExpensesView';
 import TimelineManager from '../components/project/TimelineManager';
 import BusinessAnalytics from '../components/analytics/BusinessAnalytics';
 import BrandingPlanner from '../components/branding/BrandingPlanner';
@@ -31,7 +31,6 @@ import WelcomeTour from '../components/onboarding/WelcomeTour';
 import TrialExpirationBanner from '../components/trial/TrialExpirationBanner';
 import OnboardingDocumentsWorkflow from '../components/onboarding/OnboardingDocumentsWorkflow';
 import ReportsView from '../components/reports/ReportsView';
-import LedgerView from '../components/ledger/LedgerView';
 import SOPManager from '../components/sops/SOPManager';
 import ProcessMapView from '../components/process/ProcessMapView';
 import ProjectSetupModal from '../components/layout/ProjectSetupModal';
@@ -89,8 +88,10 @@ const Dashboard = () => {
         return <TeamAndCapTable />;
       case 'financials':
         return <FinancialProjections />;
+      case 'vendors-expenses':
       case 'vendors':
-        return <VendorManagement />;
+      case 'ledger':
+        return <VendorsAndExpensesView />;
       case 'equipment-menu':
         return <EquipmentAndMenu />;
       case 'branding':
@@ -105,8 +106,6 @@ const Dashboard = () => {
         );
       case 'reports':
         return <ReportsView />;
-      case 'ledger':
-        return <LedgerView />;
       case 'sops':
         return <SOPManager />;
       case 'business-analytics':

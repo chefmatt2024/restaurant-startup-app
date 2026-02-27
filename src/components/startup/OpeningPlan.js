@@ -566,7 +566,7 @@ const OpeningPlan = () => {
           timeEstimate: '1–2 weeks',
           priority: 'High',
           category: 'operations',
-          tabId: 'vendors',
+          tabId: 'vendors-expenses',
           bostonTip: 'Coordinate delivery windows with buildout completion. Order perishables for delivery just before soft open.',
           actions: [
             'Finalize opening menu and par levels',
@@ -735,7 +735,7 @@ const OpeningPlan = () => {
     { id: 'insurance-certificates', label: 'Insurance certificates filed (landlord/lender)', tabId: 'compliance' },
     { id: 'bank-cash', label: 'Bank account & cash handling procedures set', tabId: 'financials' },
     { id: 'pos-payments', label: 'POS & payments go-live (tested)', tabId: 'financials' },
-    { id: 'opening-inventory', label: 'Opening inventory ordered and delivery scheduled', tabId: 'vendors' },
+    { id: 'opening-inventory', label: 'Opening inventory ordered and delivery scheduled', tabId: 'vendors-expenses' },
     { id: 'training-schedule', label: 'Training week completed (food safety, POS, service)', tabId: 'team-cap-table' },
     { id: 'first-week-staffing', label: 'First-week staffing schedule published', tabId: 'team-cap-table' },
     { id: 'soft-opening', label: 'Soft opening completed', tabId: 'startup-and-opening' },

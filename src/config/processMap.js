@@ -101,7 +101,7 @@ export const FINAL_30_GATES = [
   { id: 'insurance-certificates', label: 'Insurance certificates filed', tabId: 'compliance' },
   { id: 'bank-cash', label: 'Bank account & cash handling set', tabId: 'financials' },
   { id: 'pos-payments', label: 'POS & payments go-live (tested)', tabId: 'financials' },
-  { id: 'opening-inventory', label: 'Opening inventory ordered and scheduled', tabId: 'vendors' },
+  { id: 'opening-inventory', label: 'Opening inventory ordered and scheduled', tabId: 'vendors-expenses' },
   { id: 'training-schedule', label: 'Training week completed', tabId: 'team-cap-table' },
   { id: 'first-week-staffing', label: 'First-week staffing schedule published', tabId: 'team-cap-table' },
   { id: 'soft-opening', label: 'Soft opening completed', tabId: 'startup-and-opening' },

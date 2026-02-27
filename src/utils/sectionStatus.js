@@ -11,7 +11,7 @@ export const PROGRESS_SECTION_ORDER = [
   'team-cap-table',        // 6. Team & cap table
   'operations',            // 7. Operations plan
   'timeline',              // 8. Project timeline
-  'vendors',               // 9. Vendor management
+  'vendors-expenses',      // 9. Vendors & expenses (combined)
   'equipment-menu',        // 10. Equipment & menu
   'branding',              // 11. Branding planner
   'compliance'             // 12. Permits & compliance
@@ -84,8 +84,8 @@ export function getSectionStatus(draft, openingPlanCompletedIds = []) {
       label: 'Project Timeline',
       completed: timelineDone
     },
-    'vendors': {
-      label: 'Vendor Management',
+    'vendors-expenses': {
+      label: 'Vendors & Expenses',
       completed: !!(draft.vendors && draft.vendors.length > 0)
     },
     'equipment-menu': {
