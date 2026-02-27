@@ -14,6 +14,7 @@ import {
   Building,
   Calendar,
   Truck,
+  Receipt,
   Utensils,
   Palette,
   Shield,
