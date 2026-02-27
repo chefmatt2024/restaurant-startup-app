@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import Header from '../components/layout/Header';
 import TabNavigation, { DETAIL_VIEW_TABS } from '../components/layout/TabNavigation';
 import { getSectionStatus } from '../utils/sectionStatus';
+import { getEnabledFeatureIds } from '../config/featurePresets';
 import GuideAssistant from '../components/onboarding/GuideAssistant';
 import AIAssistant from '../components/ai/AIAssistant';
 import SpatulaMascot from '../components/ai/SpatulaMascot';
@@ -33,6 +34,7 @@ import ReportsView from '../components/reports/ReportsView';
 import LedgerView from '../components/ledger/LedgerView';
 import SOPManager from '../components/sops/SOPManager';
 import ProcessMapView from '../components/process/ProcessMapView';
+import ProjectSetupModal from '../components/layout/ProjectSetupModal';
 
 const Dashboard = () => {
   const { state, actions } = useApp();
@@ -42,10 +44,25 @@ const Dashboard = () => {
   const [showAIPopup, setShowAIPopup] = useState(false);
 
   const currentDraft = state.drafts?.find(d => d.id === state.currentDraftId);
-  const sectionStatus = useMemo(
-    () => getSectionStatus(currentDraft, state.openingPlanProgress?.completedTaskIds || []),
-    [currentDraft, state.openingPlanProgress?.completedTaskIds]
+  const enabledFeatureIds = useMemo(
+    () => getEnabledFeatureIds(currentDraft?.enabledFeatures),
+    [currentDraft?.enabledFeatures]
   );
+
+  // Keep activeTab within this project's enabled features
+  useEffect(() => {
+    if (!enabledFeatureIds || enabledFeatureIds.length === 0) return;
+    if (enabledFeatureIds.includes(state.activeTab)) return;
+    actions.setActiveTab(enabledFeatureIds[0]);
+  }, [enabledFeatureIds, state.activeTab, actions]);
+
+  const sectionStatus = useMemo(() => {
+    const base = getSectionStatus(currentDraft, state.openingPlanProgress?.completedTaskIds || []);
+    if (!enabledFeatureIds) return base;
+    return Object.fromEntries(
+      Object.entries(base).filter(([id]) => enabledFeatureIds.includes(id))
+    );
+  }, [currentDraft, state.openingPlanProgress?.completedTaskIds, enabledFeatureIds]);
   const completedCount = useMemo(() => Object.values(sectionStatus).filter(s => s.completed).length, [sectionStatus]);
   const totalSections = useMemo(() => Object.keys(sectionStatus).length, [sectionStatus]);
   const activeTabInfo = DETAIL_VIEW_TABS.find(t => t.id === state.activeTab);
@@ -137,6 +154,17 @@ const Dashboard = () => {
     setShowOverview(false);
     if (tabId) actions.setActiveTab(tabId);
   };
+
+  // First or no project: show project setup (opening new / buying / helping existing) before dashboard
+  const hasNoDrafts = state.isAuthenticated && (!state.drafts || state.drafts.length === 0);
+  if (hasNoDrafts) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <ProjectSetupModal isOpen={true} isFirstProject={true} allowClose={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

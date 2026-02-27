@@ -13,27 +13,31 @@ import Footer from '../components/layout/Footer';
 const SitemapPage = () => {
   const siteMap = [
     {
-      category: 'Main Pages',
+      category: 'Main & Product',
       icon: <Home className="w-5 h-5" />,
       links: [
-        { path: '/', label: 'Dashboard', description: 'Main application dashboard' },
-        { path: '/landing', label: 'Main Landing', description: 'Customer landing page' },
-        { path: '/dashboard', label: 'Dashboard (Alt)', description: 'Alternative dashboard route' }
+        { path: '/', label: 'Dashboard', description: 'Main application (login required)' },
+        { path: '/dashboard', label: 'Dashboard (Alt)', description: 'Same as home' },
+        { path: '/landing', label: 'Restauranteur Landing', description: 'Product landing and trial CTA' },
+        { path: '/assessment', label: 'Free Restaurant Assessment', description: 'Public one-visit checklist (no login)' },
+        { path: '/restaurant-startup-app', label: 'Restaurant Startup App', description: 'Product landing route' }
       ]
     },
     {
       category: 'Investor & Business',
       icon: <Users className="w-5 h-5" />,
       links: [
-        { path: '/investors', label: 'Investors', description: 'Investor pitch and information' },
-        { path: '/restaurant-startup-app', label: 'Restaurant Startup App', description: 'Investor landing page' }
+        { path: '/investors', label: 'Investors', description: 'Investor pitch and information' }
       ]
     },
     {
-      category: 'Technology',
+      category: 'Technology & Resources',
       icon: <Code className="w-5 h-5" />,
       links: [
-        { path: '/tech', label: 'Tech Page', description: 'Technology stack and platform details' }
+        { path: '/tech', label: 'Tech Page', description: 'Technology stack and platform details' },
+        { path: '/faq', label: 'FAQ', description: 'Frequently asked questions' },
+        { path: '/sitemap', label: 'Site Map', description: 'This page — full navigation' },
+        { path: '/sitemap.xml', label: 'XML Sitemap', description: 'Search engine sitemap', external: true }
       ]
     },
     {
@@ -42,14 +46,6 @@ const SitemapPage = () => {
       links: [
         { path: '/terms', label: 'Terms of Service', description: 'Terms and conditions' },
         { path: '/privacy', label: 'Privacy Policy', description: 'Privacy and data protection policy' }
-      ]
-    },
-    {
-      category: 'Resources',
-      icon: <FileText className="w-5 h-5" />,
-      links: [
-        { path: '/sitemap', label: 'Site Map', description: 'Complete site navigation' },
-        { path: '/sitemap.xml', label: 'XML Sitemap', description: 'Search engine sitemap', external: true }
       ]
     }
   ];

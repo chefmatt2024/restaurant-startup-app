@@ -1,59 +1,103 @@
-# 🍽️ Boston Restaurant Business Planning App
+# Restauranteur — Restaurant Business Planning App
 
-A comprehensive business planning application specifically designed for restaurant entrepreneurs in Boston, featuring local market insights, equipment planning, financial projections, and regulatory guidance.
+A comprehensive business planning application for restaurant entrepreneurs, with local market insights, equipment planning, financial projections, regulatory guidance, and optional AI assistance. Built for Boston and adaptable to other markets.
 
-## 🚀 Live Demo
+## Live app
 
-**Live app:** [restaurant-startup-app.web.app](https://restaurant-startup-app.web.app)
+**Production:** [restaurant-startup-app.web.app](https://restaurant-startup-app.web.app)
 
-## ✨ Features
+**Full feature and route map:** See [APP_AND_SITE_MAP.md](APP_AND_SITE_MAP.md) for routes, dashboard tabs, project setup, and user workflows.
 
-### 🤖 AI-Powered Assistance (NEW!)
-- **Auto-Fill Forms**: AI intelligently completes business plan sections
-- **Market Research**: Get AI-powered market data and insights for your location
-- **Financial Advisor**: AI analyzes your projections and provides recommendations
-- **Content Generation**: Generate professional business plan content
-- **Question Answering**: Ask questions and get expert restaurant advice
-- **See [AI_SETUP_GUIDE.md](AI_SETUP_GUIDE.md) for setup instructions**
+---
 
-### 🏗️ Business Planning
-- **Idea Formation**: Structured approach to concept development
-- **Market Analysis**: Boston-specific market data and neighborhood insights with AI research
-- **Financial Planning**: Comprehensive cost projections and revenue modeling
-- **Management Team**: Organizational structure and role planning
+## Features
 
-### 🍳 Equipment Planning
-- **Kitchen Equipment**: Complete cooking, prep, and refrigeration equipment
-- **Bar Equipment**: Beverage service, glassware, and bar tools
-- **Front of House**: Tables, chairs, POS systems, and customer-facing equipment
-- **Vendor Management**: Equipment sourcing and vendor relationships
-- **Online Sources**: Direct links to equipment suppliers with pricing
+### Project setup (first project / new project)
 
-### 📋 Opening Plan
-- **Phase-based Roadmap**: 6-phase opening process
-- **Task Management**: Detailed task lists with progress tracking
-- **Boston-Specific Requirements**: Local permits, licenses, and regulations
-- **Timeline Planning**: Estimated durations and dependencies
+- **Project intent** — Opening a new restaurant, potentially buying an existing one, or helping an existing restaurant.
+- **Project name** — Optional; e.g. “My First Restaurant Plan”.
+- **Feature selection** — Choose how much of the app to use:
+  - **Just the basics** — Opening plan, concept, financials, compliance.
+  - **Full planning** — All plan-building sections (no reports/ledger/analytics).
+  - **Everything** — All features.
+  - **Choose specific areas** — Custom checklist of sections.
 
-### 🔐 User Management
-- **Multi-User Support**: Create and manage multiple business plans
-- **Authentication**: Email/password and Google sign-in (required to use the app)
-- **Data Persistence**: Cloud storage with offline support
-- **Draft Management**: Save, compare, and manage multiple plan versions
+Smaller or “just getting started” projects can limit visible sections to reduce overwhelm.
 
-## 🛠️ Technology Stack
+### Planning (dashboard sections)
 
-- **Frontend**: React 18, JavaScript ES6+
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Backend**: Firebase (Authentication, Firestore, Hosting)
-- **State Management**: React Context API
-- **Build Tool**: Create React App
+- **Startup & Opening Plan** — Phase-based roadmap, task tracking, local requirements.
+- **Process map** — Start-to-opening journey view.
+- **Concept & Pitch** — Idea formation, elevator pitch, executive summary.
+- **Market & Competition** — Market and competitive analysis (with optional AI research).
+- **Offer & Marketing** — Products, services, marketing strategy.
+- **Financial Projections** — P&L, revenue/cost modeling, projections.
+- **Team & Cap Table** — Staffing, management team, cap table.
+- **Operations** — Operations plan.
+- **Project Timeline** — Timeline / Gantt-style tasks.
+- **Vendor Management** — Vendors and contacts.
+- **Equipment & Menu** — Equipment planning and menu builder.
+- **Branding Planner** — Brand identity and materials.
+- **Compliance** — Documents, licenses, certifications (including Boston-specific).
+- **Documents** — Onboarding document workflow.
+- **Reports** — P&L, variance, progress.
+- **Ledger** — Expenses and invoices.
+- **SOPs** — Standard operating procedures.
+- **Import Document** — Upload and extract data.
+- **Business Analytics** — Analytics (premium / gated).
 
-## 🚀 Quick Start
+Sections shown in the app depend on the project’s **enabled features** (see [APP_AND_SITE_MAP.md](APP_AND_SITE_MAP.md)).
+
+### AI assistance (optional)
+
+- Auto-fill forms, market research, financial advice, content generation, Q&A.
+- Requires API key (OpenAI or Anthropic). See `AI_SETUP_GUIDE.md` if present.
+
+### User & account
+
+- **Authentication** — Email/password and Google sign-in (required to use the app).
+- **Multi-draft support** — Create, switch, duplicate, and compare business plan drafts.
+- **Concepts** — Group drafts by concept (e.g. “North End Italian”).
+- **Sharing & invitations** — Share projects and accept invitations.
+- **Trial & subscription** — Free trial; upgrade via Stripe (when backend is configured).
+- **Profile** — User profile and subscription management.
+
+### Other app areas
+
+- **Pricing** — Plans and “Start trial” / checkout.
+- **Subscription** — Manage subscription and portal.
+- **Admin** — Admin dashboard (when enabled).
+- **Floating tools** — AI assistant, step-by-step guide, feedback button.
+- **Welcome tour** — First-login onboarding.
+- **Trial expiration banner** — Upgrade CTA when trial is ending.
+
+### Public pages (no login)
+
+- **Free Restaurant Assessment** — One-visit checklist; results can be saved after signup.
+- **Landing** — Product landing and trial CTA.
+- **Investors** — Investor pitch and information.
+- **Terms, Privacy, Tech, FAQ, Sitemap** — Legal, tech, and navigation.
+
+---
+
+## Technology stack
+
+- **Frontend:** React 18, JavaScript ES6+
+- **Styling:** Tailwind CSS, custom CSS (`App.css`)
+- **Icons:** Lucide React
+- **Backend:** Firebase (Authentication, Firestore, Hosting)
+- **State:** React Context API (`AppContext`)
+- **Payments:** Stripe (optional; requires backend for full flow)
+- **AI:** Optional OpenAI or Anthropic (env config)
+- **Build:** Create React App (react-scripts)
+
+---
+
+## Quick start
 
 ### Prerequisites
-- Node.js 16+ 
+
+- Node.js 16+
 - npm or yarn
 - Firebase account
 
@@ -71,119 +115,96 @@ A comprehensive business planning application specifically designed for restaura
    ```
 
 3. **Set up Firebase**
-   - Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+   - Create a project at [console.firebase.google.com](https://console.firebase.google.com)
    - Enable Authentication (Email/Password and Google)
-   - Enable Firestore Database
-   - Copy your Firebase config to `.env.local`
+   - Enable Firestore
+   - Copy your Firebase config into `.env.local`
 
-4. **Configure environment variables**
+4. **Configure environment**
    ```bash
    cp env.example .env.local
    ```
-   Edit `.env.local` with your Firebase configuration:
-   ```
-   REACT_APP_FIREBASE_API_KEY=your_api_key
-   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
-   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   REACT_APP_FIREBASE_APP_ID=your_app_id
-   ```
+   Edit `.env.local` with Firebase (and optionally Stripe, AI keys). See `env.example` for variables.
 
 5. **Start development server**
    ```bash
    npm start
    ```
+   Open [http://localhost:3000](http://localhost:3000).
 
-6. **Open in browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+---
 
-## 📱 Usage
+## Usage
 
-### Getting Started
-1. **Sign Up**: Create an account (required; email/password or Google sign-in)
-2. **Create Draft**: Start a new business plan draft
-3. **Fill Sections**: Complete each section of your business plan
-4. **Track Progress**: Use the opening plan to track your progress
-5. **Save & Share**: Save your work and share with team members
+1. **Sign up** — Create an account (email/password or Google).
+2. **Set up first project** — Choose intent (opening new / buying / helping existing), optional name, and which features to use.
+3. **Use the dashboard** — Overview and section tabs show only your chosen features.
+4. **Create more drafts** — Header or Draft Manager → “New” opens project setup again for another project.
+5. **Save & share** — Data syncs to Firestore; use sharing and invitations as needed.
 
-### Key Sections
-- **Idea Formation**: Define your restaurant concept
-- **Market Analysis**: Research Boston market and competition
-- **Financial Planning**: Project costs and revenue
-- **Equipment Planning**: Plan kitchen and bar equipment
-- **Management Team**: Define roles and responsibilities
-- **Opening Plan**: Step-by-step opening process
+---
 
-## 🔧 Firebase Setup
+## Firebase setup
 
-### Authentication
-1. Go to Firebase Console → Authentication → Sign-in method
-2. Enable **Email/Password** authentication
-3. Enable **Google** authentication
-4. Add `localhost` to authorized domains
+- **Authentication:** Enable Email/Password and Google; add `localhost` to authorized domains.
+- **Firestore:** Create database; use project’s security rules for user data.
+- **Hosting (optional):** `firebase init hosting` then `firebase deploy`.
 
-### Firestore Database
-1. Go to Firebase Console → Firestore Database
-2. Create database in production mode
-3. Set up security rules for user data isolation
+---
 
-### Hosting (Optional)
-1. Install Firebase CLI: `npm install -g firebase-tools`
-2. Login: `firebase login`
-3. Initialize: `firebase init hosting`
-4. Deploy: `firebase deploy`
-
-## 📊 Project Structure
+## Project structure
 
 ```
 src/
 ├── components/
-│   ├── auth/           # Authentication components
-│   ├── business-plan/  # Business planning sections
-│   ├── equipment/      # Equipment planning
-│   ├── layout/         # Layout components
-│   ├── startup/        # Opening plan and journey
-│   └── ui/             # Reusable UI components
-├── contexts/           # React Context providers
-├── services/           # Firebase and API services
-└── pages/              # Main page components
+│   ├── admin/          # Admin dashboard, user/lead/email management
+│   ├── ai/             # AI assistant, research panel, mascot
+│   ├── auth/           # Sign-in, signup, profile, trial, protected route
+│   ├── business-plan/  # Market, offer, operations, team, exec summary
+│   ├── compliance/     # Compliance hub, documents, permitting, certifications
+│   ├── dashboard/     # Dashboard overview
+│   ├── equipment/     # Equipment & menu
+│   ├── feedback/      # Feedback collector
+│   ├── financial/     # Projections, P&L, cap table, importers
+│   ├── ideation/      # Concept, pitch, idea formation
+│   ├── import/        # Document importer
+│   ├── landing/       # Landings (investor, branded, etc.)
+│   ├── layout/        # Header, footer, tabs, draft manager, project setup modal
+│   ├── ledger/        # Ledger view
+│   ├── menu/          # Menu builder
+│   ├── onboarding/    # Welcome tour, guide, documents workflow, checklists
+│   ├── payment/       # Pricing, subscription, feature gate
+│   ├── process/       # Process map view
+│   ├── reports/       # Reports view
+│   ├── sharing/       # Share project, invitations
+│   ├── sops/          # SOP manager
+│   ├── startup/       # Opening plan, startup & opening plan
+│   ├── trial/         # Trial banner, onboarding
+│   ├── ui/            # FormField, SectionCard, modals, loading
+│   ├── unified/       # Unified landing, sales funnel
+│   └── vendors/       # Vendor management
+├── config/            # Feature presets, AI context, area content, process map
+├── contexts/          # AppContext (state, drafts, auth)
+├── hooks/             # useTrialLimitations, useSubscription
+├── pages/             # Dashboard, assessment, terms, privacy, tech, FAQ, sitemap
+├── services/          # Firebase, Stripe, analytics, AI, sharing
+└── utils/             # Section status, templates, UTM, access control
 ```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- **Documentation**: Check the `/docs` folder for detailed guides
-- **Issues**: Report bugs via GitHub Issues
-- **Email**: support@restaurantstartupapp.com
-
-## 🗺️ Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Advanced financial modeling
-- [ ] Integration with POS systems
-- [ ] Real-time collaboration
-- [ ] Template library
-- [ ] Expert consultation booking
-
-## 🙏 Acknowledgments
-
-- Boston Restaurant Market Data
-- Local vendor partnerships
-- Restaurant industry experts
-- Open source community
 
 ---
 
-**Built with ❤️ for Boston's restaurant entrepreneurs**
+## Documentation
+
+- **[APP_AND_SITE_MAP.md](APP_AND_SITE_MAP.md)** — Routes, dashboard tabs, project setup, workflows, implementation references.
+- **env.example** — Environment variables (Firebase, Stripe, AI, etc.).
+- **AI_SETUP_GUIDE.md** — If present, AI integration setup.
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built for restaurant entrepreneurs**

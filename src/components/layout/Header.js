@@ -7,6 +7,7 @@ import AuthModal from '../auth/EnhancedAuthModal';
 import UserProfile from '../auth/UserProfile';
 import TrialStatus from '../auth/TrialStatus';
 import InvitationManager from '../sharing/InvitationManager';
+import ProjectSetupModal from './ProjectSetupModal';
 import { getPendingInvitations } from '../../services/sharingService';
 import { getNotifications } from '../../utils/notificationsUtils';
 
@@ -14,6 +15,7 @@ const Header = () => {
   const { state, actions } = useApp();
   const [showDraftManager, setShowDraftManager] = useState(false);
   const [showDraftDropdown, setShowDraftDropdown] = useState(false);
+  const [showProjectSetupModal, setShowProjectSetupModal] = useState(false);
   const [showDraftComparison, setShowDraftComparison] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -37,9 +39,8 @@ const Header = () => {
   };
 
   const handleCreateQuickDraft = () => {
-    const draftName = `Draft ${state.drafts.length + 1}`;
-    actions.createDraft(draftName);
     setShowDraftDropdown(false);
+    setShowProjectSetupModal(true);
   };
 
   const handleSignOut = async () => {
@@ -527,6 +528,19 @@ const Header = () => {
           initialSection={userProfileSection}
         />
       )}
+
+      {/* New project setup: intent + optional name */}
+      <ProjectSetupModal
+        isOpen={showProjectSetupModal}
+        isFirstProject={false}
+        allowClose={true}
+        onClose={() => setShowProjectSetupModal(false)}
+        onSubmit={({ projectName, projectIntent, enabledFeatures }) => {
+          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures);
+          setShowProjectSetupModal(false);
+          actions.showMessage('Success', 'New project created.', 'success');
+        }}
+      />
     </>
   );
 };

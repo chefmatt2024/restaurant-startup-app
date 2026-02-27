@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
+import { getEnabledFeatureIds } from '../../config/featurePresets';
 import { 
   FileText, 
   Users, 
@@ -50,7 +51,18 @@ export const DETAIL_VIEW_TABS = [
 
 const TabNavigation = ({ sectionStatus = {}, variant = 'sidebar' }) => {
   const { state, actions } = useApp();
-  const tabs = DETAIL_VIEW_TABS;
+  const currentDraft = state.drafts?.find((d) => d.id === state.currentDraftId);
+  const enabledIds = useMemo(
+    () => getEnabledFeatureIds(currentDraft?.enabledFeatures),
+    [currentDraft?.enabledFeatures]
+  );
+  const tabs = useMemo(
+    () =>
+      enabledIds === null
+        ? DETAIL_VIEW_TABS
+        : DETAIL_VIEW_TABS.filter((tab) => enabledIds.includes(tab.id)),
+    [enabledIds]
+  );
   const navRef = useRef(null);
   const activeRef = useRef(null);
 

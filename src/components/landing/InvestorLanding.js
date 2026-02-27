@@ -143,7 +143,7 @@ const InvestorLanding = () => {
       role: 'Founder & CEO',
       background: 'Founder of Cafe Iterum. 20+ years in restaurant industry, opened multiple successful restaurants. Built this platform based on real-world experience operating restaurants.',
       linkedin: 'https://www.linkedin.com/in/chefmattmcpherson/',
-      website: 'https://iterumfoods.com'
+      website: 'https://iterumfoods.xyz'
     },
     {
       name: 'Development Team',
@@ -581,9 +581,9 @@ const InvestorLanding = () => {
               hello@iterumfoods.com
             </a>
             <span className="hidden sm:inline text-gray-400">|</span>
-            <a href="https://iterumfoods.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center text-gray-700 hover:text-green-600">
+            <a href="https://iterumfoods.xyz" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center text-gray-700 hover:text-green-600">
               <Globe className="w-5 h-5 mr-2" />
-              iterumfoods.com
+              iterumfoods.xyz
             </a>
             <span className="hidden sm:inline text-gray-400">|</span>
             <a href="https://www.linkedin.com/in/chefmattmcpherson/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center text-gray-700 hover:text-green-600">
@@ -593,8 +593,8 @@ const InvestorLanding = () => {
           </div>
           <div className="text-center">
             <p className="text-gray-600 mb-2">Learn more about our founder's restaurant:</p>
-            <a href="https://iterumfoods.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 font-semibold">
-              Cafe Iterum → iterumfoods.com
+            <a href="https://iterumfoods.xyz" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 font-semibold">
+              Cafe Iterum → iterumfoods.xyz
             </a>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { authService } from '../../services/firebase';
+import analyticsService, { FUNNELS, FUNNEL_STAGES } from '../../services/analytics';
 import EnhancedAuthModal from './EnhancedAuthModal';
 import TermsAndPrivacy from './TermsAndPrivacy';
 import { 
@@ -70,10 +71,18 @@ const ImprovedAuthFlow = ({ isOpen, onClose, onSuccess }) => {
       
       // Check if this is a new user (just registered)
       if (authMode === 'register') {
+        analyticsService.trackFunnelStage(FUNNEL_STAGES.SIGNUP_COMPLETED, {
+          funnel: FUNNELS.WEBSITE_TO_APP,
+          authMethod: user?.providerData?.[0]?.providerId || 'password',
+        });
         setStep('welcome');
         setIsNewUser(true);
       } else {
         // Returning user - show welcome back
+        analyticsService.trackFunnelStage(FUNNEL_STAGES.LOGIN_COMPLETED, {
+          funnel: FUNNELS.WEBSITE_TO_APP,
+          authMethod: user?.providerData?.[0]?.providerId || 'password',
+        });
         onSuccess && onSuccess();
         actions.showMessage('Success', `Welcome back, ${user?.displayName || user?.email || 'there'}!`, 'success');
         setTimeout(() => {

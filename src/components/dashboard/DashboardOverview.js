@@ -4,6 +4,7 @@ import GettingStartedChecklist from '../onboarding/GettingStartedChecklist';
 import { OPENING_PLAN_TOTAL_TASKS } from '../startup/OpeningPlan';
 import QuickStartTemplates from '../onboarding/QuickStartTemplates';
 import { getSectionStatus, PROGRESS_SECTION_ORDER } from '../../utils/sectionStatus';
+import { getEnabledFeatureIds } from '../../config/featurePresets';
 import { LOCATION_OPTIONS } from '../../config/areaContent';
 import {
   CheckCircle, 
@@ -57,9 +58,11 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
   // Calculate completion status for each section (single source of truth, in journey order)
   const sectionStatus = useMemo(() => {
     const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
+    const enabledIds = getEnabledFeatureIds(currentDraft?.enabledFeatures);
     const base = getSectionStatus(currentDraft, state.openingPlanProgress?.completedTaskIds || []);
     const sections = {};
     PROGRESS_SECTION_ORDER.forEach(id => {
+      if (enabledIds !== null && !enabledIds.includes(id)) return;
       if (base[id]) {
         const meta = sectionMeta[id] || {};
         sections[id] = {
@@ -126,6 +129,9 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
   }, [state.drafts, state.currentDraftId]);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
+  const freeAssessment = currentDraft?.freeAssessment || null;
+  const freeAssessmentScore = freeAssessment?.summary?.score ?? null;
+  const freeAssessmentRedFlags = freeAssessment?.summary?.redFlagCount ?? 0;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
@@ -208,6 +214,34 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
               <span>Browse Templates</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {freeAssessment && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">Your imported free business analysis</h3>
+              <p className="text-sm text-gray-700">
+                {freeAssessment.restaurantName || 'Assessment'}
+                {freeAssessment.visitDate ? ` • Visit date: ${freeAssessment.visitDate}` : ''}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                {freeAssessmentScore != null ? `Score: ${freeAssessmentScore}%` : 'Score not available'}
+                {freeAssessmentRedFlags > 0 ? ` • Red flags: ${freeAssessmentRedFlags}` : ' • No red flags identified'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onSwitchToDetailed && onSwitchToDetailed('operations')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium"
+              >
+                Continue due diligence
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -12,6 +12,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import TechPage from './pages/TechPage';
 import SitemapPage from './pages/SitemapPage';
 import FAQPage from './pages/FAQPage';
+import RestaurantAssessmentPage from './pages/RestaurantAssessmentPage';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import MessageModal from './components/ui/MessageModal';
 import { SessionManager, trackUsage } from './utils/accessControl';
@@ -90,7 +91,7 @@ function AppContent() {
         } />
         <Route path="/restaurant-startup-app" element={
           <div className="App min-h-screen bg-white">
-            <InvestorLanding />
+            <RestaurantBusinessPlannerLanding />
           </div>
         } />
         <Route path="/terms" element={<TermsPage />} />
@@ -98,6 +99,7 @@ function AppContent() {
         <Route path="/tech" element={<TechPage />} />
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/assessment" element={<RestaurantAssessmentPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <LoadingSpinner />

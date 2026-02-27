@@ -27,8 +27,14 @@ const Footer = () => {
               />
               <h3 className="text-xl font-bold text-white">ITERUM FOODS</h3>
             </div>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-gray-400 mb-2">
               Empowering restaurant entrepreneurs with the tools they need to plan, launch, and grow successful businesses.
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              Part of{' '}
+              <a href="https://iterumfoods.xyz" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 transition-colors">
+                iterumfoods.xyz
+              </a>
             </p>
             <div className="flex space-x-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors">
@@ -53,6 +59,11 @@ const Footer = () => {
               <li>
                 <Link to="/landing" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
                   Main Landing
+                </Link>
+              </li>
+              <li>
+                <Link to="/assessment" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
+                  Free Restaurant Assessment
                 </Link>
               </li>
               <li>
@@ -93,7 +104,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="https://iterumfoods.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
+                <a href="https://iterumfoods.xyz" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
                   About Iterum Foods
                 </a>
               </li>

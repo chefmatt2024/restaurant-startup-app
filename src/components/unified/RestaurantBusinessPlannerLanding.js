@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   BarChart3, 
   ArrowRight, 
@@ -24,7 +25,8 @@ import {
   ChefHat,
   Utensils,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ClipboardCheck
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import Footer from '../layout/Footer';
@@ -374,6 +376,47 @@ const RestaurantBusinessPlannerLanding = () => {
               <div className="flex items-center">
                 <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                 Full access during trial
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Free Restaurant Assessment – hook (no signup) */}
+      <div className="py-10 sm:py-14 bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 p-6 sm:p-8 md:p-10 shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-sm font-semibold mb-4">
+                  <ClipboardCheck className="w-4 h-4" />
+                  No signup required
+                </div>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  Try our free restaurant assessment first
+                </h2>
+                <p className="text-gray-700 text-base sm:text-lg mb-4">
+                  A secret-shopper style checklist to evaluate any restaurant in one visit—before you dive into deeper due diligence or commit to a full plan.
+                </p>
+                <p className="text-sm text-gray-600">
+                  Perfect for owners and potential buyers. Take the assessment, get a score and red-flag summary, then sign up to save your results and build your full due diligence plan.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row md:flex-col gap-3 flex-shrink-0">
+                <Link
+                  to="/assessment"
+                  className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-colors"
+                >
+                  <ClipboardCheck className="w-5 h-5" />
+                  Take the free assessment
+                </Link>
+                <button
+                  onClick={handleLaunchRestaurantPlanner}
+                  className="inline-flex items-center justify-center gap-2 border-2 border-green-600 text-green-700 hover:bg-green-50 font-semibold px-6 py-3 rounded-xl transition-colors"
+                >
+                  Skip to free trial
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

@@ -20,10 +20,12 @@ import {
   Share2
 } from 'lucide-react';
 import ShareProject from '../sharing/ShareProject';
+import ProjectSetupModal from './ProjectSetupModal';
 
 const DraftManager = ({ isOpen, onClose }) => {
   const { state, actions } = useApp();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showProjectSetupModal, setShowProjectSetupModal] = useState(false);
   const [showConceptForm, setShowConceptForm] = useState(false);
   const [editingDraft, setEditingDraft] = useState(null);
   const [editingConcept, setEditingConcept] = useState(null);
@@ -35,6 +37,7 @@ const DraftManager = ({ isOpen, onClose }) => {
   const [expandedConcepts, setExpandedConcepts] = useState(new Set());
   const [activeTab, setActiveTab] = useState('concepts'); // 'concepts' or 'all-drafts'
   const [sharingDraftId, setSharingDraftId] = useState(null);
+  const [targetConceptForNewDraft, setTargetConceptForNewDraft] = useState(null);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
 
@@ -81,7 +84,27 @@ const DraftManager = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!newDraftName.trim()) return;
 
-    let newDraft = actions.createDraft(newDraftName.trim());
+    let newDraft;
+
+    // If we're adding a draft within an existing project (concept), inherit its intent/features
+    if (targetConceptForNewDraft) {
+      const conceptDrafts = draftsByConcept[targetConceptForNewDraft] || [];
+      const baseDraft = conceptDrafts[0];
+      const projectIntent = baseDraft?.projectIntent ?? null;
+      const enabledFeatures = baseDraft?.enabledFeatures ?? null;
+
+      newDraft = actions.createDraft(newDraftName.trim(), null, projectIntent, enabledFeatures);
+
+      // Attach to the same project (concept)
+      actions.updateDraft(newDraft.id, {
+        concept: targetConceptForNewDraft,
+        conceptId: baseDraft?.conceptId || `concept_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        conceptDescription: baseDraft?.conceptDescription || ''
+      });
+    } else {
+      // Standalone draft (or new project flow via ProjectSetupModal)
+      newDraft = actions.createDraft(newDraftName.trim());
+    }
     
     // Apply template if selected
     if (selectedTemplate) {
@@ -91,27 +114,19 @@ const DraftManager = ({ isOpen, onClose }) => {
         financialData: newDraft.financialData
       });
     }
-    
-    // If we're in a concept view, assign the concept
-    if (activeTab === 'concepts' && concepts.length > 0) {
-      const selectedConcept = concepts[0]; // Default to first concept, could be enhanced with concept selection
-      actions.updateDraft(newDraft.id, { 
-        concept: selectedConcept,
-        conceptId: `concept_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      });
-    }
 
     setNewDraftName('');
     setSelectedTemplate('');
     setShowCreateForm(false);
+    setTargetConceptForNewDraft(null);
     const templateMsg = selectedTemplate ? ` with ${getTemplateOptions().find(t => t.value === selectedTemplate)?.label} template` : '';
     actions.showMessage('Success', `New draft "${newDraftName}" created${templateMsg}!`, 'success');
   };
 
   const handleCreateDraftInConcept = (conceptName) => {
     setNewDraftName('');
+    setTargetConceptForNewDraft(conceptName);
     setShowCreateForm(true);
-    // This will be handled in handleCreateDraft with the concept context
   };
 
   const handleDuplicateDraft = (draftId) => {
@@ -260,9 +275,9 @@ const DraftManager = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Draft Manager</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Project & Draft Manager</h2>
             <p className="text-gray-600 mt-1">
-              Organize your business plan drafts by concepts and create multiple variations
+              Organize your restaurant projects and create multiple plan drafts for each
             </p>
           </div>
           <button
@@ -284,7 +299,7 @@ const DraftManager = ({ isOpen, onClose }) => {
             }`}
           >
             <FolderOpen className="w-4 h-4 inline mr-2" />
-            Concepts
+            Projects
           </button>
           <button
             onClick={() => setActiveTab('all-drafts')}
@@ -308,7 +323,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                 className="btn-primary flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>New Concept</span>
+                <span>New Project</span>
               </button>
             ) : (
               <button
@@ -340,7 +355,7 @@ const DraftManager = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Create Concept Form */}
+        {/* Create Project Form */}
         {showConceptForm && (
           <div className="p-4 bg-blue-50 border-b border-blue-200">
             <form onSubmit={handleCreateConcept} className="space-y-3">
@@ -349,12 +364,12 @@ const DraftManager = ({ isOpen, onClose }) => {
                   type="text"
                   value={newConceptName}
                   onChange={(e) => setNewConceptName(e.target.value)}
-                  placeholder="Enter concept name (e.g., 'North End Italian', 'Fast Casual')"
+                  placeholder="Enter project name (e.g., 'North End Italian', 'Fast Casual')"
                   className="form-input flex-1"
                   autoFocus
                 />
                 <button type="submit" className="btn-primary">
-                  Create Concept
+                  Create Project
                 </button>
                 <button
                   type="button"
@@ -401,6 +416,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                     setShowCreateForm(false);
                     setNewDraftName('');
                     setSelectedTemplate('');
+                    setShowProjectSetupModal(false);
                   }}
                   className="btn-secondary"
                 >
@@ -436,12 +452,12 @@ const DraftManager = ({ isOpen, onClose }) => {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto max-h-96">
           {activeTab === 'concepts' ? (
-            // Concepts View
+            // Projects View
             concepts.length === 0 ? (
               <div className="text-center py-12">
                 <Folder className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600">No Concepts Yet</h3>
-                <p className="text-gray-500">Create your first business concept to get started</p>
+                <h3 className="text-lg font-semibold text-gray-600">No Projects Yet</h3>
+                <p className="text-gray-500">Create your first restaurant project to get started</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -452,7 +468,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                   
                   return (
                     <div key={conceptName} className="border-l-4 border-blue-200">
-                      {/* Concept Header */}
+                      {/* Project Header */}
                       <div className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4 flex-1">
@@ -505,19 +521,19 @@ const DraftManager = ({ isOpen, onClose }) => {
                                   </div>
                                   <div className="flex items-center space-x-1">
                                     <Tag className="w-4 h-4" />
-                                    <span>Concept</span>
+                                    <span>Project</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
 
-                          {/* Concept Actions */}
+                          {/* Project Actions */}
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => setEditingConcept(conceptName)}
                               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                              title="Rename Concept"
+                              title="Rename Project"
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
@@ -525,7 +541,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                             <button
                               onClick={() => handleCreateDraftInConcept(conceptName)}
                               className="p-2 text-blue-400 hover:text-blue-600 transition-colors"
-                              title="Add Draft to Concept"
+                              title="Add Draft to Project"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -533,7 +549,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                         </div>
                       </div>
 
-                      {/* Concept Drafts (when expanded) */}
+                      {/* Project Drafts (when expanded) */}
                       {isExpanded && (
                         <div className="bg-gray-50 border-t border-gray-200">
                           <div className="divide-y divide-gray-200">
@@ -797,10 +813,10 @@ const DraftManager = ({ isOpen, onClose }) => {
             <div className="text-sm text-gray-600">
               {activeTab === 'concepts' ? (
                 <>
-                  {concepts.length} concept{concepts.length !== 1 ? 's' : ''} total
+                  {concepts.length} project{concepts.length !== 1 ? 's' : ''} total
                   {state.drafts.length > 0 && (
                     <span className="ml-2">
-                      • {state.drafts.length} draft{state.drafts.length !== 1 ? 's' : ''} across all concepts
+                      • {state.drafts.length} draft{state.drafts.length !== 1 ? 's' : ''} across all projects
                     </span>
                   )}
                 </>
@@ -809,7 +825,7 @@ const DraftManager = ({ isOpen, onClose }) => {
                   {state.drafts.length} draft{state.drafts.length !== 1 ? 's' : ''} total
                   {concepts.length > 0 && (
                     <span className="ml-2">
-                      • {concepts.length} concept{concepts.length !== 1 ? 's' : ''} created
+                      • {concepts.length} project{concepts.length !== 1 ? 's' : ''} created
                     </span>
                   )}
                 </>
@@ -827,8 +843,8 @@ const DraftManager = ({ isOpen, onClose }) => {
             <div className="flex items-center space-x-3">
               <div className="text-xs text-gray-500">
                 💡 Tip: {activeTab === 'concepts' 
-                  ? 'Create multiple drafts within each concept to explore different scenarios, locations, or business models'
-                  : 'Organize drafts by concepts to group related business ideas and variations'
+                  ? 'Create multiple drafts within each project to explore different scenarios, locations, or business models'
+                  : 'Organize drafts by projects to group related business ideas and variations'
                 }
               </div>
               <button onClick={onClose} className="btn-primary">
@@ -846,6 +862,19 @@ const DraftManager = ({ isOpen, onClose }) => {
           onClose={() => setSharingDraftId(null)}
         />
       )}
+
+      {/* New project setup: intent (opening new / buying / helping) + optional name */}
+      <ProjectSetupModal
+        isOpen={showProjectSetupModal}
+        isFirstProject={false}
+        allowClose={true}
+        onClose={() => setShowProjectSetupModal(false)}
+        onSubmit={({ projectName, projectIntent, enabledFeatures }) => {
+          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures);
+          setShowProjectSetupModal(false);
+          actions.showMessage('Success', 'New project created.', 'success');
+        }}
+      />
     </div>
   );
 };

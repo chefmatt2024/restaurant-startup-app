@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { authService, dbService, getAppId, getInitialAuthToken, getAllUsers, deleteUserAccount } from '../services/firebase';
 import { getInitialMonthlyPL } from '../config/monthlyPLAccounts';
+import { getPendingAssessment, clearPendingAssessment } from '../utils/freeAssessmentStorage';
 
 // Action Types
 export const ActionTypes = {
@@ -660,12 +661,20 @@ const initialState = {
   notificationReadIds: []
 };
 
+// Project intent options for new projects (opening new, buying existing, helping existing)
+export const PROJECT_INTENTS = {
+  OPENING_NEW: 'opening_new',
+  BUYING_EXISTING: 'buying_existing',
+  HELPING_EXISTING: 'helping_existing'
+};
+
 // Draft helper functions
-const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null) => {
+const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null, projectIntent = null) => {
   const now = new Date();
   return {
     id: `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name,
+    projectIntent: projectIntent ?? baseDraft?.projectIntent ?? null,
     createdAt: now,
     updatedAt: now,
     isActive: false,
@@ -674,7 +683,8 @@ const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null) => {
     vendors: baseDraft ? [...baseDraft.vendors] : [],
     openingPlanProgress: baseDraft?.openingPlanProgress ? { ...baseDraft.openingPlanProgress, completedTaskIds: [...(baseDraft.openingPlanProgress.completedTaskIds || [])] } : { completedTaskIds: [] },
     documentVersions: baseDraft?.documentVersions ? [...baseDraft.documentVersions] : [],
-    sops: baseDraft?.sops ? baseDraft.sops.map(s => ({ ...s, steps: [...(s.steps || [])] })) : []
+    sops: baseDraft?.sops ? baseDraft.sops.map(s => ({ ...s, steps: [...(s.steps || [])] })) : [],
+    freeAssessment: baseDraft?.freeAssessment || null
   };
 };
 
@@ -1929,7 +1939,12 @@ export const appReducer = (state, action) => {
     }
     
     case ActionTypes.CREATE_DRAFT: {
-      const newDraft = createNewDraft(action.payload.name, action.payload.baseDraft);
+      const newDraft = createNewDraft(
+        action.payload.name,
+        action.payload.baseDraft,
+        action.payload.projectIntent,
+        action.payload.enabledFeatures
+      );
       return {
         ...state,
         drafts: [...state.drafts, newDraft],
@@ -2062,6 +2077,7 @@ const AppContext = createContext();
 // Provider component
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const assessmentImportInProgress = useRef(false);
 
   // Action creators
   const actions = {
@@ -2138,10 +2154,9 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CURRENT_DRAFT_ID, payload: draftId });
     },
     
-    createDraft: (name, baseDraft = null) => {
-      dispatch({ type: ActionTypes.CREATE_DRAFT, payload: { name, baseDraft } });
-      // Return the newly created draft from state
-      const newDraft = createNewDraft(name, baseDraft);
+    createDraft: (name, baseDraft = null, projectIntent = null) => {
+      dispatch({ type: ActionTypes.CREATE_DRAFT, payload: { name, baseDraft, projectIntent } });
+      const newDraft = createNewDraft(name, baseDraft, projectIntent);
       return newDraft;
     },
     
@@ -2381,15 +2396,13 @@ export const AppProvider = ({ children }) => {
                  );
                }, 1000);
              } else {
-               // Create first blank draft for production
-               // console.log('Creating first blank draft for production user');
-               actions.createDraft('My First Restaurant Plan');
+               // Production: leave drafts empty so user sees project setup (opening new / buying / helping existing)
+               // First draft is created when they complete ProjectSetupModal in Dashboard
              }
            }
          } catch (error) {
            // console.error('Error loading drafts:', error);
-           // Create first draft on error
-           actions.createDraft('My First Restaurant Plan');
+           // On error leave drafts empty; user can create via project setup
          }
         
         actions.setLoading(false);
@@ -2409,6 +2422,55 @@ export const AppProvider = ({ children }) => {
       if (unsubscribe) unsubscribe();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Import pending free assessment after user signs in and drafts are available.
+  useEffect(() => {
+    const importPendingAssessment = async () => {
+      if (assessmentImportInProgress.current) return;
+      if (!state.isAuthenticated || !state.userId || !Array.isArray(state.drafts) || state.drafts.length === 0) return;
+
+      const pendingAssessment = getPendingAssessment();
+      if (!pendingAssessment) return;
+
+      const targetDraftId =
+        state.currentDraftId && state.drafts.some(d => d.id === state.currentDraftId)
+          ? state.currentDraftId
+          : state.drafts[0].id;
+      const targetDraft = state.drafts.find(d => d.id === targetDraftId);
+      if (!targetDraft) return;
+
+      assessmentImportInProgress.current = true;
+      try {
+        const appId = getAppId();
+        const importedAssessment = {
+          ...pendingAssessment,
+          importedAt: new Date().toISOString(),
+        };
+        const updatedDraft = {
+          ...targetDraft,
+          freeAssessment: importedAssessment,
+          updatedAt: new Date(),
+        };
+
+        await dbService.saveDraft(state.userId, appId, updatedDraft);
+        const updatedDrafts = state.drafts.map(d => (d.id === targetDraftId ? updatedDraft : d));
+        await dbService.saveDraftsMetadata(state.userId, appId, updatedDrafts);
+        actions.updateDraft(targetDraftId, { freeAssessment: importedAssessment });
+        clearPendingAssessment();
+        actions.showMessage(
+          'Assessment imported',
+          'Your free business analysis has been saved to this draft.',
+          'success'
+        );
+      } catch (error) {
+        // Keep pending assessment in storage so we can retry on next load.
+      } finally {
+        assessmentImportInProgress.current = false;
+      }
+    };
+
+    importPendingAssessment();
+  }, [state.isAuthenticated, state.userId, state.drafts, state.currentDraftId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-save functionality - debounced save on data changes
   useEffect(() => {

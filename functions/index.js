@@ -11,6 +11,72 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || functions.config()?.a
 const AI_PROVIDER = process.env.AI_PROVIDER || functions.config()?.ai?.provider || 'openai'; // 'openai' or 'anthropic'
 
 /**
+ * Capture waitlist leads from public landing pages.
+ * Stores leads in Firestore so they are not lost like localStorage-only capture.
+ */
+exports.captureWaitlistLead = functions.https.onRequest(async (req, res) => {
+  // Basic CORS support for public landing pages.
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const payload = req.body || {};
+    const name = (payload.name || '').trim();
+    const email = (payload.email || '').trim().toLowerCase();
+    const phone = (payload.phone || '').trim();
+    const company = (payload.company || '').trim();
+    const role = (payload.role || '').trim();
+    const interest = (payload.interest || '').trim();
+    const platform = (payload.platform || 'unknown').trim();
+    const sourcePath = (payload.sourcePath || '').trim();
+    const source = (payload.source || 'website').trim();
+
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+    const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailLooksValid) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    const leadData = {
+      name,
+      email,
+      phone,
+      company,
+      role,
+      interest,
+      platform,
+      source,
+      sourcePath,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      userAgent: req.get('user-agent') || null,
+      ip: req.ip || null,
+      status: 'new',
+    };
+
+    const appId = process.env.REACT_APP_ID || 'restaurant-planner';
+    await admin.firestore()
+      .collection('artifacts')
+      .doc(appId)
+      .collection('waitlist_leads')
+      .add(leadData);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error capturing waitlist lead:', error);
+    return res.status(500).json({ error: 'Failed to capture lead' });
+  }
+});
+
+/**
  * Create a Stripe Checkout Session
  * Called from the client to initiate a subscription checkout
  */

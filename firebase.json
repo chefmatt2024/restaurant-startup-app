@@ -52,7 +52,11 @@
         },
         {
           "source": "/restaurant-startup-app",
-          "destination": "/investor-pitch.html"
+          "destination": "/restauranteur-app.html"
+        },
+        {
+          "source": "/restauranteur-app",
+          "destination": "/restauranteur-app.html"
         },
         {
           "source": "/business-planner",
@@ -60,11 +64,11 @@
         },
         {
           "source": "/",
-          "destination": "/business-planner.html"
+          "destination": "/index.html"
         },
         {
           "source": "**",
-          "destination": "/business-planner.html"
+          "destination": "/index.html"
         }
       ],
       "headers": [

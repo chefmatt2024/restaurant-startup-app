@@ -57,11 +57,55 @@ export const EVENT_TYPES = {
   SECTION_VIEW: 'section_view',
   MODAL_OPEN: 'modal_open',
   MODAL_CLOSE: 'modal_close',
+  FUNNEL_STAGE: 'funnel_stage',
   
   // Errors
   ERROR_OCCURRED: 'error_occurred',
   API_ERROR: 'api_error',
   VALIDATION_ERROR: 'validation_error'
+};
+
+// Canonical funnel names and stages used across website + app tracking.
+export const FUNNELS = {
+  WEBSITE_TO_APP: 'website_to_app',
+};
+
+export const FUNNEL_STAGES = {
+  LANDING_VIEWED: 'landing_viewed',
+  CTA_CLICK_START_TRIAL: 'cta_click_start_trial',
+  CTA_CLICK_ASSESSMENT: 'cta_click_assessment',
+  WAITLIST_SUBMITTED: 'waitlist_submitted',
+  ASSESSMENT_STARTED: 'assessment_started',
+  ASSESSMENT_COMPLETED: 'assessment_completed',
+  SIGNUP_CTA_CLICKED_FROM_ASSESSMENT: 'signup_cta_clicked_from_assessment',
+  SIGNUP_COMPLETED: 'signup_completed',
+  LOGIN_COMPLETED: 'login_completed',
+  TRIAL_STARTED: 'trial_started',
+  SUBSCRIPTION_STARTED: 'subscription_started',
+  SUBSCRIPTION_RENEWED: 'subscription_renewed',
+};
+
+export const FUNNEL_MAP = {
+  [FUNNELS.WEBSITE_TO_APP]: [
+    FUNNEL_STAGES.LANDING_VIEWED,
+    FUNNEL_STAGES.CTA_CLICK_START_TRIAL,
+    FUNNEL_STAGES.CTA_CLICK_ASSESSMENT,
+    FUNNEL_STAGES.WAITLIST_SUBMITTED,
+    FUNNEL_STAGES.ASSESSMENT_STARTED,
+    FUNNEL_STAGES.ASSESSMENT_COMPLETED,
+    FUNNEL_STAGES.SIGNUP_CTA_CLICKED_FROM_ASSESSMENT,
+    FUNNEL_STAGES.SIGNUP_COMPLETED,
+    FUNNEL_STAGES.LOGIN_COMPLETED,
+    FUNNEL_STAGES.TRIAL_STARTED,
+    FUNNEL_STAGES.SUBSCRIPTION_STARTED,
+    FUNNEL_STAGES.SUBSCRIPTION_RENEWED,
+  ],
+};
+
+export const getFunnelStepIndex = (funnel, stage) => {
+  const stages = FUNNEL_MAP[funnel] || [];
+  const index = stages.indexOf(stage);
+  return index >= 0 ? index + 1 : null;
 };
 
 // Data collection queue
@@ -158,6 +202,21 @@ class AnalyticsService {
     this.track('user_journey', {
       step,
       ...data
+    });
+  }
+
+  // Track sales funnel stages with a consistent schema.
+  trackFunnelStage(stage, data = {}) {
+    const funnel = data.funnel || FUNNELS.WEBSITE_TO_APP;
+    const normalizedStage = String(stage || '').trim();
+    const stepIndex = getFunnelStepIndex(funnel, normalizedStage);
+
+    this.track(EVENT_TYPES.FUNNEL_STAGE, {
+      ...data,
+      funnel,
+      stage: normalizedStage,
+      funnel_stage: normalizedStage,
+      step_index: stepIndex,
     });
   }
 
