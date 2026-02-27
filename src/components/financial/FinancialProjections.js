@@ -19,7 +19,7 @@ import { LOCATION_OPTIONS } from '../../config/locationOptions';
 
 const FinancialProjections = () => {
   const { state, actions } = useApp();
-  const data = state.financialData;
+  const data = state.financialData || {};
 
   // Get restaurant type data or initialize
   const restaurantType = data.restaurantType || { type: 'new', buildCosts: 0, purchasePrice: 0, renovations: 0, needsRenovations: false };

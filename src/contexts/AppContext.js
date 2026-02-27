@@ -1728,8 +1728,8 @@ const updateCurrentDraftData = (state) => {
   if (currentDraft) {
     return {
       ...state,
-      businessPlan: currentDraft.businessPlan,
-      financialData: currentDraft.financialData,
+      businessPlan: currentDraft.businessPlan || state.businessPlan,
+      financialData: currentDraft.financialData && typeof currentDraft.financialData === 'object' ? currentDraft.financialData : (state.financialData || {}),
       vendors: Array.isArray(currentDraft.vendors) ? currentDraft.vendors : [],
       openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] },
       documentVersions: Array.isArray(currentDraft.documentVersions) ? currentDraft.documentVersions : [],
@@ -1808,10 +1808,11 @@ export const appReducer = (state, action) => {
     }
     
     case ActionTypes.UPDATE_FINANCIAL_DATA: {
+      const current = state.financialData || {};
       const updatedFinancialData = {
-        ...state.financialData,
+        ...current,
         [action.payload.section]: {
-          ...state.financialData[action.payload.section],
+          ...(current[action.payload.section] || {}),
           ...action.payload.data
         }
       };
@@ -2227,7 +2228,7 @@ export const AppProvider = ({ children }) => {
             ...currentDraft,
             name: currentDraft.name || 'Untitled Draft', // Ensure name is always included
             businessPlan: state.businessPlan,
-            financialData: state.financialData,
+            financialData: state.financialData || {},
             vendors: Array.isArray(state.vendors) ? state.vendors : [],
             openingPlanProgress: state.openingPlanProgress || { completedTaskIds: [] },
             documentVersions: Array.isArray(state.documentVersions) ? state.documentVersions : [],
