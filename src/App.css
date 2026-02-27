@@ -659,13 +659,46 @@ h1, h2, h3, h4, h5, h6, p {
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Spatula mascot gentle bounce */
+/* Spatula mascot gentle bounce (legacy) */
 @keyframes bounce-slow {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
 .animate-bounce-slow {
   animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* Spoon mascot – detailed animation */
+@keyframes spoon-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+}
+@keyframes spoon-tilt {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(2deg); }
+}
+@keyframes spoon-shine {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+@keyframes spoon-smile {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.spoon-mascot {
+  display: block;
+}
+.spoon-mascot--animated {
+  animation: spoon-float 3s ease-in-out infinite;
+}
+.spoon-mascot--animated .spoon-mascot__body {
+  animation: spoon-tilt 4s ease-in-out infinite;
+  transform-origin: 50% 75%;
+}
+.spoon-mascot--animated .spoon-mascot__smile {
+  animation: spoon-smile 2.5s ease-in-out infinite;
 }
 
 @keyframes slide-up {
