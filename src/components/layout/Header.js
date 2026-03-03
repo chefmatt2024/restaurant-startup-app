@@ -72,96 +72,135 @@ const Header = () => {
     }
   };
 
+  const draftDropdownRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showDraftDropdown && draftDropdownRef.current && !draftDropdownRef.current.contains(e.target)) {
+        setShowDraftDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDraftDropdown]);
+
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white border-b border-slate-200">
         <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
           {/* Main Header Row */}
-          <div className="flex justify-between items-center py-4">
-            {/* Logo and Title - Mobile Responsive */}
-            <div className="flex items-center space-x-3 lg:space-x-6">
-              <div className="flex items-center space-x-2 lg:space-x-3">
+          <div className="flex justify-between items-center py-3">
+            {/* Logo and Title */}
+            <div className="flex items-center min-w-0 flex-1 lg:flex-initial">
+              <div className="flex items-center space-x-2 lg:space-x-3 min-w-0">
                 <img 
                   src="/logo.png" 
-                  alt="Restauranteur System Logo" 
-                  className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0 object-contain"
+                  alt="Restauranteur" 
+                  className="w-8 h-8 lg:w-9 lg:h-9 flex-shrink-0 object-contain"
                 />
-                <div className="min-w-0">
-                  <h1 className="text-lg lg:text-2xl font-bold text-gray-900 truncate">
-                    <span className="hidden sm:inline">Restaurant Business Planning</span>
-                    <span className="sm:hidden">Restaurant Planner</span>
+                <div className="min-w-0 hidden sm:block">
+                  <h1 className="text-base lg:text-xl font-bold text-slate-900 truncate">
+                    Restaurant Planner
                   </h1>
-                  <p className="text-xs lg:text-sm text-gray-600 hidden lg:block">
-                    Create comprehensive restaurant business plans with city-specific market data
+                  <p className="text-xs text-slate-500 hidden lg:block truncate">
+                    Business plans with city-specific data
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Draft Selector - Hidden on mobile, shown in mobile menu */}
-            {currentDraft && (
-              <div className="relative hidden lg:block">
-                <button
-                  onClick={() => setShowDraftDropdown(!showDraftDropdown)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  <FileText className="w-4 h-4 text-blue-600" />
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-blue-900">
-                      {currentDraft.name}
+            {/* Project Selector - Center/Right on desktop */}
+            <div ref={draftDropdownRef} className="relative flex-1 flex justify-center mx-4 max-w-md hidden lg:flex">
+              {currentDraft ? (
+                <>
+                  <button
+                    onClick={() => setShowDraftDropdown(!showDraftDropdown)}
+                    className="flex items-center gap-3 w-full max-w-sm px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-left group"
+                    title="Switch project"
+                  >
+                    <div className="p-1.5 rounded-md bg-white border border-slate-200 group-hover:border-slate-300">
+                      <FileText className="w-4 h-4 text-slate-600" />
                     </div>
-                    <div className="text-xs text-blue-600">
-                      Current Draft
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-slate-900 truncate">{currentDraft.name}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-1">
+                        {(state.financialData?.restaurantDetails?.location || currentDraft.financialData?.restaurantDetails?.location) && (
+                          <>
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{state.financialData?.restaurantDetails?.location || currentDraft.financialData?.restaurantDetails?.location}</span>
+                            <span className="text-slate-400">·</span>
+                          </>
+                        )}
+                        <span>{state.drafts.length} project{state.drafts.length !== 1 ? 's' : ''}</span>
+                      </div>
                     </div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-blue-600" />
-                </button>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showDraftDropdown ? 'rotate-180' : ''}`} />
+                  </button>
 
-                {/* Draft Dropdown */}
-                {showDraftDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <div className="p-3 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">Your Drafts</h3>
+                  {showDraftDropdown && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-500">Projects</span>
                         <button
                           onClick={() => {
                             setShowDraftManager(true);
                             setShowDraftDropdown(false);
                           }}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          className="text-sm font-medium text-slate-600 hover:text-slate-900"
                         >
-                          Manage All
+                          Manage all
+                        </button>
+                      </div>
+                      <div className="max-h-72 overflow-y-auto py-1">
+                        {state.drafts.map((draft) => (
+                          <button
+                            key={draft.id}
+                            onClick={() => handleSwitchDraft(draft.id)}
+                            className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
+                              draft.id === state.currentDraftId 
+                                ? 'bg-slate-100 text-slate-900' 
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <FileText className={`w-4 h-4 flex-shrink-0 ${draft.id === state.currentDraftId ? 'text-slate-600' : 'text-slate-400'}`} />
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium truncate">{draft.name}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">
+                                {draft.financialData?.restaurantDetails?.location && (
+                                  <span className="mr-2">{draft.financialData.restaurantDetails.location}</span>
+                                )}
+                                {draft.updatedAt
+                                  ? new Date(draft.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                                  : '—'}
+                              </div>
+                            </div>
+                            {draft.id === state.currentDraftId && (
+                              <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                        <button
+                          onClick={handleCreateQuickDraft}
+                          className="w-full text-left px-4 py-3 flex items-center gap-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors border-t border-slate-100"
+                        >
+                          <div className="w-8 h-8 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center">
+                            <Plus className="w-4 h-4" />
+                          </div>
+                          <span className="font-medium">New project</span>
                         </button>
                       </div>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {state.drafts.map((draft) => (
-                        <button
-                          key={draft.id}
-                          onClick={() => handleSwitchDraft(draft.id)}
-                          className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2 ${
-                            draft.id === state.currentDraftId ? 'bg-blue-50 text-blue-900' : 'text-gray-700'
-                          }`}
-                        >
-                          <span className="font-medium truncate min-w-0">{draft.name}</span>
-                          <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">
-                            {draft.updatedAt
-                              ? new Date(draft.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-                              : '—'}
-                          </span>
-                        </button>
-                      ))}
-                      <button
-                        onClick={handleCreateQuickDraft}
-                        className="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-200"
-                      >
-                        <div className="font-medium">+ Create New Draft</div>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={handleCreateQuickDraft}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="font-medium">Create project</span>
+                </button>
+              )}
+            </div>
             
             {/* Right Side - Desktop */}
             <div className="hidden lg:flex items-center space-x-4">
@@ -174,14 +213,6 @@ const Header = () => {
                 }} />
               )}
               
-              {/* Draft Count Badge */}
-              {state.drafts.length > 1 && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <FileText className="w-4 h-4" />
-                  <span>{state.drafts.length} drafts</span>
-                </div>
-              )}
-
               {/* In-app Notifications */}
               {state.isAuthenticated && (
                 <div className="relative">
@@ -374,51 +405,52 @@ const Header = () => {
 
           {/* Mobile Menu */}
           {showMobileMenu && (
-            <div className="lg:hidden border-t border-gray-200 bg-white">
-              <div className="px-4 py-4 space-y-4">
-                {/* Current Draft - Mobile */}
-                {currentDraft && (
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <div>
-                          <div className="text-sm font-semibold text-blue-900">
-                            {currentDraft.name}
-                          </div>
-                          <div className="text-xs text-blue-600">Current Draft</div>
+            <div className="lg:hidden border-t border-slate-200 bg-slate-50/50">
+              <div className="px-4 py-4 space-y-3">
+                {/* Project Selector - Mobile */}
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Project</span>
+                  {currentDraft ? (
+                    <div className="rounded-lg border border-slate-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-slate-900">{currentDraft.name}</div>
+                          {(state.financialData?.restaurantDetails?.location || currentDraft.financialData?.restaurantDetails?.location) && (
+                            <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {state.financialData?.restaurantDetails?.location || currentDraft.financialData?.restaurantDetails?.location}
+                            </div>
+                          )}
                         </div>
+                        <button
+                          onClick={() => {
+                            setShowDraftManager(true);
+                            setShowMobileMenu(false);
+                          }}
+                          className="text-sm font-medium text-slate-600 hover:text-slate-900 shrink-0"
+                        >
+                          Switch
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          setShowDraftManager(true);
-                          setShowMobileMenu(false);
-                        }}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Manage
-                      </button>
+                      {state.drafts.length > 1 && (
+                        <div className="mt-2 text-xs text-slate-500">
+                          {state.drafts.length} projects — tap Switch to change
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-
-                {/* User Info - Mobile */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <User className="w-4 h-4" />
-                  <span>
-                    {state.user?.displayName || 
-                     (state.user?.email ? state.user.email.split('@')[0] : 
-                      state.isAuthenticated ? `User: ${state.userId?.slice(-8)}` : 'Anonymous User')}
-                  </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        handleCreateQuickDraft();
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:bg-white"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="font-medium">Create project</span>
+                    </button>
+                  )}
                 </div>
-
-                {/* Draft Count - Mobile */}
-                {state.drafts.length > 1 && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <FileText className="w-4 h-4" />
-                    <span>{state.drafts.length} drafts</span>
-                  </div>
-                )}
 
                 {/* Mobile Actions */}
                 <div className="space-y-2">
@@ -535,8 +567,8 @@ const Header = () => {
         isFirstProject={false}
         allowClose={true}
         onClose={() => setShowProjectSetupModal(false)}
-        onSubmit={({ projectName, projectIntent, enabledFeatures }) => {
-          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures);
+        onSubmit={({ projectName, projectIntent, enabledFeatures, location }) => {
+          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures, location);
           setShowProjectSetupModal(false);
           actions.showMessage('Success', 'New project created.', 'success');
         }}

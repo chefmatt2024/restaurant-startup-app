@@ -92,8 +92,9 @@ const DraftManager = ({ isOpen, onClose }) => {
       const baseDraft = conceptDrafts[0];
       const projectIntent = baseDraft?.projectIntent ?? null;
       const enabledFeatures = baseDraft?.enabledFeatures ?? null;
+      const initialLocation = baseDraft?.financialData?.restaurantDetails?.location ?? null;
 
-      newDraft = actions.createDraft(newDraftName.trim(), null, projectIntent, enabledFeatures);
+      newDraft = actions.createDraft(newDraftName.trim(), null, projectIntent, enabledFeatures, initialLocation);
 
       // Attach to the same project (concept)
       actions.updateDraft(newDraft.id, {
@@ -869,8 +870,8 @@ const DraftManager = ({ isOpen, onClose }) => {
         isFirstProject={false}
         allowClose={true}
         onClose={() => setShowProjectSetupModal(false)}
-        onSubmit={({ projectName, projectIntent, enabledFeatures }) => {
-          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures);
+        onSubmit={({ projectName, projectIntent, enabledFeatures, location }) => {
+          actions.createDraft(projectName || 'My Restaurant Plan', null, projectIntent, enabledFeatures, location);
           setShowProjectSetupModal(false);
           actions.showMessage('Success', 'New project created.', 'success');
         }}

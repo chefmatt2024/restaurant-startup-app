@@ -8,7 +8,8 @@ import GuideAssistant from '../components/onboarding/GuideAssistant';
 import AIAssistant from '../components/ai/AIAssistant';
 import SpoonMascot from '../components/ai/SpoonMascot';
 import { getAIPlaceholderForStep, getAIContextForStep } from '../config/aiStepContext';
-import { ChevronRight, LayoutDashboard, List, Sparkles, X } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, List, Search, Sparkles, X } from 'lucide-react';
+import FeatureSearch from '../components/search/FeatureSearch';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import OperationsPlan from '../components/business-plan/OperationsPlan';
 import FinancialProjections from '../components/financial/FinancialProjections';
@@ -154,6 +155,18 @@ const Dashboard = () => {
     if (tabId) actions.setActiveTab(tabId);
   };
 
+  // Cmd/Ctrl+K to open feature search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowFeatureSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // First or no project: show project setup (opening new / buying / helping existing) before dashboard
   const hasNoDrafts = state.isAuthenticated && (!state.drafts || state.drafts.length === 0);
   if (hasNoDrafts) {
@@ -168,39 +181,42 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      {/* View mode toggle: Planning (Overview) vs Open Restaurant - always visible below header */}
-      <div className="sticky top-0 z-20 bg-white border-b-2 border-indigo-200 shadow-md">
-        <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-gray-600">
-              {showOverview ? 'Planning your restaurant' : 'Open restaurant — vendors, financials & compliance'}
+      {/* View mode toggle: Dashboard vs Open Restaurant */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-2.5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowFeatureSearch(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-sm transition-colors"
+              title="Search features (Ctrl+K)"
+            >
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Search features...</span>
+              <kbd className="hidden md:inline text-xs text-slate-400 ml-1">⌘K</kbd>
+            </button>
+            <span className="text-sm text-slate-500 hidden md:inline">
+              {showOverview ? 'Dashboard' : 'Open Restaurant'}
             </span>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-sm font-medium text-gray-600 hidden sm:inline">Mode:</span>
-              <div className="inline-flex p-1.5 bg-gray-100 rounded-lg border-2 border-gray-300" role="group" aria-label="Switch between planning and open restaurant view">
-                <button
-                  onClick={() => setShowOverview(true)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                    showOverview
-                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200 ring-2 ring-blue-200'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Planning
-                </button>
-                <button
-                  onClick={() => setShowOverview(false)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                    !showOverview
-                      ? 'bg-white text-indigo-600 shadow-sm border border-gray-200 ring-2 ring-indigo-200'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  Open Restaurant
-                </button>
-              </div>
+            <div className="inline-flex p-1 bg-slate-100 rounded-lg" role="group" aria-label="Switch between dashboard and open restaurant view">
+              <button
+                onClick={() => setShowOverview(true)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  showOverview ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </button>
+              <button
+                onClick={() => setShowOverview(false)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  !showOverview ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="w-4 h-4" />
+                Open Restaurant
+              </button>
             </div>
           </div>
         </div>
@@ -219,7 +235,7 @@ const Dashboard = () => {
                   onClick={() => setShowOverview(true)}
                   className="hover:text-blue-600 font-medium transition-colors"
                 >
-                  Overview
+                  Dashboard
                 </button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-700 font-medium">Open Restaurant</span>
@@ -259,6 +275,12 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      <FeatureSearch
+        isOpen={showFeatureSearch}
+        onClose={() => setShowFeatureSearch(false)}
+        onSelect={(tabId) => handleSwitchToDetailed(tabId)}
+      />
+
       <WelcomeTour
         isOpen={showWelcomeTour}
         onComplete={handleTourComplete}

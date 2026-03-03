@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const express = require('express');
 const stripe = require('stripe')(functions.config()?.stripe?.secret_key || process.env.STRIPE_SECRET_KEY);
 
 admin.initializeApp();
@@ -174,54 +175,62 @@ exports.createCustomerPortalSession = functions.https.onCall(async (data, contex
 
 /**
  * Stripe Webhook Handler
- * Handles subscription events from Stripe
+ * Uses Express with raw body parser - required for Stripe signature verification.
+ * Handles subscription events from Stripe.
  */
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = functions.config().stripe?.webhook_secret || process.env.STRIPE_WEBHOOK_SECRET;
+const stripeWebhookApp = express();
+stripeWebhookApp.post(
+  '/',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = functions.config().stripe?.webhook_secret || process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!webhookSecret) {
-    console.error('Webhook secret not configured');
-    return res.status(400).send('Webhook secret not configured');
-  }
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(event.data.object);
-        break;
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdate(event.data.object);
-        break;
-      case 'customer.subscription.deleted':
-        await handleSubscriptionCancellation(event.data.object);
-        break;
-      case 'invoice.payment_succeeded':
-        await handlePaymentSuccess(event.data.object);
-        break;
-      case 'invoice.payment_failed':
-        await handlePaymentFailure(event.data.object);
-        break;
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
+    if (!webhookSecret) {
+      console.error('Webhook secret not configured');
+      return res.status(400).send('Webhook secret not configured');
     }
 
-    res.json({ received: true });
-  } catch (error) {
-    console.error('Error handling webhook:', error);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutSessionCompleted(event.data.object);
+          break;
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          await handleSubscriptionUpdate(event.data.object);
+          break;
+        case 'customer.subscription.deleted':
+          await handleSubscriptionCancellation(event.data.object);
+          break;
+        case 'invoice.payment_succeeded':
+          await handlePaymentSuccess(event.data.object);
+          break;
+        case 'invoice.payment_failed':
+          await handlePaymentFailure(event.data.object);
+          break;
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Error handling webhook:', error);
+      res.status(500).json({ error: 'Webhook handler failed' });
+    }
   }
-});
+);
+
+exports.stripeWebhook = functions.https.onRequest(stripeWebhookApp);
 
 /**
  * Handle checkout session completion
@@ -235,16 +244,16 @@ async function handleCheckoutSessionCompleted(session) {
     return;
   }
 
-  // Update user document with Stripe customer ID
-  await admin.firestore()
+  // Update user document with Stripe customer ID (merge creates if missing)
+  const userRef = admin.firestore()
     .collection('artifacts')
     .doc('restaurant-planner')
     .collection('users')
-    .doc(userId)
-    .update({
-      stripeCustomerId: customerId,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    .doc(userId);
+  await userRef.set({
+    stripeCustomerId: customerId,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
 
   console.log(`Checkout completed for user ${userId}`);
 }

@@ -40,6 +40,7 @@ export const ActionTypes = {
   UPDATE_DOCUMENT_VERSIONS: 'UPDATE_DOCUMENT_VERSIONS',
   UPDATE_SOPS: 'UPDATE_SOPS',
   UPDATE_LEDGER_ENTRIES: 'UPDATE_LEDGER_ENTRIES',
+  UPDATE_EQUIPMENT_DATA: 'UPDATE_EQUIPMENT_DATA',
   MARK_NOTIFICATIONS_READ: 'MARK_NOTIFICATIONS_READ',
   
   // Auto-save actions
@@ -658,6 +659,7 @@ const initialState = {
   documentVersions: [],
   sops: [],
   ledgerEntries: [],
+  equipmentData: null, // { bidSheet, customEquipment, plateStyles, selectedItems, budget }
   notificationReadIds: []
 };
 
@@ -669,20 +671,45 @@ export const PROJECT_INTENTS = {
 };
 
 // Draft helper functions
-const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null, projectIntent = null) => {
+const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null, projectIntent = null, enabledFeatures = null, initialLocation = null) => {
   const now = new Date();
+  const fromBase = !!baseDraft;
+
+  let businessPlan = fromBase ? { ...baseDraft.businessPlan } : { ...initialState.businessPlan };
+  let financialData = fromBase ? { ...baseDraft.financialData } : { ...initialState.financialData };
+
+  if (initialLocation && !fromBase) {
+    financialData = {
+      ...financialData,
+      restaurantDetails: {
+        ...financialData.restaurantDetails,
+        location: initialLocation
+      }
+    };
+    businessPlan = {
+      ...businessPlan,
+      executiveSummary: {
+        ...businessPlan.executiveSummary,
+        location: initialLocation
+      }
+    };
+  }
+
   return {
     id: `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name,
     projectIntent: projectIntent ?? baseDraft?.projectIntent ?? null,
+    enabledFeatures: enabledFeatures ?? baseDraft?.enabledFeatures ?? null,
     createdAt: now,
     updatedAt: now,
     isActive: false,
-    businessPlan: baseDraft ? { ...baseDraft.businessPlan } : { ...initialState.businessPlan },
-    financialData: baseDraft ? { ...baseDraft.financialData } : { ...initialState.financialData },
+    businessPlan,
+    financialData,
     vendors: baseDraft ? [...baseDraft.vendors] : [],
     openingPlanProgress: baseDraft?.openingPlanProgress ? { ...baseDraft.openingPlanProgress, completedTaskIds: [...(baseDraft.openingPlanProgress.completedTaskIds || [])] } : { completedTaskIds: [] },
     documentVersions: baseDraft?.documentVersions ? [...baseDraft.documentVersions] : [],
+    equipmentData: baseDraft?.equipmentData ? JSON.parse(JSON.stringify(baseDraft.equipmentData)) : null,
+    ledgerEntries: Array.isArray(baseDraft?.ledgerEntries) ? [...baseDraft.ledgerEntries] : [],
     sops: baseDraft?.sops ? baseDraft.sops.map(s => ({ ...s, steps: [...(s.steps || [])] })) : [],
     freeAssessment: baseDraft?.freeAssessment || null
   };
@@ -1734,7 +1761,8 @@ const updateCurrentDraftData = (state) => {
       openingPlanProgress: currentDraft.openingPlanProgress || { completedTaskIds: [] },
       documentVersions: Array.isArray(currentDraft.documentVersions) ? currentDraft.documentVersions : [],
       sops: Array.isArray(currentDraft.sops) ? currentDraft.sops : [],
-      ledgerEntries: Array.isArray(currentDraft.ledgerEntries) ? currentDraft.ledgerEntries : []
+      ledgerEntries: Array.isArray(currentDraft.ledgerEntries) ? currentDraft.ledgerEntries : [],
+      equipmentData: currentDraft.equipmentData || null
     };
   }
   return state;
@@ -1754,6 +1782,12 @@ export const appReducer = (state, action) => {
       
     case ActionTypes.SET_USER:
       return { ...state, user: action.payload };
+    
+    case ActionTypes.UPDATE_USER_PROFILE:
+      return {
+        ...state,
+        user: state.user ? { ...state.user, ...action.payload } : state.user,
+      };
       
     case ActionTypes.SET_ACTIVE_TAB:
       return { ...state, activeTab: action.payload };
@@ -1816,17 +1850,34 @@ export const appReducer = (state, action) => {
           ...action.payload.data
         }
       };
+
+      // When restaurant location changes, sync to executive summary and ideation
+      let updatedBusinessPlan = state.businessPlan;
+      if (action.payload.section === 'restaurantDetails' && action.payload.data?.location != null) {
+        const newLocation = action.payload.data.location;
+        updatedBusinessPlan = {
+          ...state.businessPlan,
+          executiveSummary: {
+            ...state.businessPlan.executiveSummary,
+            location: newLocation
+          }
+        };
+      }
       
       // Update current draft
-      const updatedDrafts = state.drafts.map(draft => 
-        draft.id === state.currentDraftId 
-          ? { ...draft, financialData: updatedFinancialData, updatedAt: new Date() }
-          : draft
-      );
+      const updatedDrafts = state.drafts.map(draft => {
+        if (draft.id !== state.currentDraftId) return draft;
+        const draftUpdates = { financialData: updatedFinancialData, updatedAt: new Date() };
+        if (updatedBusinessPlan !== state.businessPlan) {
+          draftUpdates.businessPlan = updatedBusinessPlan;
+        }
+        return { ...draft, ...draftUpdates };
+      });
       
       return {
         ...state,
         financialData: updatedFinancialData,
+        businessPlan: updatedBusinessPlan,
         drafts: updatedDrafts
       };
     }
@@ -1934,7 +1985,8 @@ export const appReducer = (state, action) => {
     case ActionTypes.SET_CURRENT_DRAFT_ID: {
       const newState = {
         ...state,
-        currentDraftId: action.payload
+        currentDraftId: action.payload,
+        equipmentData: null // Will be hydrated by updateCurrentDraftData
       };
       return updateCurrentDraftData(newState);
     }
@@ -1944,7 +1996,8 @@ export const appReducer = (state, action) => {
         action.payload.name,
         action.payload.baseDraft,
         action.payload.projectIntent,
-        action.payload.enabledFeatures
+        action.payload.enabledFeatures,
+        action.payload.initialLocation
       );
       return {
         ...state,
@@ -1955,7 +2008,9 @@ export const appReducer = (state, action) => {
         vendors: newDraft.vendors,
         openingPlanProgress: newDraft.openingPlanProgress || { completedTaskIds: [] },
         documentVersions: newDraft.documentVersions || [],
-        sops: newDraft.sops || []
+        sops: newDraft.sops || [],
+        equipmentData: newDraft.equipmentData || null,
+        ledgerEntries: newDraft.ledgerEntries || []
       };
     }
     
@@ -2098,6 +2153,10 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_USER, payload: user });
     },
     
+    updateUserProfile: (profile) => {
+      dispatch({ type: ActionTypes.UPDATE_USER_PROFILE, payload: profile });
+    },
+    
     setActiveTab: (tab) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TAB, payload: tab });
     },
@@ -2155,9 +2214,9 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CURRENT_DRAFT_ID, payload: draftId });
     },
     
-    createDraft: (name, baseDraft = null, projectIntent = null) => {
-      dispatch({ type: ActionTypes.CREATE_DRAFT, payload: { name, baseDraft, projectIntent } });
-      const newDraft = createNewDraft(name, baseDraft, projectIntent);
+    createDraft: (name, baseDraft = null, projectIntent = null, enabledFeatures = null, initialLocation = null) => {
+      dispatch({ type: ActionTypes.CREATE_DRAFT, payload: { name, baseDraft, projectIntent, enabledFeatures, initialLocation } });
+      const newDraft = createNewDraft(name, baseDraft, projectIntent, enabledFeatures, initialLocation);
       return newDraft;
     },
     
@@ -2192,6 +2251,9 @@ export const AppProvider = ({ children }) => {
     },
     updateLedgerEntries: (ledgerEntries) => {
       dispatch({ type: ActionTypes.UPDATE_LEDGER_ENTRIES, payload: ledgerEntries });
+    },
+    updateEquipmentData: (equipmentData) => {
+      dispatch({ type: ActionTypes.UPDATE_EQUIPMENT_DATA, payload: equipmentData });
     },
     markNotificationsRead: (ids) => {
       dispatch({ type: ActionTypes.MARK_NOTIFICATIONS_READ, payload: ids });
@@ -2337,6 +2399,7 @@ export const AppProvider = ({ children }) => {
   // Initialize authentication and drafts
   useEffect(() => {
     let unsubscribe = null;
+    let profileUnsubscribe = null;
     
     const initAuth = async () => {
       try {
@@ -2355,13 +2418,35 @@ export const AppProvider = ({ children }) => {
     // Set up auth state listener
     unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (user) {
+        const appId = getAppId();
+        
+        // Ensure user profile exists (for Stripe webhooks) and load subscription
+        try {
+          await dbService.ensureUserProfile(user.uid, appId, {
+            email: user.email,
+            displayName: user.displayName,
+          });
+          const profile = await dbService.getUserProfile(user.uid, appId);
+          const userWithProfile = {
+            ...user,
+            ...(profile || {}),
+            subscription: profile?.subscription || {
+              status: 'active',
+              plan: 'free',
+              currentPeriodEnd: null,
+              cancelAtPeriodEnd: false,
+            },
+          };
+          actions.setUser(userWithProfile);
+        } catch (profileError) {
+          actions.setUser(user);
+        }
+        
         actions.setUserId(user.uid);
-        actions.setUser(user);
         actions.setAuthenticated(true);
         
                  // Load drafts data
          try {
-           const appId = getAppId();
            const draftsData = await dbService.getDrafts(user.uid, appId);
            
            if (draftsData && draftsData.length > 0) {
@@ -2406,8 +2491,17 @@ export const AppProvider = ({ children }) => {
            // On error leave drafts empty; user can create via project setup
          }
         
+        // Subscribe to user profile for real-time subscription updates (e.g. after Stripe checkout)
+        profileUnsubscribe = dbService.subscribeToUserProfile(user.uid, appId, (profile) => {
+          if (profile?.subscription) {
+            actions.updateUserProfile({ ...profile, subscription: profile.subscription });
+          }
+        });
+        
         actions.setLoading(false);
       } else {
+        if (profileUnsubscribe) profileUnsubscribe();
+        profileUnsubscribe = null;
         actions.setUserId(null);
         actions.setUser(null);
         actions.setAuthenticated(false);
@@ -2421,6 +2515,7 @@ export const AppProvider = ({ children }) => {
     // Cleanup
     return () => {
       if (unsubscribe) unsubscribe();
+      if (profileUnsubscribe) profileUnsubscribe();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

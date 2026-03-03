@@ -281,7 +281,7 @@ const VendorManagement = () => {
       if (newCertification.trim()) {
         setFormData(prev => ({
           ...prev,
-          certifications: [...prev.certifications, newCertification.trim()]
+          certifications: [...(prev.certifications || []), newCertification.trim()]
         }));
         setNewCertification('');
       }
@@ -290,7 +290,7 @@ const VendorManagement = () => {
     const removeCertification = (index) => {
       setFormData(prev => ({
         ...prev,
-        certifications: prev.certifications.filter((_, i) => i !== index)
+        certifications: (prev.certifications || []).filter((_, i) => i !== index)
       }));
     };
 
@@ -298,7 +298,7 @@ const VendorManagement = () => {
       if (newSpecialty.trim()) {
         setFormData(prev => ({
           ...prev,
-          specialties: [...prev.specialties, newSpecialty.trim()]
+          specialties: [...(prev.specialties || []), newSpecialty.trim()]
         }));
         setNewSpecialty('');
       }
@@ -307,7 +307,7 @@ const VendorManagement = () => {
     const removeSpecialty = (index) => {
       setFormData(prev => ({
         ...prev,
-        specialties: prev.specialties.filter((_, i) => i !== index)
+        specialties: (prev.specialties || []).filter((_, i) => i !== index)
       }));
     };
 
@@ -504,7 +504,7 @@ const VendorManagement = () => {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {formData.certifications.map((cert, index) => (
+                {(formData.certifications || []).map((cert, index) => (
                   <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {cert}
                     <button
@@ -539,7 +539,7 @@ const VendorManagement = () => {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {formData.specialties.map((specialty, index) => (
+                {(formData.specialties || []).map((specialty, index) => (
                   <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     {specialty}
                     <button
@@ -928,10 +928,10 @@ Return a well-structured summary in markdown format.`;
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(vendor =>
-        vendor.name.toLowerCase().includes(searchLower) ||
-        vendor.company.toLowerCase().includes(searchLower) ||
-        vendor.category.toLowerCase().includes(searchLower) ||
-        vendor.description.toLowerCase().includes(searchLower)
+        (vendor.name || '').toLowerCase().includes(searchLower) ||
+        (vendor.company || '').toLowerCase().includes(searchLower) ||
+        (vendor.category || '').toLowerCase().includes(searchLower) ||
+        (vendor.description || '').toLowerCase().includes(searchLower)
       );
     }
 

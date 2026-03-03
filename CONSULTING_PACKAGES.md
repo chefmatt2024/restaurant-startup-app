@@ -61,7 +61,7 @@ Use this doc to sell, scope, and deliver. Update pricing and deliverables as you
 | **Inputs we need** | Recent P&L or key numbers (food cost %, labor %, revenue), menu (or key items), and a short description of current pain points (waste, labor, pricing, etc.). |
 | **Deliverables** | (1) Written ops review (3–5 pages): current state, top 3–5 levers (e.g. portioning, menu mix, scheduling), and estimated impact. (2) One 60-min call to present and answer questions. Optional: one 30-day follow-up call. |
 | **Timeline** | Report within 7–10 business days; call within 14 days. |
-| **Pricing** | Set your price. Example range: $1,000–$2,500 for the one-off; or position as entry to a monthly retainer. |
+| **Pricing** | **$1,750** (one-off) or Book a call for retainers. |
 | **Tie to app** | “After the review, use the Restauranteur App to track financials and permits so you don’t backslide.” Offer app trial or discount. |
 
 **CTA for website:** “Cut cost and tighten operations — [Book a cost & ops review](mailto: or Calendly).”
@@ -79,7 +79,7 @@ Use this doc to sell, scope, and deliver. Update pricing and deliverables as you
 | **Inputs we need** | Concept, location, target open date (if any), and whatever you already have (notes, spreadsheets, or Restauranteur App draft). |
 | **Deliverables** | (1) Up to 3 working sessions (e.g. 90 min each): plan outline, financial model or scenario, and a one-page “next steps” doc. (2) Optional: a short written summary (1–2 pages) after the last session. |
 | **Timeline** | Sessions scheduled within 2 weeks of kickoff; spread over 2–4 weeks. |
-| **Pricing** | Set your price (e.g. per session or package). Example range: $1,500–$4,000 for 3 sessions. |
+| **Pricing** | **$2,500** (3 sessions) or Book a call for custom scope. |
 | **Tie to app** | “We’ll use (or build in) the Restauranteur App so you keep one system; after we’re done, you own the plan there.” Include app access in the package. |
 
 **CTA for website:** “Build your plan with us — [Book a strategy session](https://iterumfoods.com).”

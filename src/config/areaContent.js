@@ -56,6 +56,7 @@ const AREA_CONFIG = {
     leaseToOpeningStepsNote: 'Cambridge permits often run in parallel with buildout. Check zoning and alcohol licensing early.',
     taskTips: {
       'business-concept': 'Cambridge diners value diverse, innovative concepts and strong beverage programs. Consider MIT/Harvard and Kendall Square demographics.',
+      'marketing-launch': 'Cambridge has strong university and tech communities. Leverage student publications, academic events, and local food blogs. Partner with Harvard and MIT dining for visibility.',
       'cost-analysis': 'Cambridge startup costs can be comparable to Boston. Include contingency for high rent and buildout.',
       'boston-funding-opportunities': 'Research Cambridge and state grants. Massachusetts Growth Capital Corporation and local economic development offices may have programs.',
       'neighborhood-research': 'Consider Kendall, Harvard Square, Central, Inman, and Porter. Foot traffic and transit (Red Line, buses) matter.',
@@ -86,6 +87,8 @@ const AREA_CONFIG = {
     leaseToOpeningNote: 'Typical: 4–8 months from lease signing to opening in Brookline.',
     leaseToOpeningStepsNote: 'Check Brookline health and zoning requirements early; some areas have strict use rules.',
     taskTips: {
+      'business-concept': 'Brookline diners appreciate quality over quantity. Strong residential base and commuter traffic support neighborhood-focused marketing.',
+      'marketing-launch': 'Brookline residents use Nextdoor and local newsletters. Build visibility through Coolidge Corner and Brookline Village community events.',
       'neighborhood-research': 'Coolidge Corner, Washington Square, and Brookline Village are key commercial areas. Parking and transit matter.',
       'boston-zoning-compliance': 'Brookline zoning is strict. Confirm restaurant use and any special permit requirements with the Planning Department.',
       'business-certificate': 'Brookline requires local business registration. See brooklinema.gov for current process.',

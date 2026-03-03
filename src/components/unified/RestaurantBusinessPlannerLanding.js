@@ -1074,10 +1074,15 @@ const RestaurantBusinessPlannerLanding = () => {
               <Zap className="w-5 h-5 mr-2" />
               Start Your Free Trial
             </button>
-            <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-green-600 transition-colors duration-200 flex items-center justify-center">
+            <a
+              href="https://iterumfoods.com?utm_source=landing&utm_medium=cta&utm_campaign=consulting"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-green-600 transition-colors duration-200 flex items-center justify-center"
+            >
               <Phone className="w-5 h-5 mr-2" />
-              Schedule Demo Call
-            </button>
+              Book a Strategy Call
+            </a>
           </div>
           <p className="text-green-200 mt-6 text-sm">
             No credit card required • 5-day free trial • Cancel anytime

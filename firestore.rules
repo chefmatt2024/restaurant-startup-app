@@ -114,6 +114,13 @@ service cloud.firestore {
         request.auth.token.admin == true;
     }
     
+    // Waitlist leads (written by Cloud Functions; admin can read for lead tracking)
+    match /artifacts/{appId}/waitlist_leads/{leadId} {
+      allow read: if request.auth != null && 
+        request.auth.token.admin == true;
+      allow write: if false; // Only Functions write
+    }
+    
     // Default deny all other access
     match /{document=**} {
       allow read, write: if false;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { X, ArrowRight, ArrowLeft, CheckCircle, Target, BarChart3, FileText, Users, MapPin, Building2, Sparkles } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, CheckCircle, Target, BarChart3, FileText, Users, MapPin, Building2, Sparkles, Shield } from 'lucide-react';
 
 const WelcomeTour = ({ isOpen, onComplete, onSkip }) => {
   const { actions } = useApp();
@@ -23,6 +23,35 @@ const WelcomeTour = ({ isOpen, onComplete, onSkip }) => {
               <strong>Your 5-day free trial</strong> gives you full access to all features. No credit card required!
             </p>
           </div>
+        </div>
+      )
+    },
+    {
+      id: 'compliance',
+      title: 'Licenses & Permits First',
+      description: 'Track what you need to open legally',
+      icon: <Shield className="w-8 h-8 text-rose-600" />,
+      content: (
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            <strong>Most new restaurants get tripped up by permits.</strong> Our compliance tracker helps you stay on top of city, state, and federal requirements — and never miss a renewal.
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+            <li>Food establishment permits</li>
+            <li>Business licenses & certificates</li>
+            <li>Alcohol licensing</li>
+            <li>Renewal reminders</li>
+          </ul>
+          <button
+            onClick={() => {
+              actions.setActiveTab('compliance');
+              markStepComplete('compliance');
+            }}
+            className="w-full bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>Go to Licenses & Permits</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       )
     },

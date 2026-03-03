@@ -3,12 +3,13 @@ import { useApp, PROJECT_INTENTS } from '../../contexts/AppContext';
 import { Store, Building, Building2, X, ArrowRight, Layers, Check } from 'lucide-react';
 import { FEATURE_PRESETS, ALL_FEATURE_IDS } from '../../config/featurePresets';
 import { DETAIL_VIEW_TABS } from './TabNavigation';
+import { LOCATION_OPTIONS, DEFAULT_LOCATION } from '../../config/locationOptions';
 
 const INTENT_OPTIONS = [
   {
     value: PROJECT_INTENTS.OPENING_NEW,
     label: 'Opening a new restaurant',
-    description: 'Planning from scratch: concept, location, permits, and launch.',
+    description: 'Planning from scratch: licenses, permits, concept, and launch.',
     icon: Store,
   },
   {
@@ -37,6 +38,7 @@ const ProjectSetupModal = ({
   const { actions } = useApp();
   const [projectIntent, setProjectIntent] = useState(null);
   const [projectName, setProjectName] = useState('');
+  const [location, setLocation] = useState(DEFAULT_LOCATION);
   const [featurePreset, setFeaturePreset] = useState('full');
   const [showCustomFeatures, setShowCustomFeatures] = useState(false);
   const [customFeatureIds, setCustomFeatureIds] = useState(() => FEATURE_PRESETS[0].featureIds.slice());
@@ -58,13 +60,14 @@ const ProjectSetupModal = ({
     const name = (projectName || '').trim() || (isFirstProject ? 'My First Restaurant Plan' : 'My Restaurant Plan');
     const enabledFeatures = resolveEnabledFeatures();
     if (onSubmit) {
-      onSubmit({ projectIntent: intent, projectName: name, enabledFeatures });
+      onSubmit({ projectIntent: intent, projectName: name, enabledFeatures, location });
     } else {
-      actions.createDraft(name, null, intent, enabledFeatures);
+      actions.createDraft(name, null, intent, enabledFeatures, location);
       if (onClose) onClose();
     }
     setProjectIntent(null);
     setProjectName('');
+    setLocation(DEFAULT_LOCATION);
     setFeaturePreset('full');
     setShowCustomFeatures(false);
   };
@@ -158,6 +161,25 @@ const ProjectSetupModal = ({
                 placeholder={isFirstProject ? 'e.g. My First Restaurant Plan' : 'e.g. Downtown location'}
                 className="form-input w-full"
               />
+            </div>
+
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                Restaurant location
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Used for permits, marketing, and financial benchmarks throughout your plan.
+              </p>
+              <select
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="form-input w-full"
+              >
+                {LOCATION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
 
             <div>

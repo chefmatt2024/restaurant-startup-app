@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import SectionCard from '../ui/SectionCard';
+import { useApp } from '../../contexts/AppContext';
 import { 
   Package, ChefHat, Coffee, Refrigerator, Zap, 
   CheckCircle, Utensils, Armchair, Music, Shield, Printer, Wifi,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 const EquipmentPlanning = () => {
+  const { state, actions } = useApp();
   const [activeCategory, setActiveCategory] = useState('kitchen');
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +41,39 @@ const EquipmentPlanning = () => {
   const [isProcessingCard, setIsProcessingCard] = useState(false);
   const fileInputRef = useRef(null);
   const vendorCardInputRef = useRef(null);
+  const persistTimeoutRef = useRef(null);
+
+  // Load equipment data from draft when switching drafts or when data arrives
+  useEffect(() => {
+    const data = state.equipmentData;
+    if (data) {
+      if (Array.isArray(data.bidSheet)) setBidSheet(data.bidSheet);
+      if (Array.isArray(data.customEquipment)) setCustomEquipment(data.customEquipment);
+      if (Array.isArray(data.plateStyles)) setPlateStyles(data.plateStyles);
+      if (data.selectedItems instanceof Set) setSelectedItems(data.selectedItems);
+      else if (Array.isArray(data.selectedItems)) setSelectedItems(new Set(data.selectedItems));
+      if (data.budget && typeof data.budget === 'object') setBudget(data.budget);
+    }
+  }, [state.currentDraftId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist equipment data to draft (debounced)
+  useEffect(() => {
+    if (!state.currentDraftId) return;
+    if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current);
+    persistTimeoutRef.current = setTimeout(() => {
+      actions.updateEquipmentData({
+        bidSheet,
+        customEquipment,
+        plateStyles,
+        selectedItems: Array.from(selectedItems),
+        budget
+      });
+      persistTimeoutRef.current = null;
+    }, 1500);
+    return () => {
+      if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current);
+    };
+  }, [bidSheet, customEquipment, plateStyles, selectedItems, budget, state.currentDraftId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Equipment Templates for Quick Setup
   const equipmentTemplates = [
@@ -1002,14 +1037,20 @@ const EquipmentPlanning = () => {
             }
           });
           
+          const vendorsRaw = formData.get('vendors') || '';
           const equipmentData = {
             name: formData.get('name'),
             category: formData.get('category'),
             estimatedCost: parseInt(formData.get('estimatedCost')),
             description: formData.get('description'),
             specifications: formData.get('specifications'),
-            vendors: formData.get('vendors').split(',').map(v => v.trim()).filter(v => v),
+            vendors: typeof vendorsRaw === 'string' ? vendorsRaw.split(',').map(v => v.trim()).filter(v => v) : [],
             maintenance: formData.get('maintenance'),
+            maintenanceSchedule: {
+              frequency: formData.get('maintenanceFrequency') || null,
+              lastCompleted: formData.get('maintenanceLastCompleted') || null,
+              nextDue: formData.get('maintenanceNextDue') || null,
+            },
             energyType: formData.get('energyType'),
             leadTime: formData.get('leadTime'),
             warranty: formData.get('warranty'),
@@ -1130,9 +1171,43 @@ const EquipmentPlanning = () => {
                       type="text"
                       name="maintenance"
                       defaultValue={editingEquipment?.maintenance || ''}
+                      placeholder="e.g., Daily cleaning, monthly calibration"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Frequency</label>
+                  <select
+                    name="maintenanceFrequency"
+                    defaultValue={editingEquipment?.maintenanceSchedule?.frequency || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">No schedule</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annual">Annual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Completed</label>
+                  <input
+                    type="date"
+                    name="maintenanceLastCompleted"
+                    defaultValue={editingEquipment?.maintenanceSchedule?.lastCompleted || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Next Due</label>
+                  <input
+                    type="date"
+                    name="maintenanceNextDue"
+                    defaultValue={editingEquipment?.maintenanceSchedule?.nextDue || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
                 </div>
               </div>
 

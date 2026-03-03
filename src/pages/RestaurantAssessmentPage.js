@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { ASSESSMENT_SECTIONS, SCORE_LABELS } from '../config/restaurantAssessmentChecklist';
+import { getSectionScores, getWeakSections, getRecommendations } from '../utils/assessmentRecommendations';
 import Footer from '../components/layout/Footer';
 import analyticsService, { FUNNELS, FUNNEL_STAGES } from '../services/analytics';
 import { savePendingAssessment } from '../utils/freeAssessmentStorage';
@@ -89,6 +90,25 @@ export default function RestaurantAssessmentPage() {
   const tier = getScoreTier(score);
   const tierConfig = tier ? SCORE_LABELS[tier] : null;
 
+  const { totalItems, answeredCount } = useMemo(() => {
+    let total = 0;
+    let answered = 0;
+    ASSESSMENT_SECTIONS.forEach((sec) => {
+      sec.items.forEach((item) => {
+        total += 1;
+        if (answers[item.id] != null) answered += 1;
+      });
+    });
+    return { totalItems: total, answeredCount: answered };
+  }, [answers]);
+
+  const sectionScores = useMemo(() => getSectionScores(answers), [answers]);
+  const weakSections = useMemo(() => getWeakSections(sectionScores, 70), [sectionScores]);
+  const recommendations = useMemo(
+    () => getRecommendations(tier, redFlagCount, weakSections),
+    [tier, redFlagCount, weakSections]
+  );
+
   useEffect(() => {
     analyticsService.trackFunnelStage(FUNNEL_STAGES.ASSESSMENT_STARTED, {
       funnel: FUNNELS.WEBSITE_TO_APP,
@@ -129,6 +149,8 @@ export default function RestaurantAssessmentPage() {
         applicable,
         redFlagCount,
         tier: getScoreTier(score),
+        sectionScores,
+        weakSections: weakSections.map((s) => s.label),
       },
     };
     savePendingAssessment(payload);
@@ -190,6 +212,20 @@ export default function RestaurantAssessmentPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>{answeredCount} of {totalItems} items answered</span>
+            <span>{totalItems > 0 ? Math.round((answeredCount / totalItems) * 100) : 0}%</span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-indigo-500 transition-all duration-300"
+              style={{ width: totalItems > 0 ? `${(answeredCount / totalItems) * 100}%` : '0%' }}
+            />
           </div>
         </div>
 
@@ -290,6 +326,51 @@ export default function RestaurantAssessmentPage() {
                     Red flags suggest deeper due diligence before committing—inspect permits, financials, and operations.
                   </p>
                 )}
+
+                {/* Section scores */}
+                {Object.keys(sectionScores).some((k) => sectionScores[k]) && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Section breakdown</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(sectionScores).map(([id, data]) => {
+                        if (!data) return null;
+                        const isWeak = data.score < 70;
+                        return (
+                          <span
+                            key={id}
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${isWeak ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700'}`}
+                            title={`${data.passed}/${data.applicable} passed`}
+                          >
+                            {data.label}: {data.score}%
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {recommendations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Recommendations</h3>
+                    <ul className="space-y-2">
+                      {recommendations.map((r, i) => (
+                        <li
+                          key={i}
+                          className={`p-3 rounded-lg border text-sm ${
+                            r.priority === 'high'
+                              ? 'bg-red-50 border-red-200 text-red-900'
+                              : r.priority === 'medium'
+                                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                                : 'bg-gray-50 border-gray-200 text-gray-800'
+                          }`}
+                        >
+                          <span className="font-medium">{r.title}:</span> {r.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
             ) : (
               <p className="text-gray-600">Answer at least one item (Pass or Fail) to see a score.</p>
@@ -311,6 +392,14 @@ export default function RestaurantAssessmentPage() {
                   Sign up free to save &amp; continue
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+                <a
+                  href="https://iterumfoods.com?utm_source=assessment&utm_medium=results&utm_campaign=consulting&utm_content=30min_review"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 text-sm font-medium"
+                >
+                  Get a 30-min review with an expert
+                </a>
                 <a
                   href="#"
                   onClick={(e) => {

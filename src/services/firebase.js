@@ -574,6 +574,46 @@ export const dbService = {
     }
   },
 
+  // User profile (subscription, stripeCustomerId) - used by Stripe webhooks and client
+  getUserProfile: async (userId, appId) => {
+    if (isFirebaseEnabled && db && userId) {
+      const userRef = doc(db, `artifacts/${appId}/users`, userId);
+      const docSnap = await getDoc(userRef);
+      return docSnap.exists() ? docSnap.data() : null;
+    }
+    return null;
+  },
+
+  ensureUserProfile: async (userId, appId, authUser) => {
+    if (!isFirebaseEnabled || !db || !userId) return;
+    const userRef = doc(db, `artifacts/${appId}/users`, userId);
+    const docSnap = await getDoc(userRef);
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        email: authUser?.email || '',
+        displayName: authUser?.displayName || '',
+        subscription: {
+          status: 'active',
+          plan: 'free',
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  },
+
+  subscribeToUserProfile: (userId, appId, callback) => {
+    if (isFirebaseEnabled && db && userId) {
+      const userRef = doc(db, `artifacts/${appId}/users`, userId);
+      return onSnapshot(userRef, (snap) => {
+        callback(snap.exists() ? snap.data() : null);
+      });
+    }
+    return () => {};
+  },
+
   subscribeToDrafts: (userId, appId, callback) => {
     if (isFirebaseEnabled && db && userId) {
       const draftsRef = collection(db, `artifacts/${appId}/users/${userId}/drafts`);
@@ -598,11 +638,13 @@ export const dbService = {
   }
 };
 
-// App configuration
+// App configuration - must match functions/ and sharingService
+const APP_ID = 'restaurant-planner';
+
 export const getAppId = () => {
   return typeof window !== 'undefined' && window.__app_id 
     ? window.__app_id 
-    : process.env.REACT_APP_ID || 'default-app-id';
+    : process.env.REACT_APP_ID || APP_ID;
 };
 
 export const getInitialAuthToken = () => {

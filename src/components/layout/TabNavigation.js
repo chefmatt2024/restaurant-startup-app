@@ -53,7 +53,6 @@ export const DETAIL_VIEW_TABS = [
   { id: 'operations', label: 'Operations', icon: Building, color: 'purple', description: 'Facility, staffing & run of house', phase: TAB_PHASES.BOTH },
   { id: 'vendors-expenses', label: 'Vendors & Expenses', icon: Truck, color: 'orange', description: 'Vendors, expenses & ledger', phase: TAB_PHASES.BOTH },
   { id: 'equipment-menu', label: 'Equipment & Menu', icon: Utensils, color: 'orange', description: 'Equipment planning & menu builder', phase: TAB_PHASES.BOTH },
-  { id: 'compliance', label: 'Compliance', icon: Shield, color: 'red', description: 'Documents, licenses, certifications', phase: TAB_PHASES.BOTH },
   { id: 'documents', label: 'Documents', icon: FileCheck, color: 'blue', description: 'Onboarding doc workflow', phase: TAB_PHASES.BOTH },
   { id: 'import', label: 'Import Document', icon: FileText, color: 'blue', description: 'Upload & extract data', phase: TAB_PHASES.BOTH },
   { id: 'reports', label: 'Reports', icon: BarChart3, color: 'green', description: 'P&L, variance, progress', phase: TAB_PHASES.OPERATIONS },

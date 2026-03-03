@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import FormField from '../ui/FormField';
 import SectionCard from '../ui/SectionCard';
+import { getAreaConfig } from '../../config/areaContent';
 import { RefreshCw, Lightbulb, MapPin, Users, Target, TrendingUp, DollarSign } from 'lucide-react';
 
 const MarketingStrategy = () => {
@@ -13,10 +14,15 @@ const MarketingStrategy = () => {
     actions.updateBusinessPlan('marketingStrategy', { [field]: value });
   };
 
-  // Location-based marketing insights
+  // City from restaurant settings (set at project creation)
+  const cityLocation = state.financialData?.restaurantDetails?.location || 'Boston';
+  const areaConfig = useMemo(() => getAreaConfig(cityLocation), [cityLocation]);
+  const cityMarketingTip = areaConfig?.taskTips?.['marketing-launch'] || null;
+
+  // Neighborhood-based marketing insights (from Concept & Pitch)
   const locationMarketingInsights = useMemo(() => {
-    const location = state.businessPlan.ideation?.location;
-    if (!location) return null;
+    const neighborhood = state.businessPlan.ideation?.location;
+    if (!neighborhood) return null;
 
     const insights = {
       'north-end': {
@@ -61,8 +67,11 @@ const MarketingStrategy = () => {
       }
     };
 
-    return insights[location] || insights['north-end']; // Default fallback
+    return insights[neighborhood] || insights['north-end']; // Default fallback
   }, [state.businessPlan.ideation?.location]);
+
+  // Use city for auto-update when neighborhood not set
+  const locationForAutoUpdate = state.businessPlan.ideation?.location || cityLocation;
 
   // Auto-update marketing strategy based on location
   const autoUpdateMarketingStrategy = () => {
@@ -73,7 +82,7 @@ const MarketingStrategy = () => {
       salesStrategy: `Target audience: ${locationMarketingInsights.primaryAudience}. Peak hours: ${locationMarketingInsights.peakTimes}. Sales channels: ${locationMarketingInsights.marketingChannels.join(', ')}.`,
       customerAcquisition: `Primary: ${locationMarketingInsights.marketingChannels.slice(0, 3).join(', ')}. Secondary: ${locationMarketingInsights.marketingChannels.slice(3).join(', ')}. Focus on ${locationMarketingInsights.primaryAudience.toLowerCase()} through ${locationMarketingInsights.messaging.toLowerCase()}.`,
       brandingStrategy: `Position as ${locationMarketingInsights.messaging}. Target ${locationMarketingInsights.primaryAudience.toLowerCase()} with ${locationMarketingInsights.messaging.toLowerCase()}.`,
-      digitalMarketing: `Website: SEO for ${state.businessPlan.ideation?.location} restaurants. Social media: ${locationMarketingInsights.marketingChannels.filter(channel => channel.includes('social') || channel.includes('Instagram') || channel.includes('LinkedIn')).join(', ')}. Online advertising: Google Ads for ${locationMarketingInsights.primaryAudience.toLowerCase()}.`
+      digitalMarketing: `Website: SEO for ${locationForAutoUpdate} restaurants. Social media: ${locationMarketingInsights.marketingChannels.filter(channel => channel.includes('social') || channel.includes('Instagram') || channel.includes('LinkedIn')).join(', ')}. Online advertising: Google Ads for ${locationMarketingInsights.primaryAudience.toLowerCase()}.`
     };
 
     actions.updateBusinessPlan('marketingStrategy', strategyUpdates);
@@ -228,8 +237,8 @@ const MarketingStrategy = () => {
         {locationMarketingInsights ? (
           <div className="space-y-4">
             <p className="text-gray-700">
-              Based on your selected location (<strong>{state.businessPlan.ideation?.location}</strong>), 
-              here are tailored marketing insights and recommendations:
+              Based on your city (<strong>{cityLocation}</strong>) and neighborhood (<strong>{state.businessPlan.ideation?.location}</strong>), 
+              here are tailored marketing insights:
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -262,10 +271,10 @@ const MarketingStrategy = () => {
         ) : (
           <div className="text-center py-8">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold text-gray-600 mb-2">No Location Selected</h4>
+            <h4 className="text-lg font-semibold text-gray-600 mb-2">Neighborhood not selected</h4>
             <p className="text-gray-500">
-              Go to your Business Concept section and select a Boston location to see 
-              location-specific marketing insights and recommendations.
+              Your restaurant is set to <strong>{cityLocation}</strong>. Go to Concept & Pitch and select a neighborhood 
+              for more detailed marketing insights. City-level tips appear above when available.
             </p>
           </div>
         )}

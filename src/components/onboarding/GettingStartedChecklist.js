@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { CheckCircle, Circle, Target, BarChart3, FileText, MapPin, Building2, Users, ArrowRight, Compass, Shield } from 'lucide-react';
 
-const GettingStartedChecklist = () => {
+const GettingStartedChecklist = ({ onSwitchToDetailed }) => {
   const { state, actions } = useApp();
   const [completedItems, setCompletedItems] = useState(new Set());
   const [isMinimized, setIsMinimized] = useState(false);
@@ -96,21 +96,6 @@ const GettingStartedChecklist = () => {
         return state.drafts?.some(d => d.timeline?.milestones?.length > 0);
       }
     },
-    {
-      id: 'compliance',
-      title: 'Start Permits & Compliance',
-      description: 'Track licenses, permits, and inspections (Boston requirements)',
-      tab: 'compliance',
-      icon: <Shield className="w-5 h-5" />,
-      checkFunction: () => {
-        const completed = state.openingPlanProgress?.completedTaskIds || [];
-        const permitTaskIds = ['business-certificate', 'business-licenses', 'building-permits', 'food-establishment-permit', 'certificate-of-occupancy', 'inspections', 'alcohol-licensing', 'boston-specific-requirements'];
-        const hasPermitProgress = permitTaskIds.some(id => completed.includes(id));
-        const draft = state.drafts?.find(d => d.id === state.currentDraftId);
-        const hasComplianceData = !!(draft?.complianceData?.documents?.length > 0);
-        return hasPermitProgress || hasComplianceData;
-      }
-    }
   ];
 
   useEffect(() => {
@@ -234,7 +219,10 @@ const GettingStartedChecklist = () => {
                 <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                 {!isCompleted && (
                   <button
-                    onClick={() => actions.setActiveTab(item.tab)}
+                    onClick={() => {
+                      actions.setActiveTab(item.tab);
+                      onSwitchToDetailed?.(item.tab);
+                    }}
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1"
                   >
                     <span>Go to {item.title}</span>

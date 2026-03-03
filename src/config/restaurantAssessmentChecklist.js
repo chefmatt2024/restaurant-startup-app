@@ -27,6 +27,7 @@ export const ASSESSMENT_SECTIONS = [
       { id: 'pace-appropriate', label: 'Pacing felt appropriate (not rushed or neglected)' },
       { id: 'check-in', label: 'Server checked in during meal (drinks, satisfaction)' },
       { id: 'bill-handled', label: 'Bill and payment handled smoothly' },
+      { id: 'special-requests', label: 'Special requests or dietary needs were accommodated' },
     ],
   },
   {
@@ -63,6 +64,19 @@ export const ASSESSMENT_SECTIONS = [
       { id: 'expo-runner', label: 'Food running / expo appeared coordinated' },
       { id: 'stock-levels', label: 'No obvious out-of-stock or “86” chaos' },
       { id: 'pos-tech', label: 'POS/tech in use without visible meltdowns' },
+      { id: 'management-visible', label: 'Visible management presence (expediting, floor coverage)' },
+    ],
+  },
+  {
+    id: 'financial-signals',
+    title: 'Financial & operational signals',
+    description: 'What you can infer from one visit',
+    icon: 'LayoutGrid',
+    items: [
+      { id: 'traffic-match', label: 'Traffic level matched expectations for day/time' },
+      { id: 'pricing-consistent', label: 'Pricing seemed consistent with the concept' },
+      { id: 'staffing-adequate', label: 'Staffing appeared adequate (no visible crisis)' },
+      { id: 'reinvesting', label: 'Signs of reinvestment (maintenance, cleanliness)' },
     ],
   },
   {

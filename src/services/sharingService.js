@@ -13,9 +13,7 @@ import {
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
-import { db, authService } from './firebase';
-
-const getAppId = () => 'restaurant-startup-app';
+import { db, authService, getAppId } from './firebase';
 
 // Permission levels
 export const PERMISSION_LEVELS = {

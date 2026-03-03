@@ -4,17 +4,17 @@
  */
 export const PROGRESS_SECTION_ORDER = [
   'startup-and-opening',   // 1. Opening plan & task tracking
-  'concept-pitch',         // 2. Concept & pitch
-  'market-competition',    // 3. Market & competition
-  'offer-marketing',       // 4. Offer & marketing
-  'financials',            // 5. Financial projections
-  'team-cap-table',        // 6. Team & cap table
-  'operations',            // 7. Operations plan
-  'timeline',              // 8. Project timeline
-  'vendors-expenses',      // 9. Vendors & expenses (combined)
-  'equipment-menu',        // 10. Equipment & menu
-  'branding',              // 11. Branding planner
-  'compliance'             // 12. Permits & compliance
+  'compliance',            // 2. Licenses & permits (priority for new customers)
+  'concept-pitch',         // 3. Concept & pitch
+  'market-competition',    // 4. Market & competition
+  'offer-marketing',       // 5. Offer & marketing
+  'financials',            // 6. Financial projections
+  'team-cap-table',        // 7. Team & cap table
+  'operations',            // 8. Operations plan
+  'timeline',              // 9. Project timeline
+  'vendors-expenses',      // 10. Vendors & expenses (combined)
+  'equipment-menu',        // 11. Equipment & menu
+  'branding'               // 12. Branding planner
 ];
 
 /**
@@ -97,7 +97,7 @@ export function getSectionStatus(draft, openingPlanCompletedIds = []) {
       completed: !!(draft.brandingData?.brandName)
     },
     'compliance': {
-      label: 'Compliance',
+      label: 'Licenses & Permits',
       completed: documentsDone
     }
   };
