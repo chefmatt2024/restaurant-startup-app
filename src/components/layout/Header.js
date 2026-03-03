@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell, CheckCircle, Loader2, AlertCircle, MapPin, Plus } from 'lucide-react';
 import DraftManager from './DraftManager';
 import DraftComparison from './DraftComparison';
 import AuthModal from '../auth/EnhancedAuthModal';

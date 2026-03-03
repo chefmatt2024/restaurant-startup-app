@@ -25,6 +25,15 @@ import SubscriptionManager from '../payment/SubscriptionManager';
 import PricingPage from '../payment/PricingPage';
 import SubscriptionDemo from '../payment/SubscriptionDemo';
 
+const ROLE_LABELS = {
+  restaurateur: 'Restaurateur / Owner',
+  chef: 'Chef',
+  manager: 'Manager',
+  investor: 'Investor',
+  consultant: 'Consultant',
+  other: 'Other'
+};
+
 const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
   const { state, actions } = useApp();
   const [isEditing, setIsEditing] = useState(false);

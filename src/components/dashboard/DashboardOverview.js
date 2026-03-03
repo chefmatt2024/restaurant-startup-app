@@ -76,6 +76,7 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
   const freeAssessment = currentDraft?.freeAssessment;
+  const startupChecklist = currentDraft?.startupChecklist;
   const openingPlanCompleted = state.openingPlanProgress?.completedTaskIds?.length ?? 0;
 
   return (

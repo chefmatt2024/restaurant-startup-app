@@ -41,6 +41,19 @@ const DraftManager = ({ isOpen, onClose }) => {
   const [targetConceptForNewDraft, setTargetConceptForNewDraft] = useState(null);
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
+  const plan = state.subscription?.plan || 'free';
+  const draftCount = state.drafts?.length ?? 0;
+  const canAddProject = canCreateNewProject(plan, draftCount);
+
+  const handleOpenNewProject = () => {
+    setShowProjectSetupModal(true);
+  };
+
+  const handleOpenNewDraft = () => {
+    setTargetConceptForNewDraft(null);
+    setNewDraftName('');
+    setShowCreateForm(true);
+  };
 
   // Group drafts by concept
   const draftsByConcept = state.drafts.reduce((acc, draft) => {

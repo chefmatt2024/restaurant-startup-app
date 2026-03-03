@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [showGuideAssistant, setShowGuideAssistant] = useState(false);
   const [showAIPopup, setShowAIPopup] = useState(false);
+  const [showFeatureSearch, setShowFeatureSearch] = useState(false);
 
   const currentDraft = state.drafts?.find(d => d.id === state.currentDraftId);
   const enabledFeatureIds = useMemo(

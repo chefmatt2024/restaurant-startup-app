@@ -13,6 +13,7 @@ import TechPage from './pages/TechPage';
 import SitemapPage from './pages/SitemapPage';
 import FAQPage from './pages/FAQPage';
 import RestaurantAssessmentPage from './pages/RestaurantAssessmentPage';
+import RestaurantStartupChecklistPage from './pages/RestaurantStartupChecklistPage';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import MessageModal from './components/ui/MessageModal';
 import { SessionManager, trackUsage } from './utils/accessControl';
