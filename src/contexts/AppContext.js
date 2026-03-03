@@ -2311,10 +2311,10 @@ export const AppProvider = ({ children }) => {
           dispatch({ type: ActionTypes.SET_SAVE_STATUS, payload: 'saved' });
           dispatch({ type: ActionTypes.SET_LAST_SAVED_AT, payload: new Date() });
           
-          // Reset save status after 2 seconds
+          // Briefly show saved, then hide indicator to reduce distraction
           setTimeout(() => {
             dispatch({ type: ActionTypes.SET_SAVE_STATUS, payload: 'idle' });
-          }, 2000);
+          }, 1500);
           
           if (!silent) {
             actions.showMessage('Success', `Draft "${currentDraft.name}" saved successfully!`, 'success');

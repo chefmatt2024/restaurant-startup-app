@@ -57,6 +57,15 @@ Run the deploy once to create it, then add the permission and deploy again. The 
 
 ---
 
+## Still failing? More fixes
+
+1. **Storage Object Admin** — Grant to `712703384904@cloudbuild.gserviceaccount.com` in IAM.
+2. **Clear Artifact Registry** — Delete `gcf-us-central1-*` repos in Artifact Registry to force a fresh build.
+3. **Upgrade Firebase CLI** — `npm install -g firebase-tools`
+4. **Deploy one function** — `firebase deploy --only functions:captureWaitlistLead`
+
+---
+
 ## "Build error details not available" (new error after Storage fix)
 
 If you now see **Build failed: Build error details not available** with a link to Cloud Build logs, the Cloud Build service account often needs **Artifact Registry** access.

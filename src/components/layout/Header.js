@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { Building2, Save, User, FileText, ChevronDown, GitCompare, LogIn, UserCircle, LogOut, Menu, X, Mail, Bell, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import DraftManager from './DraftManager';
@@ -10,6 +10,7 @@ import InvitationManager from '../sharing/InvitationManager';
 import ProjectSetupModal from './ProjectSetupModal';
 import { getPendingInvitations } from '../../services/sharingService';
 import { getNotifications } from '../../utils/notificationsUtils';
+import { canCreateNewProject } from '../../services/stripe';
 
 const Header = () => {
   const { state, actions } = useApp();
@@ -28,6 +29,20 @@ const Header = () => {
 
   const currentDraft = state.drafts.find(draft => draft.id === state.currentDraftId);
   const notifications = useMemo(() => getNotifications(state), [state.notificationReadIds, state.openingPlanProgress, state.subscription]);
+  const plan = state.subscription?.plan || 'free';
+  const draftCount = state.drafts?.length ?? 0;
+  const canAddProject = canCreateNewProject(plan, draftCount);
+
+  const formatLastSaved = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const sec = Math.floor((Date.now() - d) / 1000);
+    if (sec < 5) return 'just now';
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  };
 
   const handleSave = async () => {
     await actions.saveData();
@@ -40,6 +55,11 @@ const Header = () => {
 
   const handleCreateQuickDraft = () => {
     setShowDraftDropdown(false);
+    if (!canAddProject) {
+      actions.showMessage('Upgrade to add projects', 'Free plans include 1 project. Upgrade to Professional or Business to create unlimited restaurant plans.', 'info');
+      actions.setActiveTab('pricing');
+      return;
+    }
     setShowProjectSetupModal(true);
   };
 
@@ -194,10 +214,14 @@ const Header = () => {
               ) : (
                 <button
                   onClick={handleCreateQuickDraft}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed transition-colors ${
+                    canAddProject
+                      ? 'border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50'
+                      : 'border-amber-300 text-amber-600 hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="font-medium">Create project</span>
+                  <span className="font-medium">{canAddProject ? 'Create project' : 'Upgrade for more projects'}</span>
                 </button>
               )}
             </div>
@@ -366,9 +390,9 @@ const Header = () => {
                   </div>
                 )}
                 {state.saveStatus === 'saved' && (
-                  <div className="flex items-center space-x-1 text-green-600 text-sm">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="hidden sm:inline">Saved</span>
+                  <div className="flex items-center space-x-1 text-slate-500 text-xs" title="All changes saved automatically">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Last saved {formatLastSaved(state.lastSavedAt) || 'just now'}</span>
                   </div>
                 )}
                 {state.saveStatus === 'error' && (
@@ -463,9 +487,9 @@ const Header = () => {
                       </div>
                     )}
                     {state.saveStatus === 'saved' && (
-                      <div className="flex items-center justify-center space-x-1 text-green-600 text-sm">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Saved</span>
+                      <div className="flex items-center justify-center space-x-1 text-slate-500 text-xs" title="All changes saved automatically">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Last saved {formatLastSaved(state.lastSavedAt) || 'just now'}</span>
                       </div>
                     )}
                     {state.saveStatus === 'error' && (

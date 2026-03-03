@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import ShareProject from '../sharing/ShareProject';
 import ProjectSetupModal from './ProjectSetupModal';
+import { canCreateNewProject } from '../../services/stripe';
 
 const DraftManager = ({ isOpen, onClose }) => {
   const { state, actions } = useApp();
@@ -83,7 +84,13 @@ const DraftManager = ({ isOpen, onClose }) => {
   const handleCreateDraft = (e) => {
     e.preventDefault();
     if (!newDraftName.trim()) return;
-
+    const plan = state.subscription?.plan || 'free';
+    const draftCount = state.drafts?.length ?? 0;
+    if (!canCreateNewProject(plan, draftCount)) {
+      actions.showMessage('Upgrade to add projects', 'Free plans include 1 project. Upgrade to Professional or Business to create unlimited restaurant plans.', 'info');
+      actions.setActiveTab('pricing');
+      return;
+    }
     let newDraft;
 
     // If we're adding a draft within an existing project (concept), inherit its intent/features
@@ -320,19 +327,19 @@ const DraftManager = ({ isOpen, onClose }) => {
           <div className="flex flex-wrap items-center gap-3">
             {activeTab === 'concepts' ? (
               <button
-                onClick={() => setShowConceptForm(true)}
-                className="btn-primary flex items-center space-x-2"
+                onClick={handleOpenNewProject}
+                className={`flex items-center space-x-2 ${canAddProject ? 'btn-primary' : 'btn-secondary opacity-90'}`}
               >
                 <Plus className="w-4 h-4" />
-                <span>New Project</span>
+                <span>{canAddProject ? 'New Project' : 'Upgrade for more projects'}</span>
               </button>
             ) : (
               <button
-                onClick={() => setShowCreateForm(true)}
-                className="btn-primary flex items-center space-x-2"
+                onClick={handleOpenNewDraft}
+                className={`flex items-center space-x-2 ${canAddProject ? 'btn-primary' : 'btn-secondary opacity-90'}`}
               >
                 <Plus className="w-4 h-4" />
-                <span>New Draft</span>
+                <span>{canAddProject ? 'New Draft' : 'Upgrade for more projects'}</span>
               </button>
             )}
 

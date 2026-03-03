@@ -4,6 +4,7 @@ import { Store, Building, Building2, X, ArrowRight, Layers, Check } from 'lucide
 import { FEATURE_PRESETS, ALL_FEATURE_IDS } from '../../config/featurePresets';
 import { DETAIL_VIEW_TABS } from './TabNavigation';
 import { LOCATION_OPTIONS, DEFAULT_LOCATION } from '../../config/locationOptions';
+import { canCreateNewProject } from '../../services/stripe';
 
 const INTENT_OPTIONS = [
   {
@@ -56,6 +57,13 @@ const ProjectSetupModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const plan = state.subscription?.plan || 'free';
+    const draftCount = state.drafts?.length ?? 0;
+    if (!canCreateNewProject(plan, draftCount)) {
+      actions.showMessage('Upgrade to add projects', 'Free plans include 1 project. Upgrade to Professional or Business to create unlimited restaurant plans.', 'info');
+      actions.setActiveTab('pricing');
+      return;
+    }
     const intent = projectIntent || PROJECT_INTENTS.OPENING_NEW;
     const name = (projectName || '').trim() || (isFirstProject ? 'My First Restaurant Plan' : 'My Restaurant Plan');
     const enabledFeatures = resolveEnabledFeatures();

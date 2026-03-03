@@ -147,6 +147,11 @@ export const canAccessFeature = (userPlan, feature, currentUsage = 0) => {
   return false;
 };
 
+/** Returns true if the user can create an additional project (plan) based on subscription tier. */
+export const canCreateNewProject = (planId, currentPlanCount) => {
+  return canAccessFeature(planId, 'maxPlans', currentPlanCount);
+};
+
 // Stripe checkout functions using Firebase Functions
 export const createCheckoutSession = async (priceId, userId, userEmail) => {
   try {

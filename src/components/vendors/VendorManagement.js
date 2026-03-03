@@ -5,6 +5,7 @@ import SectionCard from '../ui/SectionCard';
 import { aiService } from '../../services/aiService';
 
 import { Plus, Phone, Mail, Globe, MapPin, Building, Search, Filter, XCircle, Star, CheckCircle, Award, Download, BarChart3, PieChart, Network, Truck, Warehouse, Store, FileText, Upload, Loader2, Sparkles, X, Eye } from 'lucide-react';
+import { canCreateNewProject } from '../../services/stripe';
 
 // PDF parsing library (loaded dynamically)
 let pdfjsLib = null;
@@ -1126,13 +1127,23 @@ Return a well-structured summary in markdown format.`;
           <p className="text-amber-800 font-medium">
             Create a draft to save vendors. Your vendors will be stored with your plan once a draft is selected.
           </p>
-          <button
-            type="button"
-            onClick={() => actions.createDraft(draftCount > 0 ? `Draft ${draftCount + 1}` : 'My plan')}
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700"
-          >
-            Create draft
-          </button>
+          {canCreateNewProject(state.subscription?.plan || 'free', draftCount) ? (
+            <button
+              type="button"
+              onClick={() => actions.createDraft(draftCount > 0 ? `Draft ${draftCount + 1}` : 'My plan')}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700"
+            >
+              Create draft
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => actions.setActiveTab('pricing')}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700"
+            >
+              Upgrade for more projects
+            </button>
+          )}
         </div>
       )}
       {/* Header Section */}
