@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useRef } from 
 import { authService, dbService, getAppId, getInitialAuthToken, getAllUsers, deleteUserAccount } from '../services/firebase';
 import { getInitialMonthlyPL } from '../config/monthlyPLAccounts';
 import { getPendingAssessment, clearPendingAssessment } from '../utils/freeAssessmentStorage';
+import { getPendingStartupChecklist, clearPendingStartupChecklist } from '../utils/freeStartupChecklistStorage';
 
 // Action Types
 export const ActionTypes = {
@@ -31,6 +32,7 @@ export const ActionTypes = {
   SET_DRAFTS: 'SET_DRAFTS',
   SET_CURRENT_DRAFT_ID: 'SET_CURRENT_DRAFT_ID',
   CREATE_DRAFT: 'CREATE_DRAFT',
+  CREATE_DRAFT_FROM_IMPORT: 'CREATE_DRAFT_FROM_IMPORT',
   UPDATE_DRAFT: 'UPDATE_DRAFT',
   DELETE_DRAFT: 'DELETE_DRAFT',
   DUPLICATE_DRAFT: 'DUPLICATE_DRAFT',
@@ -711,8 +713,17 @@ const createNewDraft = (name = `Draft ${Date.now()}`, baseDraft = null, projectI
     equipmentData: baseDraft?.equipmentData ? JSON.parse(JSON.stringify(baseDraft.equipmentData)) : null,
     ledgerEntries: Array.isArray(baseDraft?.ledgerEntries) ? [...baseDraft.ledgerEntries] : [],
     sops: baseDraft?.sops ? baseDraft.sops.map(s => ({ ...s, steps: [...(s.steps || [])] })) : [],
-    freeAssessment: baseDraft?.freeAssessment || null
+    freeAssessment: baseDraft?.freeAssessment || null,
+    startupChecklist: baseDraft?.startupChecklist || null
   };
+};
+
+/** Create a draft from imported pending data (assessment or startup checklist) */
+const createDraftFromPendingImport = (name, overrides = {}) => {
+  const draft = createNewDraft(name);
+  if (overrides.freeAssessment) draft.freeAssessment = overrides.freeAssessment;
+  if (overrides.startupChecklist) draft.startupChecklist = overrides.startupChecklist;
+  return draft;
 };
 
 // Sample Boston restaurant drafts for demonstration
@@ -2013,6 +2024,23 @@ export const appReducer = (state, action) => {
         ledgerEntries: newDraft.ledgerEntries || []
       };
     }
+
+    case ActionTypes.CREATE_DRAFT_FROM_IMPORT: {
+      const newDraft = action.payload.draft;
+      return {
+        ...state,
+        drafts: [...state.drafts, newDraft],
+        currentDraftId: newDraft.id,
+        businessPlan: newDraft.businessPlan,
+        financialData: newDraft.financialData,
+        vendors: newDraft.vendors,
+        openingPlanProgress: newDraft.openingPlanProgress || { completedTaskIds: [] },
+        documentVersions: newDraft.documentVersions || [],
+        sops: newDraft.sops || [],
+        equipmentData: newDraft.equipmentData || null,
+        ledgerEntries: newDraft.ledgerEntries || []
+      };
+    }
     
     case ActionTypes.UPDATE_DRAFT: {
       const updatedDrafts = state.drafts.map(draft => 
@@ -2218,6 +2246,11 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.CREATE_DRAFT, payload: { name, baseDraft, projectIntent, enabledFeatures, initialLocation } });
       const newDraft = createNewDraft(name, baseDraft, projectIntent, enabledFeatures, initialLocation);
       return newDraft;
+    },
+    createDraftFromImport: (name, overrides = {}) => {
+      const draft = createDraftFromPendingImport(name, overrides);
+      dispatch({ type: ActionTypes.CREATE_DRAFT_FROM_IMPORT, payload: { draft } });
+      return draft;
     },
     
     updateDraft: (id, updates) => {
@@ -2493,8 +2526,8 @@ export const AppProvider = ({ children }) => {
         
         // Subscribe to user profile for real-time subscription updates (e.g. after Stripe checkout)
         profileUnsubscribe = dbService.subscribeToUserProfile(user.uid, appId, (profile) => {
-          if (profile?.subscription) {
-            actions.updateUserProfile({ ...profile, subscription: profile.subscription });
+          if (profile) {
+            actions.updateUserProfile(profile);
           }
         });
         
@@ -2519,54 +2552,72 @@ export const AppProvider = ({ children }) => {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Import pending free assessment after user signs in and drafts are available.
+  // Import pending assessment or startup checklist as a NEW project after signup.
   useEffect(() => {
-    const importPendingAssessment = async () => {
+    const importPendingAsNewProject = async () => {
       if (assessmentImportInProgress.current) return;
-      if (!state.isAuthenticated || !state.userId || !Array.isArray(state.drafts) || state.drafts.length === 0) return;
+      if (!state.isAuthenticated || !state.userId) return;
 
       const pendingAssessment = getPendingAssessment();
-      if (!pendingAssessment) return;
-
-      const targetDraftId =
-        state.currentDraftId && state.drafts.some(d => d.id === state.currentDraftId)
-          ? state.currentDraftId
-          : state.drafts[0].id;
-      const targetDraft = state.drafts.find(d => d.id === targetDraftId);
-      if (!targetDraft) return;
+      const pendingChecklist = getPendingStartupChecklist();
+      if (!pendingAssessment && !pendingChecklist) return;
 
       assessmentImportInProgress.current = true;
       try {
         const appId = getAppId();
-        const importedAssessment = {
-          ...pendingAssessment,
-          importedAt: new Date().toISOString(),
-        };
-        const updatedDraft = {
-          ...targetDraft,
-          freeAssessment: importedAssessment,
-          updatedAt: new Date(),
-        };
+        const overrides = {};
+        let projectName = 'My Restaurant Plan';
 
-        await dbService.saveDraft(state.userId, appId, updatedDraft);
-        const updatedDrafts = state.drafts.map(d => (d.id === targetDraftId ? updatedDraft : d));
+        if (pendingAssessment) {
+          overrides.freeAssessment = {
+            ...pendingAssessment,
+            importedAt: new Date().toISOString(),
+          };
+          if (pendingAssessment.restaurantName?.trim()) {
+            projectName = pendingAssessment.restaurantName.trim();
+          } else {
+            projectName = 'Restaurant Assessment';
+          }
+        }
+        if (pendingChecklist) {
+          overrides.startupChecklist = {
+            ...pendingChecklist,
+            importedAt: new Date().toISOString(),
+          };
+          if (pendingChecklist.projectName?.trim()) {
+            projectName = pendingChecklist.projectName.trim();
+          } else if (!pendingAssessment) {
+            projectName = 'Restaurant Startup';
+          }
+        }
+
+        const newDraft = actions.createDraftFromImport(projectName, overrides);
+        await dbService.saveDraft(state.userId, appId, newDraft);
+        const updatedDrafts = [...state.drafts, newDraft];
         await dbService.saveDraftsMetadata(state.userId, appId, updatedDrafts);
-        actions.updateDraft(targetDraftId, { freeAssessment: importedAssessment });
-        clearPendingAssessment();
+
+        if (pendingAssessment) clearPendingAssessment();
+        if (pendingChecklist) clearPendingStartupChecklist();
+
+        const what = pendingAssessment && pendingChecklist
+          ? 'assessment and checklist'
+          : pendingAssessment
+            ? 'assessment'
+            : 'startup checklist';
         actions.showMessage(
-          'Assessment imported',
-          'Your free business analysis has been saved to this draft.',
+          'Project created',
+          `Your ${what} has been saved as a new project.`,
           'success'
         );
       } catch (error) {
-        // Keep pending assessment in storage so we can retry on next load.
+        // Keep pending data in storage so we can retry on next load.
       } finally {
         assessmentImportInProgress.current = false;
       }
     };
 
-    importPendingAssessment();
-  }, [state.isAuthenticated, state.userId, state.drafts, state.currentDraftId]); // eslint-disable-line react-hooks/exhaustive-deps
+    importPendingAsNewProject();
+  }, [state.isAuthenticated, state.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-save functionality - debounced save on data changes
   useEffect(() => {

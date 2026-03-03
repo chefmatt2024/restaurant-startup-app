@@ -66,9 +66,30 @@ Run the deploy once to create it, then add the permission and deploy again. The 
 
 ---
 
-## "Build error details not available" (new error after Storage fix)
+## "Does not have permission to write logs to Cloud Logging"
 
-If you now see **Build failed: Build error details not available** with a link to Cloud Build logs, the Cloud Build service account often needs **Artifact Registry** access.
+If the build fails with:
+> The service account ... does not have permission to write logs to Cloud Logging.  
+> To fix this, grant the Logs Writer (roles/logging.logWriter) role to the service account.
+
+### Fix: Grant Logs Writer to the Compute Engine service account
+
+1. Open **IAM**: https://console.cloud.google.com/iam-admin/iam?project=restaurant-startup-app
+2. Click **+ GRANT ACCESS**
+3. **New principals:** `712703384904-compute@developer.gserviceaccount.com`
+4. **Role:** search for **Logs Writer** and select it
+5. Click **Save**
+6. Retry: `firebase deploy --only functions`
+
+---
+
+## "artifactregistry.repositories.downloadArtifacts denied" / Artifact Registry permission
+
+If the build fails with:
+> Permission 'artifactregistry.repositories.downloadArtifacts' denied on resource...  
+> DENIED: Permission 'artifactregistry.repositories.downloadArtifacts' denied
+
+Or with **Build error details not available** — the Cloud Build service account needs **Artifact Registry** access.
 
 ### Fix: Grant Artifact Registry Writer to Cloud Build
 

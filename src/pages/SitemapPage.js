@@ -20,6 +20,7 @@ const SitemapPage = () => {
         { path: '/dashboard', label: 'Dashboard (Alt)', description: 'Same as home' },
         { path: '/landing', label: 'Restauranteur Landing', description: 'Product landing and trial CTA' },
         { path: '/assessment', label: 'Free Restaurant Assessment', description: 'Public one-visit checklist (no login)' },
+        { path: '/checklist', label: 'Restaurant Startup Checklist', description: 'Track progress from idea to open (no login)' },
         { path: '/restaurant-startup-app', label: 'Restaurant Startup App', description: 'Product landing route' }
       ]
     },

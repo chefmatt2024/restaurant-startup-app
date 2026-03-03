@@ -14,6 +14,7 @@ Single reference for all routes, app features (dashboard tabs), project setup, a
 | `/dashboard` | Dashboard (alias) | Required |
 | `/landing` | In-app landing (Restaurant Business Planner) | No |
 | `/assessment` | Free Restaurant Assessment (public) | No |
+| `/checklist` | Restaurant Startup Checklist (public) | No |
 | `/restaurant-startup-app` | Same as Restauranteur landing | No |
 | `/investors` | Investor landing | No |
 | `/terms` | Terms of Service | No |
@@ -163,7 +164,7 @@ Tabs are grouped in the sidebar by phase: **Pre-opening & Plan** → **Plan & Op
 
 ## 6. Quick reference
 
-- **Public (no login):** `/assessment`, `/landing`, `/restaurant-startup-app`, `/investors`, `/terms`, `/privacy`, `/tech`, `/faq`, `/sitemap`
+- **Public (no login):** `/assessment`, `/checklist`, `/landing`, `/restaurant-startup-app`, `/investors`, `/terms`, `/privacy`, `/tech`, `/faq`, `/sitemap`
 - **App (login required):** `/`, `/dashboard` (sidebar tabs + pricing, subscription, admin, draft manager, project setup, AI, guide, feedback, invitations)
 - **Consulting:** iterumfoods.com (outside this app)
 - **Workflow:** Assessment → Signup → Project setup → Trial → Paid (app); or any path → iterumfoods.com (consulting)

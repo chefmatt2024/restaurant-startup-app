@@ -592,6 +592,9 @@ export const dbService = {
       await setDoc(userRef, {
         email: authUser?.email || '',
         displayName: authUser?.displayName || '',
+        phone: '',
+        company: '',
+        role: '',
         subscription: {
           status: 'active',
           plan: 'free',
@@ -602,6 +605,20 @@ export const dbService = {
         updatedAt: new Date(),
       });
     }
+  },
+
+  /** Update extended user profile fields (phone, company, role) — merges with existing doc */
+  saveUserProfileDoc: async (userId, appId, updates) => {
+    if (!isFirebaseEnabled || !db || !userId) return;
+    const userRef = doc(db, `artifacts/${appId}/users`, userId);
+    const safeUpdates = {
+      ...(updates.displayName !== undefined && { displayName: updates.displayName }),
+      ...(updates.phone !== undefined && { phone: updates.phone }),
+      ...(updates.company !== undefined && { company: updates.company }),
+      ...(updates.role !== undefined && { role: updates.role }),
+      updatedAt: new Date(),
+    };
+    await setDoc(userRef, safeUpdates, { merge: true });
   },
 
   subscribeToUserProfile: (userId, appId, callback) => {

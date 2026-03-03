@@ -67,6 +67,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/checklist" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
+                  Restaurant Startup Checklist
+                </Link>
+              </li>
+              <li>
                 <a href="https://iterumfoods.com?utm_source=restauranteur_app&utm_medium=footer&utm_campaign=consulting" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors text-sm">
                   Work with us 1:1 — Consulting
                 </a>

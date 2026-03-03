@@ -185,6 +185,17 @@ const DashboardOverview = ({ onSwitchToDetailed }) => {
             <ChevronRight className="w-5 h-5 text-slate-400" />
           </button>
         )}
+
+        {startupChecklist && (
+          <button
+            type="button"
+            onClick={() => onSwitchToDetailed?.('startup-and-opening')}
+            className="w-full flex items-center justify-between p-4 rounded-lg border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 text-left"
+          >
+            <span className="font-medium text-slate-800">Startup checklist: {startupChecklist.completedCount}/{startupChecklist.totalItems} complete</span>
+            <ChevronRight className="w-5 h-5 text-slate-400" />
+          </button>
+        )}
       </div>
 
       {/* Location — minimal */}

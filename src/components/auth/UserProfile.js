@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { authService } from '../../services/firebase';
+import { authService, dbService, getAppId } from '../../services/firebase';
 import { 
   User, 
   Mail, 
+  Phone,
+  Building2,
+  Briefcase,
   Calendar, 
   LogOut, 
   Edit3, 
@@ -11,11 +14,11 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  Settings,
   CreditCard,
   Shield,
   DollarSign,
-  Star
+  Star,
+  Clock
 } from 'lucide-react';
 import AdminDashboard from '../admin/AdminDashboard';
 import SubscriptionManager from '../payment/SubscriptionManager';
@@ -32,10 +35,26 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [profileData, setProfileData] = useState({
     displayName: state.user?.displayName || '',
-    email: state.user?.email || ''
+    email: state.user?.email || '',
+    phone: state.user?.phone || '',
+    company: state.user?.company || '',
+    role: state.user?.role || ''
   });
 
   const currentUser = authService.getCurrentUser();
+
+  // Sync profile data when user or modal opens
+  useEffect(() => {
+    if (state.user && isOpen) {
+      setProfileData({
+        displayName: state.user?.displayName || '',
+        email: state.user?.email || '',
+        phone: state.user?.phone || '',
+        company: state.user?.company || '',
+        role: state.user?.role || ''
+      });
+    }
+  }, [state.user, isOpen]);
 
   // Check admin status and set initial section
   useEffect(() => {
@@ -86,10 +105,22 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
       await authService.updateUserProfile({
         displayName: profileData.displayName
       });
+      const appId = getAppId();
+      await dbService.saveUserProfileDoc(state.userId, appId, {
+        displayName: profileData.displayName,
+        phone: profileData.phone?.trim() || '',
+        company: profileData.company?.trim() || '',
+        role: profileData.role?.trim() || ''
+      });
+      actions.updateUserProfile({
+        displayName: profileData.displayName,
+        phone: profileData.phone?.trim() || '',
+        company: profileData.company?.trim() || '',
+        role: profileData.role?.trim() || ''
+      });
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
-    } catch (error) {
-      // console.error('Profile update error:', error);
+    } catch (err) {
       setError('Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
@@ -217,6 +248,46 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
         <div className="flex-1 overflow-y-auto">
           {activeSection === 'profile' && (
             <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-700">Personal Information</h3>
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit profile
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setProfileData({
+                      displayName: state.user?.displayName || currentUser?.displayName || '',
+                      email: state.user?.email || currentUser?.email || '',
+                      phone: state.user?.phone || '',
+                      company: state.user?.company || '',
+                      role: state.user?.role || ''
+                    });
+                    setError('');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
           {/* User Info */}
           <div className="space-y-4">
             {/* Display Name */}
@@ -225,52 +296,20 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
                 Full Name
               </label>
               {isEditing ? (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    name="displayName"
-                    value={profileData.displayName}
-                    onChange={handleInputChange}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your full name"
-                    disabled={isLoading}
-                  />
-                  <button
-                    onClick={handleSaveProfile}
-                    disabled={isLoading}
-                    className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Check className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setProfileData({
-                        displayName: currentUser?.displayName || '',
-                        email: currentUser?.email || ''
-                      });
-                      setError('');
-                    }}
-                    className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  name="displayName"
+                  value={profileData.displayName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your full name"
+                  disabled={isLoading}
+                />
               ) : (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-900">
-                    {currentUser?.displayName || 'No name set'}
+                    {currentUser?.displayName || profileData.displayName || 'No name set'}
                   </span>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
                 </div>
               )}
             </div>
@@ -286,6 +325,96 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
                   {currentUser?.email || 'No email set'}
                 </span>
               </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone
+              </label>
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={profileData.phone}
+                    onChange={handleInputChange}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="(555) 123-4567"
+                    disabled={isLoading}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900">
+                    {profileData.phone || 'Not set'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Company / Organization */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Company / Organization
+              </label>
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <Building2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <input
+                    type="text"
+                    name="company"
+                    value={profileData.company}
+                    onChange={handleInputChange}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your restaurant or company name"
+                    disabled={isLoading}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <Building2 className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900">
+                    {profileData.company || 'Not set'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Role
+              </label>
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <select
+                    name="role"
+                    value={profileData.role}
+                    onChange={handleInputChange}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                  >
+                    <option value="">Select your role</option>
+                    <option value="restaurateur">Restaurateur / Owner</option>
+                    <option value="chef">Chef</option>
+                    <option value="manager">Manager</option>
+                    <option value="investor">Investor</option>
+                    <option value="consultant">Consultant</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <Briefcase className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900">
+                    {profileData.role ? (ROLE_LABELS[profileData.role] || profileData.role) : 'Not set'}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Account Type */}
@@ -313,7 +442,7 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
               </div>
             </div>
 
-            {/* Created Date */}
+            {/* Member Since */}
             {currentUser?.metadata?.creationTime && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -323,6 +452,37 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
                   <Calendar className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-900">
                     {formatDate(currentUser.metadata.creationTime)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Last Sign-in */}
+            {currentUser?.metadata?.lastSignInTime && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Sign-in
+                </label>
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900">
+                    {formatDate(currentUser.metadata.lastSignInTime)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Subscription Summary */}
+            {state.user?.subscription && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subscription
+                </label>
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <CreditCard className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900 capitalize">
+                    {state.user.subscription.plan || 'free'} plan
+                    {state.user.subscription.status && ` · ${state.user.subscription.status}`}
                   </span>
                 </div>
               </div>
@@ -348,12 +508,12 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
           {/* Account Stats */}
           <div className="border-t border-gray-200 pt-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Your Data</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
                   {state.drafts?.length || 0}
                 </div>
-                <div className="text-xs text-blue-600">Draft Plans</div>
+                <div className="text-xs text-blue-600">Projects</div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
@@ -362,6 +522,24 @@ const UserProfile = ({ isOpen, onClose, initialSection = 'profile' }) => {
                 <div className="text-xs text-green-600">Vendors</div>
               </div>
             </div>
+            {state.drafts?.length > 0 && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Projects</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {state.drafts.slice(0, 5).map((d) => (
+                    <span
+                      key={d.id}
+                      className="inline-flex px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs"
+                    >
+                      {d.name || 'Untitled'}
+                    </span>
+                  ))}
+                  {state.drafts.length > 5 && (
+                    <span className="text-xs text-gray-500">+{state.drafts.length - 5} more</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
           )}

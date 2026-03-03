@@ -94,6 +94,14 @@
     <priority>0.9</priority>
   </url>
   
+  <!-- Startup Checklist (public lead magnet) -->
+  <url>
+    <loc>https://restaurant-startup-app.web.app/checklist</loc>
+    <lastmod>2025-01-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
   <!-- Additional Pages -->
   <url>
     <loc>https://restaurant-startup-app.web.app/tech</loc>

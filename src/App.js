@@ -100,6 +100,7 @@ function AppContent() {
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/assessment" element={<RestaurantAssessmentPage />} />
+        <Route path="/checklist" element={<RestaurantStartupChecklistPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <LoadingSpinner />

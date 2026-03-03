@@ -423,6 +423,40 @@ const RestaurantBusinessPlannerLanding = () => {
         </div>
       </div>
 
+      {/* Restaurant Startup Checklist – track idea to open */}
+      <div className="py-10 sm:py-14 bg-gray-50 border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 sm:p-8 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full text-sm font-semibold mb-4">
+                  <ClipboardCheck className="w-4 h-4" />
+                  Free tool
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  Restaurant Startup Checklist
+                </h2>
+                <p className="text-gray-700 text-base mb-2">
+                  Track your progress from idea to open. Based on the full Restauranteur journey—concept, funding, permits, buildout, and launch.
+                </p>
+                <p className="text-sm text-gray-600">
+                  6 phases, 36 key milestones. Check off as you go, save your progress when you sign up.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <Link
+                  to="/checklist"
+                  className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-colors"
+                >
+                  <ClipboardCheck className="w-5 h-5" />
+                  Use the checklist
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* App Screenshot Section */}
       <div className="py-8 sm:py-12 md:py-16 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
